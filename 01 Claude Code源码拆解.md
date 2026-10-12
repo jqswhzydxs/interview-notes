@@ -1,22 +1,22 @@
 ## 1. CLAUDE.md 指南：Claude Code 的项目记忆该怎么写？
 
-### [01｜](https://xiaolinnote.com/claudecode/playbook/cc_claude_md.html#_01-claude-md-到底是个什么东西)[CLAUDE.md](http://claude.md/) 到底是个什么东西？
+### 1.1 CLAUDE.md到底是个什么东西？
 
 里面就是写写规则、放放说明。
 
 特别之处：每次打开 Claude Code 跟它聊天，**Claude 都会自动把这个文件读一遍**，作为整个对话的「ground truth」（基准事实，可以理解为「默认成立的前提」）。你后面提的需求、它做的判断，全都是在这份「团队约定」的基础上推进的。
 
-那为啥要专门搞一个 [CLAUDE.md](http://claude.md/)？
+那为啥要专门搞一个 CLAUDE.md？
 
 我直接把规则写在 README 里不行吗？反正它俩都是 markdown 文件。
 
-「README 是写给人看的，[CLAUDE.md](http://claude.md/) 是写给 agent 看的，两个读者群体不一样，密度也不一样。」
+「README 是写给人看的，[CLAUDE.md] 是写给 agent 看的，两个读者群体不一样，密度也不一样。」
 
 啥意思？README 是给开发者翻的，写项目介绍、快速上手、贡献指南，长一点没事，散一点没事，反正人会跳读。
 
 **而且 Claude 默认不会主动去读 README**，你不告诉它去看，它就当不存在。
 
-[CLAUDE.md](http://claude.md/) 才是那个被自动加载、每次都吃 token 的「默认配置」。
+[CLAUDE.md] 才是那个被自动加载、每次都吃 token 的「默认配置」。
 
 那它具体是怎么被加载的？这里顺便贴一小段 Claude Code 源码让你看看背后的机制：
 
@@ -31,31 +31,31 @@ while (currentDir !== parse(currentDir).root) {
 }
 ```
 
-这段代码出自 `src/utils/claudemd.ts`。逻辑很朴素：从你当前所在的目录一路往上爬到文件系统根目录，每爬一层就把目录名记下来。爬完之后再反向遍历，从根目录往下读每一层的 [CLAUDE.md](http://claude.md/) 和 `.claude/CLAUDE.md`，全部合并喂给模型。
+这段代码出自 `src/utils/claudemd.ts`。逻辑很朴素：从你当前所在的目录一路往上爬到文件系统根目录，每爬一层就把目录名记下来。爬完之后再反向遍历，从根目录往下读每一层的 [CLAUDE.md] 和 `.claude/CLAUDE.md`，全部合并喂给模型。
 
-所以一个项目可能同时有好几份 [CLAUDE.md](http://claude.md/) 在生效，这一点我们第四节会展开。
+所以一个项目可能同时有好几份 [CLAUDE.md] 在生效，这一点我们第四节会展开。
 
-### [02｜写多了反而废？](https://xiaolinnote.com/claudecode/playbook/cc_claude_md.html#_02-写多了反而废)
+### 1.2 写多了反而废？
 
-一组数据来自【 SFEIR Institute 】的技术博客。他们做了一组实测：把所有规则塞在一个 [CLAUDE.md](http://claude.md/) 里，**控制在 200 行以内的时候，规则遵守率大概 92%**。但写到 400 行往上，遵守率就肉眼可见地往下掉。如果你把 200 行拆成 5 个 30 行的模块化文件，丢到 `.claude/rules/` 目录里，**遵守率反而能涨到 96%**。
+一组数据来自【 SFEIR Institute 】的技术博客。他们做了一组实测：把所有规则塞在一个 [CLAUDE.md] 里，**控制在 200 行以内的时候，规则遵守率大概 92%**。但写到 400 行往上，遵守率就肉眼可见地往下掉。如果你把 200 行拆成 5 个 30 行的模块化文件，丢到 `.claude/rules/` 目录里，**遵守率反而能涨到 96%**。
 
 两个原因。
 
-1. **token 经济**。[CLAUDE.md](http://claude.md/) 每次启动都会被完整加载进上下文窗口。你写 400 行，每次请求就消耗几千 token，挤压你的对话、Claude 的思考、工具调用结果的位置。打个比方，会议桌上摆 50 张便签，重点一目了然。换成 400 张，整张桌子都被淹没，谁也找不着重点。
+1. **token 经济**。[CLAUDE.md] 每次启动都会被完整加载进上下文窗口。你写 400 行，每次请求就消耗几千 token，挤压你的对话、Claude 的思考、工具调用结果的位置。打个比方，会议桌上摆 50 张便签，重点一目了然。换成 400 张，整张桌子都被淹没，谁也找不着重点。
 
-2. **注意力稀释**。模型的注意力不是无限的，规则一多，每条规则在模型脑子里的权重就被摊薄了。社区里不少重度用户都聊过这个体感：[CLAUDE.md](http://claude.md/) 超过 300 行之后，「记不住」就变成常态。
+2. **注意力稀释**。模型的注意力不是无限的，规则一多，每条规则在模型脑子里的权重就被摊薄了。社区里不少重度用户都聊过这个体感：[CLAUDE.md] 超过 300 行之后，「记不住」就变成常态。
 
- [CLAUDE.md](http://claude.md/) 最典型的三类反例：
+ [CLAUDE.md] 最典型的三类反例：
 
-**第一类，复述型。** 把整个项目架构文档复制粘贴进 [CLAUDE.md](http://claude.md/)，一写写 100 行。问题是项目架构会变，今天 React，半年后可能就 Vue 了，[CLAUDE.md](http://claude.md/) 里的 100 行还停留在 React 时代。正确做法是一行话指过去：「项目架构详见 docs/architecture.md」，Claude 真要看自己会去 read。
+**第一类，复述型。** 把整个项目架构文档复制粘贴进 [CLAUDE.md]，一写写 100 行。问题是项目架构会变，今天 React，半年后可能就 Vue 了，[CLAUDE.md] 里的 100 行还停留在 React 时代。正确做法是一行话指过去：「项目架构详见 docs/architecture.md」，Claude 真要看自己会去 read。
 
-**第二类，愿望型。** 「我们希望测试覆盖率达到 90%」、「我们的目标是 0 bug」。这种话听着政治正确，但 Claude 没法判断「希望」和「实际」的差距，可能为了「满足愿望」给你乱补一堆没意义的测试。[CLAUDE.md](http://claude.md/) 里只写当下实际执行的规则，「PR 提交前必须跑 npm test」是规则，「我们希望大家多写测试」是 PUA。
+**第二类，愿望型。** 「我们希望测试覆盖率达到 90%」、「我们的目标是 0 bug」。这种话听着政治正确，但 Claude 没法判断「希望」和「实际」的差距，可能为了「满足愿望」给你乱补一堆没意义的测试。[CLAUDE.md] 里只写当下实际执行的规则，「PR 提交前必须跑 npm test」是规则，「我们希望大家多写测试」是 PUA。
 
-**第三类，术语表型。** 把团队术语表往 [CLAUDE.md](http://claude.md/) 里搬。「Repo 指 repository、PR 指 pull request……」Claude 是个 LLM，这些通用术语它都懂。你真正需要解释的是团队特有的黑话（比如「我们说『小灰』指的是预发布环境」），但也建议放 `docs/glossary.md` 里。
+**第三类，术语表型。** 把团队术语表往 [CLAUDE.md] 里搬。「Repo 指 repository、PR 指 pull request……」Claude 是个 LLM，这些通用术语它都懂。你真正需要解释的是团队特有的黑话（比如「我们说『小灰』指的是预发布环境」），但也建议放 `docs/glossary.md` 里。
 
-把这三类垃圾清掉，你的 [CLAUDE.md](http://claude.md/) 可能直接从 400 行瘦到 80 行。Claude 的表现，下一次开 session 就能感觉到。
+把这三类垃圾清掉，你的 [CLAUDE.md] 可能直接从 400 行瘦到 80 行。Claude 的表现，下一次开 session 就能感觉到。
 
-### [03｜什么样的规则才真正「有效」？](https://xiaolinnote.com/claudecode/playbook/cc_claude_md.html#_03-什么样的规则才真正「有效」)
+### 1.3 什么样的规则才真正「有效」？
 
 可以浓缩成一句话四个原则：
 
@@ -85,22 +85,22 @@ while (currentDir !== parse(currentDir).root) {
 
 **告诉「为什么」不是废话，是给 Claude 留判断空间。**
 
-**持续更新，** 就是把 [CLAUDE.md](http://claude.md/) 当活文档维护。
+**持续更新，** 就是把 [CLAUDE.md] 当活文档维护。
 
 Claude 在哪儿犯错了两次以上，你就加一条防御规则。但同样重要的是：**老规则要删**。
 
-[claudeguide.io](http://claudeguide.io/) 上有句话特别戳：「错误的规则比没有规则更糟。」
+[claudeguide.io] 上有句话特别戳：「错误的规则比没有规则更糟。」
 
-### [04｜](https://xiaolinnote.com/claudecode/playbook/cc_claude_md.html#_04-claude-md-不只是一个文件)[CLAUDE.md](http://claude.md/) 不只是一个文件
+### 1.4 [CLAUDE.md] 不只是一个文件
 
-**[CLAUDE.md](http://claude.md/) 是分层的**。一个项目可能有好几份 [CLAUDE.md](http://claude.md/) 同时在生效。
+**[CLAUDE.md] 是分层的**。一个项目可能有好几份 [CLAUDE.md] 同时在生效。
 
-回想一下第一节那段源码做的事：从你的工作目录一路往上爬，每一层都尝试读 [CLAUDE.md](http://claude.md/) 和 `.claude/CLAUDE.md`，全部合并喂给模型。
+回想一下第一节那段源码做的事：从你的工作目录一路往上爬，每一层都尝试读 [CLAUDE.md] 和 `.claude/CLAUDE.md`，全部合并喂给模型。
 
-一份完整的 [CLAUDE.md](http://claude.md/) 生态：
+一份完整的 [CLAUDE.md] 生态：
 
-- **项目根的 [CLAUDE.md](http://claude.md/)**：写整个项目的通用约定（技术栈、目录、命令、硬约束），每次启动都加载，是大头。
-- **子目录的 [CLAUDE.md](http://claude.md/)**：比如前端 `frontend/CLAUDE.md` 写组件约定。这层按需加载，Claude 工作到该目录才生效，不污染整个项目上下文。
+- **项目根的 [CLAUDE.md]**：写整个项目的通用约定（技术栈、目录、命令、硬约束），每次启动都加载，是大头。
+- **子目录的 [CLAUDE.md]**：比如前端 `frontend/CLAUDE.md` 写组件约定。这层按需加载，Claude 工作到该目录才生效，不污染整个项目上下文。
 - **`~/.claude/CLAUDE.md` 全局**：跨项目的个人偏好（比如「永远用中文回复」、「我喜欢 4 空格缩进」），相当于给所有 Claude 打了同一份补丁。
 
 文字可能还有点抽象，咱们拿一个典型的前后端分离项目举例，目录结构大概长这样：
@@ -119,13 +119,13 @@ my-project/
     └── src/
 ```
 
-启动 Claude Code 的时候，根目录的 [CLAUDE.md](http://claude.md/) 和 `~/.claude/CLAUDE.md` 会自动合并加载。等你让 Claude 改 `frontend/` 里的代码，它才会顺手把 `frontend/CLAUDE.md` 也读进来。改后端代码时，前端那份规则压根不会进上下文，节省 token。
+启动 Claude Code 的时候，根目录的 [CLAUDE.md] 和 `~/.claude/CLAUDE.md` 会自动合并加载。等你让 Claude 改 `frontend/` 里的代码，它才会顺手把 `frontend/CLAUDE.md` 也读进来。改后端代码时，前端那份规则压根不会进上下文，节省 token。
 
 **项目通用规则放项目根、模块特有规则放子目录、个人偏好放全局**，各管各的，互不污染。
 
 但还有一层更进阶的玩法：`.claude/rules/` 目录。
 
-这是 Claude Code 提供的「模块化 [CLAUDE.md](http://claude.md/)」机制。你不在 [CLAUDE.md](http://claude.md/) 里堆所有规则，而是在 `.claude/rules/` 目录下每个主题一个文件。
+这是 Claude Code 提供的「模块化 [CLAUDE.md]」机制。你不在 [CLAUDE.md] 里堆所有规则，而是在 `.claude/rules/` 目录下每个主题一个文件。
 
 举个例子，你的 `.claude/rules/` 目录可能长这样：
 
@@ -159,33 +159,33 @@ frontmatter 里的 `paths` 告诉 Claude：「这条规则只在改测试文件�
 
 我之前看到有海外开发者的方案把这套生态推到了极致：
 
-> [CLAUDE.md](http://claude.md/) 起步；长了拆 `rules/`；高频工作流写到 `commands/`；可复用能力封装成 `skills/`。
+> [CLAUDE.md] 起步；长了拆 `rules/`；高频工作流写到 `commands/`；可复用能力封装成 `skills/`。
 
-[CLAUDE.md](http://claude.md/) 只是入口，后面还有 commands（自定义命令）和 skills（可复用能力包）两套机制。
+[CLAUDE.md] 只是入口，后面还有 commands（自定义命令）和 skills（可复用能力包）两套机制。
 
-Codex 那边也有一份自己的「团队约定」，只不过文件名不叫 [CLAUDE.md](http://claude.md/)，叫 **[AGENTS.md](http://agents.md/)**。
+Codex 那边也有一份自己的「团队约定」，只不过文件名不叫 [CLAUDE.md]，叫 **[AGENTS.md]**。
 
-它的作用、写法、加载机制跟 [CLAUDE.md](http://claude.md/) 几乎一模一样。你前面学的所有原则，200 行黄金线、具体可验证、告诉 why、持续更新，一条都不用扔，照搬到 [AGENTS.md](http://agents.md/) 里就行。
+它的作用、写法、加载机制跟 [CLAUDE.md] 几乎一模一样。你前面学的所有原则，200 行黄金线、具体可验证、告诉 why、持续更新，一条都不用扔，照搬到 [AGENTS.md] 里就行。
 
 那要是你的项目同时用 Claude Code 和 Codex 呢？两份文件维护成两套，规则一改要改两遍，妥妥的负担。
 
-这里有个特别巧的做法：**把所有规则写在 [AGENTS.md](http://agents.md/) 里，[CLAUDE.md](http://claude.md/) 里只留一行**：
+这里有个特别巧的做法：**把所有规则写在 [AGENTS.md] 里，[CLAUDE.md] 里只留一行**：
 
 ```
 @AGENTS.md
 ```
 
-[CLAUDE.md](http://claude.md/) 里的 `@文件名` 是个引用指令。Claude Code 启动加载 [CLAUDE.md](http://claude.md/) 时，看到 `@AGENTS.md`，会顺着这条引用把 [AGENTS.md](http://agents.md/) 的内容也读进来；Codex 那边本来就直接读 [AGENTS.md](http://agents.md/)，规则自然也拿到。
+[CLAUDE.md] 里的 `@文件名` 是个引用指令。Claude Code 启动加载 [CLAUDE.md] 时，看到 `@AGENTS.md`，会顺着这条引用把 [AGENTS.md] 的内容也读进来；Codex 那边本来就直接读 [AGENTS.md]，规则自然也拿到。
 
 最后提一个容易被忽略的坑：**规则之间会打架**。
 
 官方文档原话是：「如果两条规则互相矛盾，Claude 可能会随便挑一条。」模型又不是律师，没法判断哪条优先级更高。所以分层之后，**得定期 review，把过时的、冲突的规则清掉**。我自己的习惯是每 1 到 2 周扫一次。
 
-### [05｜/init 起步、/memory 维护](https://xiaolinnote.com/claudecode/playbook/cc_claude_md.html#_05-init-起步、-memory-维护)
+### 1.5 /init 起步、/memory 维护
 
-[CLAUDE.md](http://claude.md/) 并不是自动创建的，而是需要我们自己手动创建的。
+[CLAUDE.md] 并不是自动创建的，而是需要我们自己手动创建的。
 
-如果你项目里压根还没 [CLAUDE.md](http://claude.md/)，第一步是 `/init`。
+如果你项目里压根还没 [CLAUDE.md]，第一步是 `/init`。
 
 Claude 会自动扫一遍你的代码库，把分析出来的技术栈、目录结构、常用命令起个草稿。Anthropic 官方文档里有句话：「五分钟时间，永久受益。」
 
@@ -193,20 +193,20 @@ Claude 会自动扫一遍你的代码库，把分析出来的技术栈、目录�
 
 项目跑起来之后，规则怎么补充？最经典的工作流是这样：**Claude 在哪儿犯错了，就加一条防御规则。**
 
-session 中途想加规则，直接输入 `/memory` 会弹出 [CLAUDE.md](http://claude.md/) 让你直接改。或者你跟 Claude 说一句「记一下这条规则」，它会自动追加到合适的 [CLAUDE.md](http://claude.md/) 文件里去。
+session 中途想加规则，直接输入 `/memory` 会弹出 [CLAUDE.md] 让你直接改。或者你跟 Claude 说一句「记一下这条规则」，它会自动追加到合适的 [CLAUDE.md] 文件里去。
 
-[claudeguide.io](http://claudeguide.io/) 给了一个特别实用的规则触发标准：**Claude 错两次以上，就加一条新规则。** 一次可能是偶发，两次说明规则有缺。再不写就会一直被它坑。
+[claudeguide.io]给了一个特别实用的规则触发标准：**Claude 错两次以上，就加一条新规则。** 一次可能是偶发，两次说明规则有缺。再不写就会一直被它坑。
 
 复杂任务的时候，按 Shift+Tab 两次切到 Plan Mode，Claude 不直接动手写代码，而是先出一份计划给你看，确认了再执行。
-Plan Mode 出计划的时候，会把你 [CLAUDE.md](http://claude.md/) 里的规则全考虑进去。**一份好的 [CLAUDE.md](http://claude.md/) 直接决定了计划的质量，计划出得好不好，决定了最终代码写得对不对。**
+Plan Mode 出计划的时候，会把你 [CLAUDE.md] 里的规则全考虑进去。**一份好的 [CLAUDE.md] 直接决定了计划的质量，计划出得好不好，决定了最终代码写得对不对。**
 
 Claude Code 官方一直在推 Plan Mode 的用法，社区里也基本形成了共识：动手写代码之前先切 Plan Mode，尤其是改动跨多个文件的时候。
 
-### [06｜可以参考的模板](https://xiaolinnote.com/claudecode/playbook/cc_claude_md.html#_06-可以参考的模板)
+### 1.6 可以参考的模板
 
 讲了这么多原则和反例，最后给你一份可以参考的模板：80 行以内、6 段式结构、每段都加了点注释。
 
-这套结构参考了 [claude-codex.fr](http://claude-codex.fr/) 技术博客里的 6 段式建议，然后稍微做了精简：
+这套结构参考了 [claude-codex.fr]技术博客里的 6 段式建议，然后稍微做了精简：
 
 ```markdown
 # CLAUDE.md
@@ -265,21 +265,21 @@ Claude Code 官方一直在推 Plan Mode 的用法，社区里也基本形成了
 
 你照这份模板改，**别从头复制**。先抄结构，再填你项目的内容。复制完整内容只会让你换了个壳，规则还是不准。
 
-### [收尾：3 句话精华](https://xiaolinnote.com/claudecode/playbook/cc_claude_md.html#收尾-3-句话精华)
+### 收尾：3 句话精华
 
-第一，**[CLAUDE.md](http://claude.md/) 是给 Agent 的入职手册，不是给人的 README**。写之前先问自己：这句话是给人看的，还是给 Claude 看的？给人看的留给 README。
+第一，**[CLAUDE.md] 是给 Agent 的入职手册，不是给人的 README**。写之前先问自己：这句话是给人看的，还是给 Claude 看的？给人看的留给 README。
 
 第二，**200 行是黄金线，每行都吃 token，多写不如不写**。复述型、愿望型、术语表型这三类内容直接删，瘦下来 Claude 反而更听话。
 
 第三，**具体可验证、告诉 why、持续更新，三条铁律压过一切技巧**。哪条规则都别忘了这三个核心。
 
-如果你面试被问到对 [CLAUDE.md](http://claude.md/) 的理解，可以这么答：
+如果你面试被问到对 [CLAUDE.md] 的理解，可以这么答：
 
-> 「[CLAUDE.md](http://claude.md/) 每次启动都会被完整加载进上下文，规则一多反而稀释模型注意力。社区实测数据是 200 行 92% 遵守率，400 行掉到 70%。我的做法是项目根 [CLAUDE.md](http://claude.md/) 控制在 80 行以内，按模块拆到 `.claude/rules/` 下用 path-scoped 加载，配合 `/init` 起步和 `/memory` 维护，规则遵守率明显上来了。」
+> 「[CLAUDE.md] 每次启动都会被完整加载进上下文，规则一多反而稀释模型注意力。社区实测数据是 200 行 92% 遵守率，400 行掉到 70%。我的做法是项目根 [CLAUDE.md] 控制在 80 行以内，按模块拆到 `.claude/rules/` 下用 path-scoped 加载，配合 `/init` 起步和 `/memory` 维护，规则遵守率明显上来了。」
 
 ## 2. Claude Code 大型代码库实战：百万行代码怎么扛得住？
 
-### [Q1：大代码库下 context 老爆，是不是模型太小了？](https://xiaolinnote.com/claudecode/playbook/cc_large_codebase.html#q1-大代码库下-context-老爆-是不是模型太小了)
+### Q1：大代码库下 context 老爆，是不是模型太小了？
 
 那 Claude Code 在大代码库下怎么解决「精准找到要改的那几行代码」的？
 
@@ -319,59 +319,42 @@ Anthropic 说，大家评估 Claude Code 时都盯着 benchmark 看模型表现�
 > 打个比方。你请了个米其林三星大厨到家里给你做饭，他厉不厉害是模型能力；但你家里有没有趁手的灶台、菜刀、调料架、抽油烟机，这才是 harness。灶台不行，再牛的厨师也炒不出锅气。
 >
 
-Anthropic 的 harness 一共七层，每层都建立在前一层基础上：**[CLAUDE.md](http://claude.md/) → Hooks → Skills → Plugins → MCP**，再加两个增强 **LSP 和子 agent**。
+Anthropic 的 harness 一共七层，每层都建立在前一层基础上：**[CLAUDE.md] → Hooks → Skills → Plugins → MCP**，再加两个增强 **LSP 和子 agent**。
 
-听着多？其实下面几个 Q 就是按官方顺序一层一层把它们拆透：
-
-- Q2 拆 [CLAUDE.md](http://claude.md/) 怎么写（含 Hooks 怎么挂）
-- Q3 拆 LSP 和子目录启动
-- Q4 拆子 agent 怎么和主 agent 协作
-- Q5 拆 Skill、Plugin、MCP 怎么打包分发给团队
-- Q6 看创始人 Boris 怎么把这七样东西组合起来用
-
-读完你就明白，**用好 Claude Code 不是搞定模型选型，而是把这套 harness 一层一层搭起来，context 爆不是模型小，是你的 harness 没搭好。**
+**用好 Claude Code 不是搞定模型选型，而是把这套 harness 一层一层搭起来，context 爆不是模型小，是你的 harness 没搭好。**
 
 ------
 
-### [Q2：](https://xiaolinnote.com/claudecode/playbook/cc_large_codebase.html#q2-claude-md-到底写多长合适-写了-1000-行-claude-反而变笨)[CLAUDE.md](http://claude.md/) 到底写多长合适？写了 1000 行 Claude 反而变笨？
+### Q2：[CLAUDE.md] 到底写多长合适？写了 1000 行 Claude 反而变笨？
 
-那我们就从 harness 第一层开始拆，也就是 [CLAUDE.md](http://claude.md/)。
-
-这一层是大代码库下踩坑最多的一个。
-
-**Anthropic 官方答案非常具体：单文件控制在 200 行以内**。
-
-听起来是不是有点吃惊？毕竟一个项目的规范规则随便列列就上千行了。
-
-官方的逻辑也很简单：[CLAUDE.md](http://claude.md/) 每次启动都被整个塞进 context，写太长就等于在跟自己抢空间。超过 200 行之后，Claude 开始忽略指令的概率会肉眼可见上升。
+**Anthropic 官方答案非常具体：单文件控制在 200 行以内**。[CLAUDE.md] 每次启动都被整个塞进 context，写太长就等于在跟自己抢空间。超过 200 行之后，Claude 开始忽略指令的概率会肉眼可见上升。
 
 那大代码库下规则确实多怎么办？关键词是**分层**。
 
-Anthropic 在博客里有句原话挺狠的：「根目录的 [CLAUDE.md](http://claude.md/) 应该只放指针和关键的坑，其他细节都会变成噪音。」
+Anthropic 原话：「根目录的 [CLAUDE.md] 应该只放指针和关键的坑，其他细节都会变成噪音。」
 
-正确做法是 root 文件只放跨包通用约定（比如「生产数据库千万别动」「提 PR 前要跑 lint」），每个子目录再放自己的 [CLAUDE.md](http://claude.md/) 写模块细节。Claude 会自动从当前目录往上走树把沿途每个 [CLAUDE.md](http://claude.md/) 都加载进来。
+正确做法是 root 文件只放跨包通用约定（比如「生产数据库千万别动」「提 PR 前要跑 lint」），每个子目录再放自己的 [CLAUDE.md] 写模块细节。Claude 会自动从当前目录往上走树把沿途每个 [CLAUDE.md] 都加载进来。
 
-但这还不够。Claude Code 创始人 Boris 还为 [CLAUDE.md](http://claude.md/) 维护放过一句口号当 slogan：「Ruthlessly edit your [CLAUDE.md](http://claude.md/) over time」，翻译过来就是**对你的 [CLAUDE.md](http://claude.md/) 下狠手，毫不留情地删**。
+怎么判断 [CLAUDE.md] 该不该留某一行？
+对每一行你都问自己「如果删掉这行，Claude 还会按这条规则做事吗？」答案是「会」（常识或代码已经体现），就该删；答案是「不会」才值得留。
 
-怎么判断 [CLAUDE.md](http://claude.md/) 该不该留某一行？有个特别实用的检查法：对每一行你都问自己「如果删掉这行，Claude 还会按这条规则做事吗？」答案是「会」（常识或代码已经体现），就该删；答案是「不会」才值得留。
+任何时候你发现 Claude 还在反复犯某个错，**先别急着加新规则，先去看看 [CLAUDE.md] 是不是已经太长把规则淹没了**。
 
-任何时候你发现 Claude 还在反复犯某个错，**先别急着加新规则，先去看看 [CLAUDE.md](http://claude.md/) 是不是已经太长把规则淹没了**。
+怎么维护这份文件：
 
-Boris 还分享过 Anthropic 内部团队怎么维护这份文件：整个 Claude Code 团队共享一份 [CLAUDE.md](http://claude.md/) 提交到 git，**一旦发现 Claude 做错了什么就立刻加进 [CLAUDE.md](http://claude.md/)**。这份文件在他们那里不是「写一次放着」的文档，而是持续打磨的活文件。
+1. 整个 Claude Code 团队共享一份 [CLAUDE.md] 提交到 git，**一旦发现 Claude 做错了什么就立刻加进 [CLAUDE.md]**。这份文件在他们那里不是「写一次放着」的文档，而是持续打磨的活文件。
 
-还有一条 Anthropic 官方建议特别容易被忽略：**每 3-6 个月对你的 [CLAUDE.md](http://claude.md/) 做一次完整审查**。
+2. **每 3-6 个月对你的 [CLAUDE.md] 做一次完整审查**。
 
 为什么？因为模型在进化。
 
 你三个月前为了约束 Claude 写的「每次重构只改一个文件」，可能在新模型上反而变成了枷锁，新模型已经能做跨文件协调编辑了，旧规则反而把它捆住了。同样，为了弥补旧模型某个弱点写的 Hook、Skill，模型升级之后可能直接成多余负担。
 
-说白了，模型都已经往前跑了，你的 [CLAUDE.md](http://claude.md/) 可能还停在三个月前。
+如果你感觉 Claude Code 最近用得怎么都上不去一个台阶，**先别怀疑模型，先回去看你的 [CLAUDE.md] 是不是过期了**。
 
-如果你感觉 Claude Code 最近用得怎么都上不去一个台阶，**先别怀疑模型，先回去看你的 [CLAUDE.md](http://claude.md/) 是不是过期了**。
+**总结一下 Q2 的官方答案：单文件 200 行以内、分层加载、持续狠删、每 3-6 个月审查一次。**
 
-总结一下 Q2 的官方答案：单文件 200 行以内、分层加载、持续狠删、每 3-6 个月审查一次。
-
-不过你可能会问：「我哪有时间天天盯着 [CLAUDE.md](http://claude.md/) 改？」
+不过你可能会问：「我哪有时间天天盯着 [CLAUDE.md] 改？」
 
 官方对这个问题也有解法，叫 **Hooks**。
 
@@ -383,27 +366,21 @@ Hooks 是 Claude Code 的事件钩子机制，在「编辑完文件之后」「�
 
 举个例子。
 
-挂一个 Stop hook，在每次会话结束时让它自动反思「这次 Claude 有没有什么常犯的错误？要不要写进 [CLAUDE.md](http://claude.md/)？」然后 hook 自己改 [CLAUDE.md](http://claude.md/)。
+挂一个 Stop hook，在每次会话结束时让它自动反思「这次 Claude 有没有什么常犯的错误？要不要写进 [CLAUDE.md]？」然后 hook 自己改 [CLAUDE.md]。
 
 或者挂一个 Start hook，根据你当前所在子目录动态加载这个模块特有的 context，今天在 `payments/` 下就自动拉支付 skill，明天换到 `auth/` 下就换成认证相关。
 
-这样一来，**你的 [CLAUDE.md](http://claude.md/) 是被 Claude 自己持续打磨的，不再需要你手动维护**。Boris 自己挂了一个 PostToolUse hook 给 Claude 写完的代码自动跑格式化，把偶尔遗漏的 10% 格式问题直接抹平。
-
-**[CLAUDE.md](http://claude.md/) 不是写一次的文档，是一份持续打磨的活文件。**
+这样一来，**你的 [CLAUDE.md] 是被 Claude 自己持续打磨的，不再需要你手动维护**。Boris 自己挂了一个 PostToolUse hook 给 Claude 写完的代码自动跑格式化，把偶尔遗漏的 10% 格式问题直接抹平。
 
 ------
 
-### [Q3：大代码库里让 Claude 找一个函数，总找错文件，怎么办？](https://xiaolinnote.com/claudecode/playbook/cc_large_codebase.html#q3-大代码库里让-claude-找一个函数-总找错文件-怎么办)
-
-[CLAUDE.md](http://claude.md/) 这层搞定之后，Claude 知道了「这个项目长啥样」。但接下来还有个更细节的问题：让它找一个具体函数，它老是找错文件。
+### Q3：大代码库里让 Claude 找一个函数，总找错文件，怎么办？
 
 这个问题在多语言大代码库（C/C++/Java/PHP 这种符号歧义高的语言）里特别突出。
 
 **Anthropic 官方答案是两件事：装 LSP + 在子目录里启动 Claude。**
 
-先说 LSP。
-
-LSP 全称叫 Language Server Protocol。听着挺唬人，但其实你天天都在用：平时你在 VS Code 里点「go to definition」「find references」，背后跑的就是它。
+LSP 全称叫 Language Server Protocol：平时你在 VS Code 里点「go to definition」「find references」，背后跑的就是它。
 
 Claude Code 接上 LSP 之后，搜代码就不再是按字符串 grep，而是按**符号**搜。
 
@@ -415,41 +392,31 @@ Anthropic 官方博客直接把 LSP 称作多语言大代码库下「one of the 
 
 装 LSP 怎么操作？在 Claude Code 的 `/plugin` 里搜「lsp」，找到对应语言的 code intelligence plugin（`typescript-lsp` / `pyright-lsp` / `rust-analyzer-lsp` 等等）装上，再装对应的语言服务器二进制（pip 装 pyright、npm 装 typescript-language-server 之类）。整个过程不超过两分钟。
 
-再说子目录启动这件事，这是反直觉但官方博客被反复强调的一条。
+再说子目录启动这件事。
 
-大多数人第一次用 Claude Code，习惯都是 `cd` 到项目根目录然后 `claude`。在小项目没毛病，但在大代码库里，这会让 Claude 一上来就把根目录那个超大的 [CLAUDE.md](http://claude.md/) 全部加载进 context，前端后端 infra 所有微服务的规则全来一遍。
+大多数人第一次用 Claude Code，习惯都是 `cd` 到项目根目录然后 `claude`。在小项目没毛病，但在大代码库里，这会让 Claude 一上来就把根目录那个超大的 [CLAUDE.md] 全部加载进 context，前端后端 infra 所有微服务的规则全来一遍。
 
-官方博客原话叫「Initializing in subdirectories, not at the repo root」。
-
-正确做法是直接在你要改的子目录启动。比如要改支付服务，就 `cd services/payments` 然后 `claude`。Claude 会自动往上走树把根目录的 [CLAUDE.md](http://claude.md/) 也加载进来，通用规则不丢；但优先加载 `payments/` 子目录的 [CLAUDE.md](http://claude.md/)，context 立刻聚焦到「支付」一个领域。
+正确做法是直接在你要改的子目录启动。比如要改支付服务，就 `cd services/payments` 然后 `claude`。Claude 会自动往上走树把根目录的 [CLAUDE.md] 也加载进来，通用规则不丢；但优先加载 `payments/` 子目录的 [CLAUDE.md]，context 立刻聚焦到「支付」一个领域。
 
 除了 LSP 和子目录启动，官方博客还提了三个小细节，配合起来效果更好：
 
-第一，**测试和 lint 命令按子目录写进 [CLAUDE.md](http://claude.md/)**。Claude 改了支付服务里一个文件，结果它跑整个项目的测试套件，几十分钟才出结果，context 也跟着烧光。每个子目录的 [CLAUDE.md](http://claude.md/) 应该明确写「这块用什么命令测，怎么 lint」，让 Claude 只跑该跑的那一部分。
+1. **测试和 lint 命令按子目录写进 [CLAUDE.md]**。Claude 改了支付服务里一个文件，结果它跑整个项目的测试套件，几十分钟才出结果，context 也跟着烧光。每个子目录的 [CLAUDE.md] 应该明确写「这块用什么命令测，怎么 lint」，让 Claude 只跑该跑的那一部分。
 
-第二，**用 `.ignore` 规则把生成文件、构建产物、第三方代码排除掉**。把 `permissions.deny` 规则提交到 `.claude/settings.json`，整个团队就能自动共享这些排除规则，不用每个人手动配。
+2. **用 `.ignore` 规则把生成文件、构建产物、第三方代码排除掉**。把 `permissions.deny` 规则提交到 `.claude/settings.json`，整个团队就能自动共享这些排除规则，不用每个人手动配。
 
-第三，**目录结构不直观时，在根目录放一张「代码库地图」**。一份简单的 markdown 文件，列出每个顶层文件夹的一句话说明就够。Claude 在动手探索之前先扫一眼这张地图，比让它瞎翻一通要快得多。
+3. **目录结构不直观时，在根目录放一张「代码库地图」**。一份简单的 markdown 文件，列出每个顶层文件夹的一句话说明就够。Claude 在动手探索之前先扫一眼这张地图，比让它瞎翻一通要快得多。
 
 **让 Claude 按符号搜代码、按子目录工作，准确率立刻翻倍。**
 
-### [Q4：跨几十个文件的改动，Claude 总是改一半就崩，怎么救？](https://xiaolinnote.com/claudecode/playbook/cc_large_codebase.html#q4-跨几十个文件的改动-claude-总是改一半就崩-怎么救)
+### Q4：跨几十个文件的改动，Claude 总是改一半就崩，怎么救？
 
-Claude 知道了项目结构、也能找准代码了。这下总能干大活了吧？
-
-还真不一定。重构、迁移、跨服务联动这种「大动作」上，Claude 经常前半段还在状态，后半段就开始忘前面、漏改、改错。这是大代码库下另一个高频翻车点。
+重构、迁移、跨服务联动这种「大动作」上，Claude 经常前半段还在状态，后半段就开始忘前面、漏改、改错。这是大代码库下另一个高频翻车点。
 
 **Anthropic 官方答案：跨大量文件的改动，正确解法是把任务拆成多个会话 + 用 subagent，不是写更长的 prompt**。
 
-很多人第一反应是改 prompt、改 [CLAUDE.md](http://claude.md/)、加更多规则。
+「Pour your effort into the plan so Claude can one-shot the implementation」，意思是与其用一个超长 prompt 让 Claude 一次搞定所有事，不如先单独花一轮把方案敲定，再分多个会话去实现。
 
-但 Anthropic 在博客里明说过：跨大量文件的改动，**正确的解法是把任务拆成多个会话**。
-
-Boris 还把这句话翻译得更直白：「Pour your effort into the plan so Claude can one-shot the implementation」，意思是与其用一个超长 prompt 让 Claude 一次搞定所有事，不如先单独花一轮把方案敲定，再分多个会话去实现。
-
-具体怎么做？
-
-**第一步：派 subagent 出去探索，主 agent 留着干净的 context。**
+#### **第一步：派 subagent 出去探索，主 agent 留着干净的 context。**
 
 大代码库下「读懂这个系统怎么工作」本身就要烧掉好几万 token。让 Claude 一边读代码一边改代码，相当于让一个人一边查资料一边写论文。
 
@@ -468,11 +435,11 @@ flowchart TB
 
 最简单的操作就是直接跟 Claude 说：「先用 subagent 调查一下我们项目里 X 是怎么实现的，写成 findings 文件，再回来动手改。」
 
-**第二步：会话拆分。**
+#### **第二步：会话拆分。**
 
 会话 1 只做探索写 plan 不动代码；会话 2 加载 plan 实现一个模块跑通测试；会话 3 实现下一个模块。每个会话都从干净 context 开始，plan 文件做桥梁串联。
 
-**第三步：跑大型迁移用 `/batch`。**
+#### **第三步：跑大型迁移用 `/batch`。**
 
 如果你的改动是「整个项目从一个框架迁到另一个」「把几十个文件的某种调用全部替换」这种大规模迁移，Claude Code 已经直接内置了一个专门工具叫 `/batch`。
 
@@ -486,29 +453,23 @@ flowchart TB
 
 ------
 
-### [Q5：团队里只有我一个人会用 Claude Code，怎么推广？](https://xiaolinnote.com/claudecode/playbook/cc_large_codebase.html#q5-团队里只有我一个人会用-claude-code-怎么推广)
-
-前面 3 个 Q 解决的都是「你自己一个人怎么把 Claude Code 用顺」。但接下来这个问题就升级了：你用得飞起，旁边的同事还在用 demo 版，怎么办？
-
-这是个组织层面的问题，也是 Anthropic 官方博客花了不少篇幅讲的一块。
+### Q5：团队里只有我一个人会用 Claude Code，怎么推广？
 
 **Anthropic 官方答案：先把好实践做成 skill，再用 plugin 打包分发出去，再用 MCP 把团队内部系统接进来，最后得有人维护这套东西。**
 
-听着有点多？我们一步一步来。
-
-#### [第一步：先把高频操作做成 skill](https://xiaolinnote.com/claudecode/playbook/cc_large_codebase.html#第一步-先把高频操作做成-skill)
+#### **第一步：先把高频操作做成 skill**
 
 什么是 skill？你可以理解成「针对某个具体任务的 SOP」。比如「这个项目的数据库迁移怎么做」「这个微服务上线的标准流程」，这些都是 skill 该干的事。
 
-Skill 跟 [CLAUDE.md](http://claude.md/) 最大的区别在一个词：**按需加载**。
+Skill 跟 [CLAUDE.md] 最大的区别在一个词：**按需加载**。
 
-[CLAUDE.md](http://claude.md/) 每次会话都全文加载，跟你这次任务有没有关系都加载；skill 不是，它只在 Claude 判断「当前任务需要」的时候才加载，平时静静躺在仓库里不占 context。官方有个专门的词叫 progressive disclosure（渐进式披露），讲的就是这个机制。
+[CLAUDE.md] 每次会话都全文加载，跟你这次任务有没有关系都加载；skill 不是，它只在 Claude 判断「当前任务需要」的时候才加载，平时静静躺在仓库里不占 context。官方有个专门的词叫 progressive disclosure（渐进式披露），讲的就是这个机制。
 
-Boris 还说过一句话特别值得记下来：「如果一件事你一天做超过一次，就把它做成 skill。」一个大项目里高频操作就那么几十种，每个都做成 skill 全队共享，效率立刻是几何级提升。
+「如果一件事你一天做超过一次，就把它做成 skill。」
 
 skill 还可以绑定到特定路径。「支付服务部署 skill」绑定到 `services/payments/`，只有 Claude 在这个目录下工作时才加载，避免「改前端代码结果支付 skill 也来凑热闹」这种 context 污染。
 
-#### [第二步：用 plugin 把好实践打包分发](https://xiaolinnote.com/claudecode/playbook/cc_large_codebase.html#第二步-用-plugin-把好实践打包分发)
+#### **第二步：用 plugin 把好实践打包分发**
 
 但 skill 本身还在每个人的本地，没法共享。这就引出了 plugin。
 
@@ -520,11 +481,9 @@ Plugin 就是解决这个问题的。它本质上是一个安装包，把 skill�
 
 公司还可以建自己的 plugin marketplace。谁有更好的实践就更新到 marketplace 里，全公司一起受益。
 
-#### [第三步：用 MCP 把团队内部系统接进来](https://xiaolinnote.com/claudecode/playbook/cc_large_codebase.html#第三步-用-mcp-把团队内部系统接进来)
+#### **第三步：用 MCP 把团队内部系统接进来**
 
-光有 skill 和 plugin 还不够。
-
-大代码库下的工作往往不是孤立的，得跟团队的 Slack、Jira、内部 wiki、数据库、监控系统都联动。
+光有 skill 和 plugin 还不够。大代码库下的工作往往不是孤立的，得跟团队的 Slack、Jira、内部 wiki、数据库、监控系统都联动。
 
 这个连接的桥梁叫 **MCP server**（Model Context Protocol）。
 
@@ -532,103 +491,65 @@ Plugin 就是解决这个问题的。它本质上是一个安装包，把 skill�
 
 听着很强，但官方在这块特别提醒了一个反直觉的点：**别太早上 MCP**。
 
-很多团队 [CLAUDE.md](http://claude.md/) 都还没写好，hook 也没挂，就着急忙慌接各种 MCP，结果反而把 context 搞得更乱。MCP 是 harness 里最后才该上的一层，前面的基础没搭好，MCP 接进来的数据就是噪音。
+很多团队 [CLAUDE.md] 都还没写好，hook 也没挂，就着急忙慌接各种 MCP，结果反而把 context 搞得更乱。MCP 是 harness 里最后才该上的一层，前面的基础没搭好，MCP 接进来的数据就是噪音。
 
-正确的顺序是：先把 [CLAUDE.md](http://claude.md/) 和 skill 打磨好 → 再用 plugin 打包分发 → 最后才上 MCP 把外部世界接进来。
+**正确的顺序是：先把 [CLAUDE.md] 和 skill 打磨好 → 再用 plugin 打包分发 → 最后才上 MCP 把外部世界接进来。**
 
-#### [第四步：得有人负责维护](https://xiaolinnote.com/claudecode/playbook/cc_large_codebase.html#第四步-得有人负责维护)
-
-但官方还点出来一个更关键的事：**光把工具堆起来不够，得有人负责维护**。
+#### **第四步：得有人负责维护**
 
 Anthropic 观察到，推广最顺的组织都有一个共同点：在大面积铺开之前，会先安排一小队人（甚至一两个人）把整套基础设施搭好，然后才放开访问。
 
 开发者第一次摸 Claude Code 就能跑通，**第一印象如果是「这东西不好使」，后面要翻盘就太难了**。
 
-官方博客里点出了一个正在浮现的新角色，叫 **Agent Manager**，半 PM 半工程师，专门负责 plugin 分发、[CLAUDE.md](http://claude.md/) 规范、skill 审批这些事。
+官方博客里点出了一个正在浮现的新角色，叫 **Agent Manager**，半 PM 半工程师，专门负责 plugin 分发、[CLAUDE.md] 规范、skill 审批这些事。
 
 规模小一些的团队没条件设这个岗位也没关系，至少要有一个 DRI（直接责任人）把 Claude Code 的配置维护起来，有拍板权决定哪些 skill / plugin 上、哪些不上。
-
-没有人盯着这件事，再好的 plugin 也会变成「张三两年前搭的，没人会改」的部落知识。
 
 **好实践不再是个人玩具，而是组织资产。**
 
 ------
 
-### [Q6：Boris 自己平时怎么用 Claude Code？](https://xiaolinnote.com/claudecode/playbook/cc_large_codebase.html#q6-boris-自己平时怎么用-claude-code)
+### Q6：Boris 自己平时怎么用 Claude Code？
 
-前面 4 个 Q 把官方答案讲完了，你可能会好奇：那 Claude Code 的创始人自己平时是怎么用的？
+Boris Cherny ：「我同时在终端里跑 5 个 Claude，再加 5 到 10 个跑在 [claude.ai/code] 上，并行处理不同任务。」
 
-这一节其实是个彩蛋，但读完你会发现，里面藏着创始人对 Claude Code 用法的全部理解。
+1. **他不用 `--dangerously-skip-permissions`**。他明确说过自己用 `/permissions` 命令把常用的安全命令预先加白名单，避免一遍遍点确认，但又不放弃权限审计。
 
-Boris Cherny 是 Claude Code 的创始人，他分享过一段让我看完直接破防的话：
+2. **他几乎所有复杂任务都从 Plan Mode 开始**。先跟 Claude 把方案敲定，再切到 auto-accept 模式让它一发命中地把代码写出来。
 
-「我同时在终端里跑 5 个 Claude，再加 5 到 10 个跑在 [claude.ai/code](http://claude.ai/code) 上，并行处理不同任务。」
+3. **他挂了一个 PostToolUse hook 给 Claude 写完的代码自动跑格式化**，把 Claude 偶尔遗漏的 10% 格式问题直接抹平，避免后面 CI 挂掉。
 
-听着是不是有点不可思议？
+4. **他把每天做超过一次的事都做成了 slash command 或 skill**。Boris 有句名言：「如果一件事你一天做超过一次，就把它做成 skill。」他自己有个 `/commit-push-pr` 命令，一天用几十次，避免重复 prompt。
 
-但他的这套 setup 其实很值得拆解，里面藏着创始人对 Claude Code 用法的全部理解：
+5. **他给整个 Claude Code 团队共享一份 [CLAUDE.md]，提交到 git**。一旦发现 Claude 做错了什么就立刻加进去，是一份持续打磨的活文件。
 
-**第一，他不用 `--dangerously-skip-permissions`**。他明确说过自己用 `/permissions` 命令把常用的安全命令预先加白名单，避免一遍遍点确认，但又不放弃权限审计。
-
-**第二，他几乎所有复杂任务都从 Plan Mode 开始**。先跟 Claude 把方案敲定，再切到 auto-accept 模式让它一发命中地把代码写出来。
-
-**第三，他挂了一个 PostToolUse hook 给 Claude 写完的代码自动跑格式化**，把 Claude 偶尔遗漏的 10% 格式问题直接抹平，避免后面 CI 挂掉。
-
-**第四，他把每天做超过一次的事都做成了 slash command 或 skill**。Boris 有句名言：「如果一件事你一天做超过一次，就把它做成 skill。」他自己有个 `/commit-push-pr` 命令，一天用几十次，避免重复 prompt。
-
-**第五，他给整个 Claude Code 团队共享一份 [CLAUDE.md](http://claude.md/)，提交到 git**。一旦发现 Claude 做错了什么就立刻加进去，是一份持续打磨的活文件。
-
-把这 5 件事串起来看你会发现：创始人对 Claude Code 的态度不是「装上就用」，而是**把它当成一个会进化的工作伙伴，每天都在喂它新规则、新工具、新工作流**。
-
-这才是大代码库下用好 Claude Code 的底层心态。
-
-**创始人对 Claude Code 的态度，不是「装上就用」，而是「每天打磨它」。**
+把这 5 件事串起来看你会发现：创始人**把它当成一个会进化的工作伙伴，每天都在喂它新规则、新工具、新工作流**。
 
 ------
 
-### [Q7：什么样的项目其实不适合用 Claude Code？](https://xiaolinnote.com/claudecode/playbook/cc_large_codebase.html#q7-什么样的项目其实不适合用-claude-code)
-
-讲了这么多 Claude Code 在大代码库里有多能打，最后还得给你泼一盆冷水：**它也不是万能药**。
-
-这是最后一个问题，也是 Anthropic 官方博客说得最坦诚的一块。
-
-官方原话是这样的：「Claude Code 是围绕传统软件工程环境设计的，假设工程师是代码库的主要贡献者，仓库用 Git，代码遵循标准目录结构。」
-
-也就是说，下面这几种场景 Claude Code 用起来会比较吃力：
+### Q7：什么样的项目其实不适合用 Claude Code？
 
 - **游戏引擎那种大量二进制资源的项目**：Claude 没法读你的 3D 模型、贴图、音频
 - **用非常规版本控制系统的项目**：比如老牌的 Perforce / Subversion / 自研 VCS，需要额外配置才能跑顺
 - **非工程师为主贡献的代码库**：比如产品经理改产品文档、设计师改 Figma 配置文件，这些场景 Claude Code 的 harness 不太对得上
 
-官方在博客结尾建议这种非常规场景需要更多定制化配置，他们的 Applied AI 团队会专门跟客户对接。换句话说，**Claude Code 当下最擅长的还是「Git + 工程师 + 标准目录」这个最大公约数**。
-
-如果你的项目正好踩在这几个非常规场景上，别死磕，找官方支持渠道才是正解。
-
-**Claude Code 不是万能药，最擅长的是「Git + 工程师 + 标准目录」这个最大公约数。**
+换句话说，**Claude Code 当下最擅长的还是「Git + 工程师 + 标准目录」这个最大公约数**。
 
 ------
 
-### [最后](https://xiaolinnote.com/claudecode/playbook/cc_large_codebase.html#最后)
+### 最后
 
 到这里，7 个问题的官方答案就说完了，我把这 7 个答案浓缩成 3 句话送你：
 
-- 第一，Claude Code 在大代码库不是「装上就能用」，是要在 harness（外围基建）上花一次性功夫的。
-- 第二，最高 ROI 的三个动作是：[CLAUDE.md](http://claude.md/) 砍到 200 行以内 + 在子目录启动 Claude + 装 LSP。这三件事做完，体验立刻不一样。
-- 第三，跨大文件改动、团队推广、[CLAUDE.md](http://claude.md/) 维护这些大代码库下的硬骨头，官方都给了具体答案，Boris 自己也在用，你照抄就行。
+- Claude Code 在大代码库不是「装上就能用」，是要在 harness（外围基建）上花一次性功夫的。
+- 最高 ROI 的三个动作是：[CLAUDE.md] 砍到 200 行以内 + 在子目录启动 Claude + 装 LSP。这三件事做完，体验立刻不一样。
+- 跨大文件改动、团队推广、[CLAUDE.md] 维护这些大代码库下的硬骨头，官方都给了具体答案，Boris 自己也在用，你照抄就行。
 
-现在你可以打开你公司的项目，对照这 7 个问题逐一过一遍，看看哪几个你已经做对了，哪几个还差一截
+## 3. Claude Code Skill 揭秘：Skill 真的只是一份 markdown 吗？
 
-## Claude Code Skill 揭秘：Skill 真的只是一份 markdown 吗？
+### Q1：「skill 不就是一份 markdown 吗？」这可能是最大的误解
 
-### [Q1：「skill 不就是一份 markdown 吗？」这可能是最大的误解](https://xiaolinnote.com/claudecode/playbook/cc_skills.html#q1-「skill-不就是一份-markdown-吗-」这可能是最大的误解)
-
-先抛个问题：如果让你现在描述一下什么是 skill，你会怎么说？
-
-我猜不少人的答案是：「就是一个写了操作步骤的 markdown 文件，Claude 需要的时候会去读。」
-
-Anthropic 在博客里点名说了，这是他们听到的关于 skill 最常见的误解。
-
-那 skill 到底是什么？官方的定义是：**一个文件夹**。里面除了那份 [SKILL.md](http://skill.md/)，还可以放脚本、参考资料、数据文件、输出模板，Claude 能自己发现、探索和使用这些东西。
+skill 到底是什么？官方的定义是：**一个文件夹**。里面除了那份 [SKILL.md]，还可以放脚本、参考资料、数据文件、输出模板，Claude 能自己发现、探索和使用这些东西。
 
 一个五脏俱全的 skill 长什么样？拿一个部署服务的 skill 举例，典型的目录结构是这样的：
 
@@ -645,31 +566,20 @@ deploy-service/
     └── release_note.md    # 发布报告的固定格式
 ```
 
-整个文件夹里只有 [SKILL.md](http://skill.md/) 是必需的：文件开头一段 frontmatter 写名字和 description，正文写操作指引。references/、scripts/、assets/ 都是可选的，连名字都不是强制的，按你的需要随便加。
+ [SKILL.md] 是必需的：文件开头一段 frontmatter 写名字和 description，正文写操作指引。references/、scripts/、assets/ 都是可选的，连名字都不是强制的，按你的需要随便加。
 
-更妙的是，这些子文件**不会一股脑塞给 Claude**，而是它干活干到哪一步、需要什么材料，才自己去文件夹里翻什么。这个机制 Q3 会专门拆。
+这些子文件**不会一股脑塞给 Claude**，而是它干活干到哪一步、需要什么材料，才自己去文件夹里翻什么。
 
-打个比方。markdown 文件版的 skill，相当于你给新同事发了一条微信：「部署流程是先这样再那样」。而文件夹版的 skill，相当于你给他一个工位：桌上有操作手册，抽屉里有现成的工具，墙上还贴着前任留下的「这台打印机会卡纸，要先按两下」的便利贴。
-
-哪个更能让新同事快速干活，不用我多说了吧。
+> 打个比方。markdown 文件版的 skill，相当于你给新同事发了一条微信：「部署流程是先这样再那样」。而文件夹版的 skill，相当于你给他一个工位：桌上有操作手册，抽屉里有现成的工具，墙上还贴着前任留下的「这台打印机会卡纸，要先按两下」的便利贴。
+>
 
 而且在 Claude Code 里，skill 还有一堆配置项可以玩，比如绑定特定的触发条件、注册只在 skill 运行期间生效的动态 hook（这个 Q5 细说）。
 
 官方观察下来，**内部效果最好的那批 skill，恰恰都是把文件夹结构和配置项用足了的**。只写一份 markdown 的 skill，相当于只用了这个机制十分之一的能力。
 
-所以从今天起，请把对 skill 的认知从「一份说明文档」升级成「一个装备齐全的工具箱」。后面 6 个问题，全部建立在这个认知之上。
-
-**skill 是文件夹，不是文件。这是用好它的第一步。**
-
 ------
 
-### [Q2：Anthropic 内部几百个 skill，最后只归成了 9 类](https://xiaolinnote.com/claudecode/playbook/cc_skills.html#q2-anthropic-内部几百个-skill-最后只归成了-9-类)
-
-认知摆正了，下一个问题马上就来：到底什么样的事值得做成 skill？
-
-这个问题特别实际。skill 写起来不难，难的是不知道往哪个方向使劲，写了一堆没用的，真正高频的痛点反而没覆盖。
-
-Anthropic 干了一件很值钱的事：他们把内部几百个 skill 全部拉出来做了一次归类，发现这些 skill 自然聚成了 9 类。
+### Q2：Anthropic 内部几百个 skill，最后只归成了 9 类
 
 | 类别             | 干什么的                           | 例子                                    |
 | ---------------- | ---------------------------------- | --------------------------------------- |
@@ -689,37 +599,27 @@ Anthropic 干了一件很值钱的事：他们把内部几百个 skill 全部拉
 
 那如果 9 类只能先做一类，从哪类下手？
 
-官方在这里给出了全文最掷地有声的一个结论：**验证类 skill 是内部实测对 Claude 输出质量提升最明显的一类**。原话甚至说到这个程度：值得专门让一个工程师花一整周，什么都不干，就把验证类 skill 打磨到极致。
+**验证类 skill 是内部实测对 Claude 输出质量提升最明显的一类**。原话甚至说到这个程度：值得专门让一个工程师花一整周，什么都不干，就把验证类 skill 打磨到极致。
 
 为什么是验证类？
 
-你想啊，Claude 写代码的能力已经够强了，真正拉开差距的是它**有没有办法确认自己写的东西是对的**。没有验证手段，它就只能「我觉得应该没问题」；有了验证 skill，它能开个无头浏览器把注册、邮箱验证、引导页一步步跑完，每一步都断言状态，甚至录一段视频给你看它到底测了什么。
+Claude 写代码的能力已经够强了，真正拉开差距的是它**有没有办法确认自己写的东西是对的**。没有验证手段，它就只能「我觉得应该没问题」；有了验证 skill，它能开个无头浏览器把注册、邮箱验证、引导页一步步跑完，每一步都断言状态，甚至录一段视频给你看它到底测了什么。
 
 一个会自己验收的 Claude 和一个只会交作业的 Claude，干活质量完全是两个物种。
 
-**先别急着写一堆 skill，把「让 Claude 自己验证工作成果」这一件事做好，回报最大。**
-
 ------
 
-### [Q3：为什么你写的 skill Claude 从来不触发？](https://xiaolinnote.com/claudecode/playbook/cc_skills.html#q3-为什么你写的-skill-claude-从来不触发)
+### Q3：为什么你写的 skill Claude 从来不触发？
 
-好，分类清楚了，skill 也写了，新问题来了：为什么 Claude 就是不用？
+得先搞清楚一件事：Claude 是怎么知道「现在该用哪个 skill」的？
 
-要回答这个问题，得先搞清楚一件事：Claude 是怎么知道「现在该用哪个 skill」的？
-
-肯定有不少人以为，Claude 每次都会把所有 skill 的全文读一遍，然后挑一个合适的。要真是这样，装 50 个 skill，context 当场就被吃光了。
-
-实际的机制聪明得多。我们先讲原理，再看源码。
-
-会话启动的时候，Claude Code 会把所有可用 skill 收集起来，但**只取每个 skill 的名字和 description**，拼成一张清单注入 context。Claude 平时看到的就只有这张「目录页」。等它判断某个任务匹配上了某个 skill，才会发起调用，这时候 [SKILL.md](http://skill.md/) 的全文才被加载进对话。
+会话启动的时候，Claude Code 会把所有可用 skill 收集起来，但**只取每个 skill 的名字和 description**，拼成一张清单注入 context。Claude 平时看到的就只有这张「目录页」。等它判断某个任务匹配上了某个 skill，才会发起调用，这时候 [SKILL.md] 的全文才被加载进对话。
 
 这套机制有个专门的名字，叫**渐进式披露（Progressive Disclosure）**：平时只给目录，用到了才给正文。
 
 ![img](image/image-20260611185329860.png)
 
-明白了这个机制，「为什么不触发」的答案就浮出来了：**Claude 决定用不用你的 skill，唯一的依据就是那一行 description**。
-
-它没读过你的正文，不知道你内容写得多用心。description 没写好，正文写出花来也是白搭。
+**Claude 决定用不用你的 skill，唯一的依据就是那一行 description**。
 
 这就是官方在博客里专门强调的一条：**description 不是写给人看的摘要，是写给模型看的触发条件**。「帮助处理数据库相关工作」这种写法就是典型的人类视角摘要；模型视角的写法是「当用户要写数据库迁移、修改表结构、或者遇到 migration 报错时使用」。
 
@@ -746,9 +646,7 @@ return desc.length > MAX_LISTING_DESC_CHARS
 
 更狠的还在后面。如果你装的 skill 太多，把那 1% 的预算挤爆了，Claude Code 会先按比例压缩所有 description；要是还装不下，就直接降级成**只显示名字、一个字描述都不留**的模式。
 
-这下「装了一堆 skill 反而都不触发」这个怪现象就完全说通了：装得越多，每个 skill 能留在 Claude 眼前的信息就越少，最后大家一起变成一排只有名字的哑巴。
-
-skill 不是收藏品，贵精不贵多。
+装得越多，每个 skill 能留在 Claude 眼前的信息就越少，最后大家一起变成一排只有名字的哑巴。
 
 那调用之后，全文是怎么加载的？源码里这个加载动作是「懒加载」的，只有 skill 真被调用时才执行，而且会在正文前面拼一行很关键的信息：
 
@@ -759,17 +657,17 @@ async getPromptForCommand(args, toolUseContext) {
     : markdownContent
 ```
 
-这段在 `src/skills/loadSkillsDir.ts`，它在 [SKILL.md](http://skill.md/) 全文的最前面加了一句「这个 skill 的根目录在哪里」。
+这段在 `src/skills/loadSkillsDir.ts`，它在 [SKILL.md] 全文的最前面加了一句「这个 skill 的根目录在哪里」。
 
-为什么要加这句？这正好解释了 Q1 说的文件夹机制怎么落地：**references/、scripts/ 这些文件夹里的东西，系统从头到尾都不会自动加载**，是 Claude 拿到根目录地址之后，按 [SKILL.md](http://skill.md/) 里的指引，自己用读文件的工具一个个去取的。
+为什么要加这句？这正好解释了 Q1 说的文件夹机制怎么落地：**references/、scripts/ 这些文件夹里的东西，系统从头到尾都不会自动加载**，是 Claude 拿到根目录地址之后，按 [SKILL.md] 里的指引，自己用读文件的工具一个个去取的。
 
-所以渐进式披露其实有三层：平时只有 description，调用时才有 [SKILL.md](http://skill.md/) 全文，正文里提到的参考文件等 Claude 真需要了才会去读。一层比一层深，每一层都只在必要时打开。
+所以渐进式披露其实有三层：平时只有 description，调用时才有 [SKILL.md] 全文，正文里提到的参考文件等 Claude 真需要了才会去读。一层比一层深，每一层都只在必要时打开。
 
 **description 的前 250 个字符，决定了你的 skill 是工具还是摆设。**
 
 ------
 
-### [Q4：一个 skill 里含金量最高的部分，是「坑点清单」](https://xiaolinnote.com/claudecode/playbook/cc_skills.html#q4-一个-skill-里含金量最高的部分-是「坑点清单」)
+### Q4：一个 skill 里含金量最高的部分，是「坑点清单」
 
 触发问题解决了，Claude 终于肯打开你的 skill 了。下一个问题：正文该写什么？
 
@@ -807,11 +705,9 @@ Claude 对指令的服从度是很高的，你把步骤写得太死，它遇到�
 
 ------
 
-### [Q5：skill 还能有记忆、带脚本、挂临时 hook？](https://xiaolinnote.com/claudecode/playbook/cc_skills.html#q5-skill-还能有记忆、带脚本、挂临时-hook)
+### Q5：skill 还能有记忆、带脚本、挂临时 hook？
 
-把 Q4 的内功练好，你的 skill 已经能打了。这一节说三个高阶玩法，全部来自 Anthropic 内部的实战，一个比一个超出「skill 就是文档」的想象。
-
-#### [玩法一：给 skill 装记忆](https://xiaolinnote.com/claudecode/playbook/cc_skills.html#玩法一-给-skill-装记忆)
+#### **玩法一：给 skill 装记忆**
 
 先想一个场景：你做了一个自动写站会日报的 skill，今天跑一次，明天跑一次。问题来了，它怎么知道哪些内容昨天已经汇报过了？
 
@@ -827,15 +723,15 @@ Claude 对指令的服从度是很高的，你把步骤写得太死，它遇到�
 
 记忆这个思路还有个变种用法：存配置。
 
-有些 skill 第一次用之前，需要先从用户那里要点信息。还是拿日报 skill 举例，它总得知道日报要发到哪个频道吧？这种信息不该写死在 [SKILL.md](http://skill.md/) 里（不然没法分发给别人用），也不该每次执行都问一遍（烦死人）。
+有些 skill 第一次用之前，需要先从用户那里要点信息。还是拿日报 skill 举例，它总得知道日报要发到哪个频道吧？这种信息不该写死在 [SKILL.md] 里（不然没法分发给别人用），也不该每次执行都问一遍（烦死人）。
 
 官方给的模式是：把这类信息存进 skill 目录下的一个 config.json。Claude 每次执行先看配置在不在，在就直接用；不在就说明是第一次跑，主动找用户把信息问齐、写进配置，下次就不用再问了。
 
 相当于给 skill 加了一个「首次使用引导」。要是想问得更体面，还可以在 skill 里指明让 Claude 用选择题的形式来收集，用户点一下就配置完了。
 
-#### [玩法二：把脚本喂给 Claude，让它只管编排](https://xiaolinnote.com/claudecode/playbook/cc_skills.html#玩法二-把脚本喂给-claude-让它只管编排)
+#### **玩法二：把脚本喂给 Claude，让它只管编排**
 
-官方有一句话我特别认同：你能给 Claude 最有力的工具就是代码。
+官方有一句话：你能给 Claude 最有力的工具就是代码。
 
 什么意思？假设你的数据分析 skill 里什么都不放，Claude 每次分析都要现场手写「怎么连数据源、怎么拼查询、怎么算留存」这一整套样板代码，又慢又容易错。
 
@@ -843,9 +739,9 @@ Claude 对指令的服从度是很高的，你把步骤写得太死，它遇到�
 
 你问一句「周二的数据怎么了」，它现场写一段十几行的小脚本，把你的函数库组合起来跑出答案。
 
-#### [玩法三：挂只在 skill 激活期间生效的 hook](https://xiaolinnote.com/claudecode/playbook/cc_skills.html#玩法三-挂只在-skill-激活期间生效的-hook)
+#### **玩法三：挂只在 skill 激活期间生效的 hook**
 
-这是三个玩法里最容易被忽略、但想象空间最大的一个：skill 可以自带 hook，而且这种 hook **只在 skill 被调用时注册，会话结束就失效**。
+skill 可以自带 hook，而且这种 hook **只在 skill 被调用时注册，会话结束就失效**。
 
 为什么这个设计很妙？想想官方给的两个例子。
 
@@ -859,9 +755,9 @@ Claude 对指令的服从度是很高的，你把步骤写得太死，它遇到�
 
 ------
 
-### [Q6：skill 怎么从你的本地走向全团队？](https://xiaolinnote.com/claudecode/playbook/cc_skills.html#q6-skill-怎么从你的本地走向全团队)
+### Q6：skill 怎么从你的本地走向全团队？
 
-一个人把 skill 玩明白了，价值是 1；让整个团队都用上，价值才是 N。但一到团队层面，马上冒出三个新问题：怎么分发？谁来审批？质量怎么保证？
+一到团队层面，马上冒出三个新问题：怎么分发？谁来审批？质量怎么保证？
 
 先说分发。官方给了两条路。
 
@@ -889,9 +785,7 @@ Anthropic 内部的答案可能跟你想的不一样：**没有一个中心化�
 
 ------
 
-### [Q7：怎么知道一个 skill 到底有没有人用？](https://xiaolinnote.com/claudecode/playbook/cc_skills.html#q7-怎么知道一个-skill-到底有没有人用)
-
-最后一个问题，也是大多数团队压根没意识到要问的问题。
+### Q7：怎么知道一个 skill 到底有没有人用？
 
 skill 攒了几十个，marketplace 也搭起来了，然后呢？哪些 skill 天天被调用，哪些写完就成了仓库里的化石？没有数据，你只能靠感觉。
 
@@ -909,33 +803,19 @@ Anthropic 的做法是给 skill 做埋点，思路相当巧妙：**用一个 Pre
 
 **不被度量的 skill 库，迟早变成没人敢动也没人想用的杂物间。**
 
-### [最后](https://xiaolinnote.com/claudecode/playbook/cc_skills.html#最后)
+### 最后
 
-7 个问题说完了，按惯例浓缩成 3 句话送你：
-
-- 第一，skill 是文件夹不是文件，把脚本、坑点清单、记忆文件、临时 hook 都用上，它才是一个完整的工作系统。
-- 第二，决定 skill 命运的是 description 的前 250 个字符，写成「什么场景下用我」的触发条件，而不是给人看的摘要；装太多 skill 会互相挤占清单预算，贵精不贵多。
-- 第三，如果只做一件事，先做验证类 skill，让 Claude 能自己确认工作成果，这是 Anthropic 实测回报最大的投入。
+1. skill 是文件夹不是文件，把脚本、坑点清单、记忆文件、临时 hook 都用上，它才是一个完整的工作系统。
+2. 决定 skill 命运的是 description 的前 250 个字符，写成「什么场景下用我」的触发条件，而不是给人看的摘要；装太多 skill 会互相挤占清单预算，贵精不贵多。
+3. 如果只做一件事，先做验证类 skill，让 Claude 能自己确认工作成果，这是 Anthropic 实测回报最大的投入。
 
 博客的结尾有一句话我很喜欢，也送给准备动手的你：他们内部最好的那批 skill，几乎都是从「几行字加一个坑点」开始的，然后随着 Claude 撞上一个个新的边界情况，被人一点点喂大。
 
-## SDD 规约驱动开发实战：在 Claude Code 里跑通先规约后编码
+## 4. SDD 规约驱动开发实战：在 Claude Code 里跑通先规约后编码⭐⭐⭐
 
-### [为什么你跟 AI 越聊越乱？](https://xiaolinnote.com/claudecode/playbook/spec_driven_dev.html#为什么你跟-ai-越聊越乱)
+### 4.1 为什么你跟 AI 越聊越乱？
 
-我们先搞清楚，前面那个「越改越乱」到底是怎么来的。
-
-现在大部分人用 AI 写代码，是一种什么姿势呢？就是聊天式的。想到哪说到哪，AI 做一步你看一步，不对就再说一句。这种方式有个特别流行的叫法，vibe coding，凭着感觉写。
-
-vibe coding 爽不爽？说实话，太爽了。
-
-你不用写文档，不用画流程图，脑子里有个模糊的想法，嘴一张 AI 就给你端上来了。做个小玩具、写个一次性的脚本、周末捣鼓个小 demo，这套简直是神器，我自己也天天这么干。
-
-但你有没有发现，一旦这个东西稍微有点规模，或者你打算长期维护它，vibe coding 就开始露馅了。
-
-为什么？
-
-我给你打个比方。凭感觉跟 AI 写代码，特别像你口头跟一个外包说需求。你说「做个电商」，他问「要支付吗」，你说「要」，他做完了你才想起来「诶还要退款」，他又加。加完你又想起「得有优惠券」。你说一句他做一句，你俩谁的脑子里都没有一张完整的图。
+凭感觉跟 AI 写代码，特别像你口头跟一个外包说需求。你说「做个电商」，他问「要支付吗」，你说「要」，他做完了你才想起来「诶还要退款」，他又加。加完你又想起「得有优惠券」。你说一句他做一句，你俩谁的脑子里都没有一张完整的图。
 
 最后做出来的东西，和你一开始想要的，往往是两码事。
 
@@ -949,45 +829,29 @@ vibe coding 爽不爽？说实话，太爽了。
 
 这个东西，就是我们接下来要说的规约。
 
-### [规约驱动，到底把什么摆到了明面上？](https://xiaolinnote.com/claudecode/playbook/spec_driven_dev.html#规约驱动-到底把什么摆到了明面上)
-
-好，那规约驱动开发到底是个什么玩意，它凭什么能治前面那个病？
-
-先别急着记概念，我们顺着刚才的毛病往下想。
+### 4.2 规约驱动，到底把什么摆到了明面上？
 
 你跟 AI 越聊越乱，是因为「要做成什么样」这件事一直飘在半空，只存在于你脑子里，和 AI 每次临时理解的那一点点。那最直接的解法是什么？把它写下来，摆到明面上，让你和 AI 看的是同一份东西。
 
 这就是规约驱动最朴素的出发点。
 
-但它不止是「写个文档」这么简单。
-
-它真正做的事情，是把一件事从头到尾拆成几个台阶，然后逼着你和 AI 在每个台阶上都停一下、对一次。
-
-哪几个台阶呢？大概是这么个顺序。
+但它不止是「写个文档」这么简单。它真正做的事情，是把一件事从头到尾拆成几个台阶，然后逼着你和 AI 在每个台阶上都停一下、对一次。
 
 第一步，先讲清楚你到底要做什么、为什么要做，注意这一步只谈需求，不谈技术。第二步，再定用什么技术、怎么架构去实现它。第三步，把这套实现拆成一条条具体的、能干的活。第四步，才轮到 AI 照着这些活去把代码写出来。
 
 你发现没有，vibe coding 是把这四步全糊在一起、一口气塞给 AI 的。而规约驱动，是把它们一个个掰开，铺在桌面上。
 
-掰开有什么好处？
-
-好处大了。每一步的产物，你都能亲眼看到，能改，能拦。
+每一步的产物，你都能亲眼看到，能改，能拦。
 
 AI 把需求理解错了？在第一步你就看出来了，当场纠正，别等它代码都写完了才发现方向就是错的。技术方案你不认同？第二步拦下来。任务拆得不对？第三步调。等真到写代码那一步，前面全对齐好了，它闷头干就行，出岔子的概率自然低一大截。
 
-说白了，规约驱动干的这件事，就是把「对齐」这个动作，从你脑子里那种模模糊糊的默契，变成了白纸黑字、看得见摸得着的一步步确认。
-
-对了，这里我得强调一句，规约不是一次定死的合同。
+规约不是一次定死的合同。
 
 你在后面任何一步发现前面想岔了，随时能回去改规约，改完再往下走。它是活的，是你和 AI 之间那份不断更新的共识，而不是刻在石头上的东西。这一点后面还会再说。
 
-### [spec-kit 一套命令跑下来是什么体验？](https://xiaolinnote.com/claudecode/playbook/spec_driven_dev.html#spec-kit-一套命令跑下来是什么体验)
+### 4.3 spec-kit 一套命令跑下来是什么体验？
 
-道理讲完了，你可能还是觉得有点虚。
-
-别急，现在有现成的工具帮你把这套流程跑起来，最出名的一个是 GitHub 官方出的，叫 spec-kit，现在都有100k+ star。
-
-我先带你从整体上看一遍它是怎么转的，等会再上手做具体例子。
+现在有现成的工具帮你把这套流程跑起来，最出名的一个是 GitHub 官方出的，叫 spec-kit，现在都有100k+ star。
 
 spec-kit 的用法，核心就是几条斜杠命令。你在 AI 编程工具里一条条敲下去，它就带着你把规约驱动那几个台阶挨个走完。
 
@@ -997,7 +861,7 @@ spec-kit 的用法，核心就是几条斜杠命令。你在 AI 编程工具里�
 /speckit-constitution
 ```
 
-这条叫「宪法」，听着夸张，其实就是让你先定几条这个项目从头到尾都要守的铁律。比如「所有接口都要写测试」「代码风格统一用某个规范」。定好之后，后面每一步 AI 都会拿这几条来对照，不会跑偏。
+这条叫「宪法」，是让你先定几条这个项目从头到尾都要守的铁律。比如「所有接口都要写测试」「代码风格统一用某个规范」。定好之后，后面每一步 AI 都会拿这几条来对照，不会跑偏。
 
 接下来这条，是整套流程里最关键的一条。
 
@@ -1035,17 +899,13 @@ spec-kit 的用法，核心就是几条斜杠命令。你在 AI 编程工具里�
 
 到这一步，前面该对齐的都对齐了，AI 拿着那份任务清单，一条条照着实现。因为方向、方案、任务全都提前敲定过，它这时候基本就是个执行者，不太会再自作主张地乱改。
 
-你回头看看这一路，是不是正好就是前面说的那几个台阶，想清楚做什么、定方案、拆任务、写代码，一步都没少，只不过 spec-kit 把每一步都变成了一条你亲手敲的命令。
-
-这么一圈跑下来你会发现，它其实没教你什么高深的东西，它就是把「先想清楚再动手」这句老话，硬生生做成了一套你不得不走的流程。
-
-### [在 Claude Code 里，怎么真的用起来？](https://xiaolinnote.com/claudecode/playbook/spec_driven_dev.html#在-claude-code-里-怎么真的用起来)
+### 4.4 在 Claude Code 里，怎么真的用起来？
 
 光看命令还是隔了一层，我带你在 Claude Code 里从零跑一个具体的例子，你就彻底明白了。
 
 假设我们要做一个特别常见的东西，一个团队看板工具，能建项目、能加任务、能把任务卡片在「待办、进行中、已完成」几列之间拖来拖去。就拿这个当例子。
 
-#### [装工具、进项目](https://xiaolinnote.com/claudecode/playbook/spec_driven_dev.html#装工具、进项目)
+#### **装工具、进项目**
 
 第一步，先把 spec-kit 的命令行工具装上。它是 GitHub 官方的一个小工具，用 uv 装一下就有了（没装过 uv 的话先装个 uv，网上一搜一大把）。
 
@@ -1061,12 +921,6 @@ specify init my-kanban --integration claude
 
 敲下去它不会闷头就跑，先弹个选择让你挑用哪种脚本，Mac 上直接选 `sh`（也就是 POSIX shell）就行。
 
-![img](image/image-20260702222526772.png)
-
-上面这里我就直接选择了 `sh`。
-
-![img](image/image-20260702222643679.png)
-
 跑完之后，它会在当前位置建一个叫 `my-kanban` 的**文件夹**，这就是你这个项目的目录，spec-kit 那套东西全装在里面了。
 
 你待会在 Claude Code 里敲斜杠唤出来的这几条，底下其实是一组 skill，装在项目里的 `.claude/skills/` 目录下，speckit-specify、speckit-plan、speckit-tasks 这些各占一个文件夹。
@@ -1075,18 +929,11 @@ specify init my-kanban --integration claude
 
 而 skill 是 Claude Code 启动的时候才去扫描加载的。所以你不能在外面开着 Claude Code 干等，得先进到 `my-kanban` 这个目录里，再从这里把 Claude Code 打开，它才认得这些 skill。
 
-```bash
-cd my-kanban
-claude
-```
-
-![img](image/image-20260702225100720.png)
-
 进到 Claude Code 之后，敲一个斜杠，就能看到 speckit 那一串 skill 蹦出来了，`/speckit-specify`、`/speckit-plan`、`/speckit-tasks` 一排列在那，随手可用。
 
 好，skill 有了，正式开跑。
 
-#### [specify：先说清楚要做什么](https://xiaolinnote.com/claudecode/playbook/spec_driven_dev.html#specify-先说清楚要做什么)
+#### **specify：先说清楚要做什么**
 
 我在 Claude Code 里敲：
 
@@ -1102,7 +949,7 @@ Claude Code 收到之后，不会急着写代码，它会生成一份需求规�
 
 你打开`specs/001-team-kanban/spec.md`这份文档，你会发现这是非常详细的需求文档了，所以你一定要停下来读一遍，这是整个流程里性价比最高的一次检查。你现在花两分钟看一眼它有没有理解错，能省掉后面两小时的返工。
 
-#### [plan：再定技术方案](https://xiaolinnote.com/claudecode/playbook/spec_driven_dev.html#plan-再定技术方案)
+#### **plan：再定技术方案**
 
 需求这份对齐好了，接着把技术方案定下来。
 
@@ -1115,9 +962,7 @@ Claude Code 收到之后，不会急着写代码，它会生成一份需求规�
 
 包括大概分几个模块、接口怎么设计、数据表长什么样。这份你同样过一遍，不认同的地方直接改。
 
-#### [tasks：把方案拆成任务](https://xiaolinnote.com/claudecode/playbook/spec_driven_dev.html#tasks-把方案拆成任务)
-
-方案 OK 了，接着拆任务。
+#### **tasks：把方案拆成任务**
 
 ```
 /speckit-tasks
@@ -1125,13 +970,7 @@ Claude Code 收到之后，不会急着写代码，它会生成一份需求规�
 
 这条我基本不用带什么参数，它自己会把方案拆成一条条具体的任务，比如「搭好项目骨架」「建任务这张数据表」「写创建项目的接口」「做看板拖拽的前端组件」，一二三四列得明明白白。
 
-到这里，前面三步的产物你都亲眼看过、点头认可了，方向、方案、任务全对齐了。
-
-你看前面做了那么多功夫，其实一行代码都还没有写，全都是在规划需求、方案设计、任务清单之类的文档，因为只有把这些理清楚了，到了实际开发，才能拿到我们想要的效果。
-
-#### [implement：放手让它写代码](https://xiaolinnote.com/claudecode/playbook/spec_driven_dev.html#implement-放手让它写代码)
-
-铺垫了这么多，终于到这一步，放手让它写！
+#### **implement：放手让它写代码**
 
 ```
 /speckit-implement
@@ -1139,19 +978,11 @@ Claude Code 收到之后，不会急着写代码，它会生成一份需求规�
 
 这时候 Claude Code 就拿着那份任务清单，一条条往下实现。因为该定的全定了，它这一趟基本就是个老老实实的执行者，不太会再冒出「我觉得这样更好」然后把你的设计给改了。
 
-猛猛干了 10分钟之后，前端和后端都开发完了。
-
 开发完之后，我们来运行项目看看效果，如果你不会运行项目，也不用怕的，直接让Claude Code 帮你运行项目。
 
 最重要的是，上面这一整套我全都是一次跑通，没有遇到任何 bug。
 
 你发现没有，先花功夫把规约立起来，不但没让它变慢，整个开发过程反而顺滑得不行，完全无障碍。
-
-你把这一趟和文章开头那个「越改越乱」的场景摆一块对比一下，差别就出来了。
-
-开头那个，是你一句一句喂，AI 一步一步猜，猜错了再回炉。而这一趟，是你先花点时间把要做的、怎么做的、拆成哪些活，全部摊开对齐，然后 AI 才动手。前面这点功夫花下去，后面写代码那一段，顺得不是一星半点。
-
-对了，还有个实操上的小提醒。我这个看板例子还算小，一条 `/speckit-implement` 就一把跑完了。
 
 但要是项目再大些，别指望一条命令从头到尾给你全撸完。更稳的做法是分阶段来，先让它把项目骨架和任务的基本增删跑通，验一下，再上看板拖拽，最后才加分配负责人这些。
 
@@ -1159,13 +990,13 @@ Claude Code 收到之后，不会急着写代码，它会生成一份需求规�
 
 你把整个过程倒回去看，其实就四步，先 specify 说清要什么，再 plan 定方案，接着 tasks 拆活，最后才 implement 写代码，而真正敲代码只是排在最末尾的一小步。
 
-### [需求含糊、项目又大，靠什么兜底？](https://xiaolinnote.com/claudecode/playbook/spec_driven_dev.html#需求含糊、项目又大-靠什么兜底)
+### 4.5 需求含糊、项目又大，靠什么兜底？
 
 上面这套流程，你要是拿去做个小项目，跑得会很顺。
 
 但真实工作里，事情往往没那么干净。需求经常是含糊的，你自己一开始都没完全想明白。项目也经常是大的，牵一发动全身。这种时候，光靠前面那四步，还不太够。
 
-spec-kit 其实还留了几条命令，专门用来兜这个底。小项目你可以跳过，但正经活，我劝你老老实实用上。
+spec-kit 其实还留了几条命令，专门用来兜这个底。
 
 第一条，是用来把含糊点问清楚的。
 
@@ -1179,12 +1010,6 @@ spec-kit 其实还留了几条命令，专门用来兜这个底。小项目你�
 
 用它的时机也有讲究，最好在 specify 出了需求文档、还没开始 plan 之前就跑。先把这些模糊点问清楚，再让它去定技术方案。不然需求是糊的，方案跟着一起糊，等你 plan、tasks 都做完了才回头补，就跑晚了。
 
-你可能会觉得，它怎么这么啰嗦。
-
-但你想想，这些问题要是现在不问清楚，会怎么样？它就只能自己瞎猜一个答案写下去，等你验收的时候发现不对，返工的成本可比现在回答几个问题高多了。
-
-它现在啰嗦，是在帮你把「想不清楚」这件事，提前暴露在写代码之前。
-
 第二条兜底命令，是做一致性检查的。
 
 ```
@@ -1197,17 +1022,9 @@ spec-kit 其实还留了几条命令，专门用来兜这个底。小项目你�
 
 你把这几条兜底的命令连起来看，会发现它们干的其实是同一件事，在你正式写代码之前，尽可能多地把「没想清楚」「对不上」的坑给填了。
 
-这就是我特别想让你 get 到的一个点。规约驱动真正值钱的地方，不是那几份文档本身，而是它逼着你把「先想清楚再写」这件事，从一句正确的废话，变成了一道你绕不过去的工序。
+**规约驱动真正值钱的地方，不是那几份文档本身，而是它逼着你把「先想清楚再写」这件事，从一句正确的废话，变成了一道你绕不过去的工序。**
 
-人是有惰性的，你嘴上说「我会先想清楚」，真上手还是忍不住直接开写。而这套流程，是把「想清楚」这一步，用命令给你焊死在了写代码前面。
-
-### [这不就是又回到瀑布流了吗？](https://xiaolinnote.com/claudecode/playbook/spec_driven_dev.html#这不就是又回到瀑布流了吗)
-
-讲到这，我猜屏幕前已经有同学要抬杠了。
-
-小林你等等，你说的这套，先写需求、再定方案、再拆任务、最后写代码，这不就是老掉牙的瀑布流吗？绕了一大圈，怎么 AI 时代反而复古了？
-
-这个问题问得好，我一开始也犯嘀咕。但你仔细想想，还真不是一回事。
+### 4.6 这不就是又回到瀑布流了吗？
 
 传统瀑布流最要命的地方在哪？在于它那几份文档是「死」的。需求评审会一开，文档一签字，就基本定死了，中间想改，走变更流程能把人折腾疯。所以做到一半发现方向错了，也只能硬着头皮往下做。
 
@@ -1217,19 +1034,9 @@ spec-kit 其实还留了几条命令，专门用来兜这个底。小项目你�
 
 它跟瀑布流长得像，但内核完全不同。瀑布流是「一次定死，扛着往前」，规约驱动是「随时对齐，边走边改」。表面都是分阶段，一个是石头，一个是橡皮泥。
 
-所以说白了，重点从来不是「要不要写文档」这种形式，而是你和 AI 之间那份共识，到底是清晰的还是模糊的、是能改的还是死的。
+那到底啥时候值得上这套：这东西你是不是打算长期维护、后面还要不断往上加功能？是，那就值得在前面花点功夫把规约立起来。不是，随手写写的一次性东西，别折腾，凭感觉写完事。
 
-当然，我也得说句公道话，这套东西不是万能药，更不是什么活都得这么伺候。
-
-你要是就写个几十行的小脚本，跑一次就扔，那你还一本正经地 constitution、specify、plan、tasks 走一整套，纯属给自己找罪受，vibe coding 一把梭反而最快。
-
-那到底啥时候值得上这套？
-
-我自己的判断标准很简单，就问一句：这东西你是不是打算长期维护、后面还要不断往上加功能？是，那就值得在前面花点功夫把规约立起来。不是，随手写写的一次性东西，别折腾，凭感觉写完事。
-
-说到底，用不用这套，取决于你手里的活值不值得你为它「先想清楚」。
-
-### [最后](https://xiaolinnote.com/claudecode/playbook/spec_driven_dev.html#最后)
+### 最后
 
 写到这我其实挺想聊聊一个更大的感受。
 
@@ -1243,17 +1050,15 @@ spec-kit 其实还留了几条命令，专门用来兜这个底。小项目你�
 
 所以我越来越觉得，AI 时代真正拉开差距的，不是谁 prompt 写得花，也不是谁工具堆得多。
 
-是谁能把一件事，讲清楚。
+**是谁能把一件事讲清楚。**
 
-## grill-me 使用指南：写代码前，先让 Claude Code 审问你的需求
+## 5. grill-me 使用指南：写代码前，先让 Claude Code 审问你的需求⭐⭐⭐
 
-### [一个只有三句话的 skill，凭什么让人上头？](https://xiaolinnote.com/claudecode/playbook/grill_me.html#一个只有三句话的-skill-凭什么让人上头)
+### 5.1 一个只有三句话的 skill，凭什么让人上头？
 
 先说说它是谁做的。`grill-me` 是海外一个叫 Matt Pocock 的开发者写的，放在他的 `mattpocock/skills` 仓库里，最近在圈子里挺火。
 
 火的原因有点反常识：**这玩意真正的核心，拢共就三小段大白话。**
-
-我把它的核心指令扒了出来，开头那段写着名字和用途的术语叫 frontmatter 先不管，正文就这么几句：
 
 ```markdown
 Interview me relentlessly about every aspect of this plan
@@ -1271,9 +1076,9 @@ explore the codebase instead.
 
 就这么点。说人话就是，它其实是在给 Claude 下三道命令。
 
-- 第一句：**给我往死里盘问这个方案的每一个细节，一直问到咱俩想的是同一件事为止。** 顺着「设计树」一根一根枝丫往下走，每个决定都当场定死，再进下一个。而且每问一个问题，你得同时给出你**推荐的答案**。
-- 第二句：**一次只准问一个，问完必须等我回话，才能接着问下一个。** 它还特意补了句理由，一口气甩你一堆问题，只会把人问懵。
-- 第三句：**如果一个问题去翻代码就能自己搞清楚，那就别问我，自己去翻。**
+- **给我往死里盘问这个方案的每一个细节，一直问到咱俩想的是同一件事为止。** 顺着「设计树」一根一根枝丫往下走，每个决定都当场定死，再进下一个。而且每问一个问题，你得同时给出你**推荐的答案**。
+- **一次只准问一个，问完必须等我回话，才能接着问下一个。** 它还特意补了句理由，一口气甩你一堆问题，只会把人问懵。
+- **如果一个问题去翻代码就能自己搞清楚，那就别问我，自己去翻。**
 
 你看，一句废话没有。它把 Claude 从一个「你说啥我做啥」的执行工具，掰成了一个揪着你不放的**面试官**。
 
@@ -1285,13 +1090,9 @@ explore the codebase instead.
 
 ------
 
-### [为什么非得「一次只问一个」？](https://xiaolinnote.com/claudecode/playbook/grill_me.html#为什么非得「一次只问一个」)
+### 5.2 为什么非得「一次只问一个」？
 
-我第一次看到「一次只问一个问题」这条，说实话有点不以为然。不就是省点事嘛，一次多问几个不是更快？
-
-后来我才反应过来，这条恰恰是整个 skill 最聪明的地方。
-
-先讲背后的道理。`grill-me` 里有个词叫「设计树」（design tree），这不是它发明的，是几十年前一位叫 Fred Brooks 的软件界老前辈提出来的。
+先讲背后的道理。`grill-me` 里有个词叫「设计树」（design tree）：
 
 意思是说，你做任何一个东西，背后都是一棵**决定组成的树**。你先做一个大决定，这个大决定又岔出好几个小决定，小决定底下再岔出更小的。
 
@@ -1303,15 +1104,11 @@ explore the codebase instead.
 
 你要装修，最上游的决定是「整体什么风格」。定了风格，才轮到墙刷什么颜色、买什么家具。你要是风格还没定，就先跑去挑了一堆家具，回头定了个跟家具八字不合的风格，那家具是不是白买了？
 
-**上游的决定不定死，下游全是空中楼阁。** 这就是为什么它非要一根枝丫一根枝丫地走，一次只掐一个。它得先把你最上游、最模糊的那个决定钉死，才敢往下问。顺序乱了，问了也白问。
+**上游的决定不定死，下游全是空中楼阁。** 
 
 ------
 
-### [实操：让它审问我的「自动追热点小助手」](https://xiaolinnote.com/claudecode/playbook/grill_me.html#实操-让它审问我的「自动追热点小助手」)
-
-光说不练假把式。我拿自己一个真实的念头开刀，让 `grill-me` 审了一遍。
-
-装它很简单，一行命令：
+### 5.3 实操：让它审问我的「自动追热点小助手」
 
 ```bash
 npx skills@latest add mattpocock/skills
@@ -1331,31 +1128,21 @@ npx skills@latest add mattpocock/skills
 
 接着它开始提问，一次只问一个。第一个问题就问我：我说的「AI」到底算哪种垂类。
 
-![img](image/image-20260703163738697.png)
-
 我回：AI 编程实践、大模型动态、Claude Code 这些。
 
 它拿着这个答案往下推了一层：既然是 AI 编程，那热点几乎都在英文源首发，X、HackerNews、GitHub 才是主战场，国内平台对这个垂类基本是慢半拍的二手翻译。
-
-![img](image/image-20260703163858558.png)
 
 注意这个顺序。它问「扒哪些平台」的时候，答案早被我上一轮「写 AI 编程」框住了。上游先定，下游才有方向。这就是那棵设计树，一根枝丫喂着下一根。
 
 后面它一轮轮往下问，一共问了我 10+ 轮，一天几条、推到哪、几点推这些就不细说了。
 
-![img](image/image-20260703171239598.png)
-
 中间有一问我印象最深，它揪出个我自己绝想不到的坑：这助手每天独立起跑、不记得昨天推过啥，那一个热点连挂三天，会不会连推我三天同一个选题。这种事等真发生了才反应过来就晚了，它在写代码前就替我想到了。
 
-![img](image/image-20260703170152305.png)
+![img](image/01-001.png)
 
 到了第九轮，终于开始跑第一版了。
 
-![img](image/91a532891a9d24cb27916d3140d8b1b7.png)
-
 手动跑出来的效果如下，把 AI 圈里值得写的内容梳理了一份给我。
-
-![img](image/abef15b0cdba02d7221cca0158546211.png)
 
 它还跟我确认是不是这个味，我觉得没问题，就开始后续的飞书连通性测试和定时任务设置。
 
@@ -1365,31 +1152,23 @@ npx skills@latest add mattpocock/skills
 
 ------
 
-### [那它跟 Plan Mode 差在哪？](https://xiaolinnote.com/claudecode/playbook/grill_me.html#那它跟-plan-mode-差在哪)
+### 5.4 那它跟 Plan Mode 差在哪？
 
 看到这估计有同学要问了：Claude Code 不是自带一个 Plan Mode（计划模式）吗？让它先出个计划再干活，不也一样？
-
-不太一样，差别还挺大。
 
 Plan Mode 的性子是**急着交作业**。它憋着劲想赶紧给你憋出一份计划来好开工，问你的问题很少，很多拿不准的地方，它自己就替你定了。本质上还是「AI 替你做主」。
 
 `grill-me` 反过来，它一点都不急着产出东西，它的目标是**先跟你想到一块去**。所以它才敢一个一个慢慢问，把主动权全塞回你手里，每个决定都逼你自己拍。
 
-说白了，一个图快，一个图你想明白。
-
 所以这俩不冲突，是配合着用的。真要做一件稍微有点分量的事，我现在的顺序是：先 `grill-me` 把脑子里的糊涂账捋清楚，捋出一份想明白的方案，再进 Plan Mode 让它照着出计划、开干。前面那道审问，就是给后面的猛干上了一道保险。
 
-![img](image/362ef27b_plan-mode-vs-grill-me.png)
-
-### [最后](https://xiaolinnote.com/claudecode/playbook/grill_me.html#最后)
+### 最后
 
 夸了这么多，也得泼盆冷水：`grill-me` 不是万金油，别啥事都拉来审一遍。
 
 改个错别字、调个颜色、加个一眼能看穿的小功能，你要还召唤它来审问，那它一本正经问你一串，纯属折磨，你会被烦死。
 
 它真正该出场的时候，是那种**要花你好几个小时、而且一旦方向定错、返工成本很高**的活。写代码之前是最便宜的纠错时机，这时候多聊半小时，比事后重写一天强太多。
-
-对了，它审的也不一定非得是代码。
 
 你有个产品点子、一个还没想透的选题、一份课程大纲，任何背后有「一棵决策树」的东西，都能丢给它审一审。我自己就试过让它审我的选题方向，被问出好几个我原本压根没考虑到的角度。
 
@@ -1399,15 +1178,11 @@ Plan Mode 的性子是**急着交作业**。它憋着劲想赶紧给你憋出一
 
 它只是替你，把这道功课补上了。
 
-## superpowers vs grill-me：同一个需求实测，差距到底在哪？
+## 6. superpowers vs grill-me：同一个需求实测，差距到底在哪？
 
-### [这俩压根不是一个物种？](https://xiaolinnote.com/claudecode/playbook/superpowers_vs_grillme.html#这俩压根不是一个物种)
+### 6.1 这俩压根不是一个物种？
 
-讲过程之前，得先掰清一个误会，很多人以为 superpowers 和 grill-me 是同类工具。
-
-其实不是。
-
-grill-me 上篇讲过了，一个只有三句话的 skill，核心就是「往死里盘问你，一次只问一个，能翻代码搞清楚的别来烦我」。它是一把手术刀，单点，锋利，干完一件事就收。
+grill-me 一个只有三句话的 skill，核心就是「往死里盘问你，一次只问一个，能翻代码搞清楚的别来烦我」。它是一把手术刀，单点，锋利，干完一件事就收。
 
 superpowers 完全是另一个量级的东西。它是海外一位资深开发者 Jesse Vincent 做的，这个插件里塞了二十多个 skill，覆盖一条完整的开发流水线，brainstorming 先跟你聊需求，聊完写设计文档，然后 writing-plans 把活拆成一个个小任务，再派子代理逐个实现，中间还强制走测试驱动开发和代码审查。
 
@@ -1427,13 +1202,11 @@ superpowers 现在进了 Claude Code 官方插件市场，也是一行命令的�
 
 所以这场对比里，真正跟 grill-me 同台的是 superpowers 里负责问需求的那个 skill，叫 brainstorming。它俩干的是同一件事，都是在写代码之前，把你脑子里的糊涂账逼出来。
 
-好，上需求。
+### 6.2 同一个小游戏，两边各审一遍
 
-### [同一个小游戏，两边各审一遍](https://xiaolinnote.com/claudecode/playbook/superpowers_vs_grillme.html#同一个小游戏-两边各审一遍)
+#### **先看 grill-me 怎么审**
 
-#### [先看 grill-me 怎么审](https://xiaolinnote.com/claudecode/playbook/superpowers_vs_grillme.html#先看-grill-me-怎么审)
-
-先测 grill-me，把那句需求原样丢给 `/grill-me`。
+把那句需求原样丢给 `/grill-me`。
 
 它的第一个动作还是老规矩，先翻家底。发现目录是空的，它说了句「全新项目，没有可以探索的代码，那我们从头把设计聊透」，然后开问。
 
@@ -1459,15 +1232,13 @@ superpowers 现在进了 Claude Code 官方插件市场，也是一行命令的�
 
 对了，收工之后我特意看了眼目录，除了这一个 html 文件，什么都没有。
 
-![img](image/image-20260713214710526.png)
-
 没有 git，没有文档，没有计划。
 
 也就是说，前面 12 问敲定的那一堆设计决定，它一个字都没落到文件里，全部只存在于我和它的这场对话里。
 
 对话在，共识就在。哪天对话记录没了，这些决定就只剩代码本身能证明了。
 
-#### [再看 superpowers 怎么审](https://xiaolinnote.com/claudecode/playbook/superpowers_vs_grillme.html#再看-superpowers-怎么审)
+#### **再看 superpowers 怎么审**
 
 轮到 superpowers。另开一个空目录，敲 `/superpowers:brainstorming`，同一句需求原样发出。
 
@@ -1530,7 +1301,7 @@ game2/
 
 grill-me 是问完就走、片纸不留，superpowers 是把整个开发过程给你归了档。
 
-### [体验到底差在哪？](https://xiaolinnote.com/claudecode/playbook/superpowers_vs_grillme.html#体验到底差在哪)
+### 6.3 体验到底差在哪？
 
 两边跑完，数据摆在一起是这样的。
 
@@ -1567,7 +1338,7 @@ superpowers 是有自己规矩的，它自作主张 git init，它决定开分�
 
 有个老哥的总结很到位，大意是「干大活是真行，干小活是真折磨」。
 
-### [最后，到底装哪个？](https://xiaolinnote.com/claudecode/playbook/superpowers_vs_grillme.html#最后-到底装哪个)
+### 最后，到底装哪个？
 
 先说我的答案，大多数人先装 grill-me。
 
@@ -1579,23 +1350,17 @@ superpowers 适合另一种时刻，正经项目，动的地方多，返工代�
 
 grill-me 问完，活还是你的。superpowers 问完，活就是它的了。
 
-一个逼你把心思想清楚，一个只需要你点头。
-
-哪个更好？看你那天想当谁。
-
-今天分享就到这里，我们下一篇见！
-
 # Claude Code 源码解析
 
-## Claude Code 源码拆解：51 万行泄漏代码里的架构设计
+## 1. Claude Code 源码拆解：51 万行泄漏代码里的架构设计
 
-### [一、架构设计](https://xiaolinnote.com/claudecode/source/cc_source.html#二、架构设计)
+### 1.1 架构设计
 
 一个能自主编程的 Agent 要处理的事情非常多：调大模型 API、执行 40 多种工具、管理权限、压缩上下文、维护记忆、支持多 Agent 协作……如果这些东西全部塞在一个文件里，代码会立刻变成一团乱麻。
 
 那 Claude Code 是怎么组织这些子系统的？它采用了一个**四层分层架构**：
 
-![img](image/1775144142084-ec84ad05-2d1c-4863-bf22-1e4517b06eaf.png)
+![img](image/01-002.png)
 
 我们从底层往上，一层一层来理解。
 
@@ -1604,7 +1369,7 @@ grill-me 问完，活还是你的。superpowers 问完，活就是它的了。
 - **服务层**是所有层共享的「基础设施」。这一层包括三样东西：调大模型 API（不管是谁要调，主循环也好、子 Agent 也好，都走这一层）、上下文压缩（后面会详细讲的五步压缩策略）、MCP 协议（和外部工具服务器通信的标准接口）。你可以把它类比成大楼的水电煤，所有楼层都需要，但谁也不会自己去铺设管道。
 - **安全与治理层**有点特殊，它不像其他三层那样各管一块，而是**像一张安全网罩在所有层上面**。权限系统决定哪些操作需要用户确认、哪些可以自动执行；Hook 系统允许在工具执行前后插入自定义行为（比如「每次 git push 前自动跑 lint」）；Bash 安全模块会对 Shell 命令做语法级别的分析，检测命令注入、路径逃逸等危险模式，而不是简单地用正则匹配关键词。
 
-### [三、Agent 工作模式](https://xiaolinnote.com/claudecode/source/cc_source.html#三、agent-工作模式)
+### 1.2 Agent 工作模式
 
 搞清楚了四层架构的宏观布局之后，一个自然的问题来了：引擎层那个主循环里，到底发生了什么？Agent 是怎么「思考」和「行动」的？它用的是什么 Agent 框架？是大家常说的 ReAct 模式吗？
 
@@ -1612,7 +1377,7 @@ grill-me 问完，活还是你的。superpowers 问完，活就是它的了。
 
 Claude Code 的答案可能出乎你的意料，它没有用 ReAct，而是用了一个更简洁、更高效的模式。
 
-#### [什么是 ReAct](https://xiaolinnote.com/claudecode/source/cc_source.html#什么是-react)
+#### **什么是 ReAct**
 
 如果你接触过 Agent 开发，大概率听说过 ReAct（Reasoning + Acting）。它是 2022 年提出的一种 Agent 范式，核心思路是把 Agent 的每一步拆成三个阶段：
 
@@ -1624,11 +1389,11 @@ Claude Code 的答案可能出乎你的意料，它没有用 ReAct，而是用�
 
 但 ReAct 有几个问题：
 
-- **第一个问题：Token 浪费。** 每一轮都要输出一段 Thought 文本，这些文本要作为上下文的一部分发给 API，占用了宝贵的 Token 预算。对于编程 Agent 来说，一次任务可能循环 50 轮，每轮都写一段「我打算先读取……然后分析……」的思考过程，加起来就是好几万 Token 的浪费。
-- **第二个问题：应用层代码太复杂。** 你需要解析模型的输出，区分「哪部分是 Thought、哪部分是 Action」，然后提取 Action 调用工具，再把 Observation 拼回去。这个解析过程写起来很麻烦，而且很容易出 bug，因为模型输出的格式不一定标准，一崩就全崩了。
-- **第三个问题：ReAct 是为「弱模型」设计的。** 当大模型的推理能力不够强时，用显式的 Thought 来「强迫」它一步步思考是有意义的。但 Claude Opus 这种级别的模型，推理能力已经足够强了，它完全可以在内部完成推理，不需要在输出里显式写出每一步的思考过程。
+- **Token 浪费。** 每一轮都要输出一段 Thought 文本，这些文本要作为上下文的一部分发给 API，占用了宝贵的 Token 预算。对于编程 Agent 来说，一次任务可能循环 50 轮，每轮都写一段「我打算先读取……然后分析……」的思考过程，加起来就是好几万 Token 的浪费。
+- **应用层代码太复杂。** 你需要解析模型的输出，区分「哪部分是 Thought、哪部分是 Action」，然后提取 Action 调用工具，再把 Observation 拼回去。这个解析过程写起来很麻烦，而且很容易出 bug，因为模型输出的格式不一定标准，一崩就全崩了。
+- **ReAct 是为「弱模型」设计的。** 当大模型的推理能力不够强时，用显式的 Thought 来「强迫」它一步步思考是有意义的。但 Claude Opus 这种级别的模型，推理能力已经足够强了，它完全可以在内部完成推理，不需要在输出里显式写出每一步的思考过程。
 
-#### [Tool-Use Loop](https://xiaolinnote.com/claudecode/source/cc_source.html#tool-use-loop)
+#### **Tool-Use Loop**
 
 Claude Code 没有采用 ReAct 的 Thought-Action-Observation 三步循环，而是用了一个更简洁的模式，我把它叫做 **Tool-Use Loop**。
 
@@ -1675,17 +1440,13 @@ async function* queryLoop(
 
 注意 `break` 和 `continue`，模型说 `end_turn` 就 `break` 跳出循环，说 `tool_use` 就 `continue` 回到循环开头。整个决策逻辑就这么简单。
 
-#### [为什么比 ReAct 更好](https://xiaolinnote.com/claudecode/source/cc_source.html#为什么比-react-更好)
+#### **为什么比 ReAct 更好**
 
-你可能会问：不就是把 Thought 去掉了吗，有什么了不起的？区别其实很大，我列了三个关键原因：
+1. **Extended Thinking 让推理在「模型内部」完成。** Claude Opus 支持 Extended Thinking，模型在生成最终回复之前，会在内部进行一段不可见的深度推理。这段推理发生在模型内部，不占用应用的上下文空间，也不需要应用层去解析。所以 ReAct 的 Thought 步骤在 Claude 的架构里是多余的，模型已经在内部「想好了」，不需要在外部输出中再写一遍。
 
-**第一，Extended Thinking 让推理在「模型内部」完成。** Claude Opus 支持 Extended Thinking，模型在生成最终回复之前，会在内部进行一段不可见的深度推理。这段推理发生在模型内部，不占用应用的上下文空间，也不需要应用层去解析。所以 ReAct 的 Thought 步骤在 Claude 的架构里是多余的，模型已经在内部「想好了」，不需要在外部输出中再写一遍。
+2. **API 原生支持 tool_use。** Claude 的 API 原生支持工具调用，模型可以直接返回 `tool_use` 类型的响应，不需要用正则表达式从文本中提取「Action」。这消除了 ReAct 的格式解析问题，应用层代码变得极其简洁。
 
-**第二，API 原生支持 tool_use。** Claude 的 API 原生支持工具调用，模型可以直接返回 `tool_use` 类型的响应，不需要用正则表达式从文本中提取「Action」。这消除了 ReAct 的格式解析问题，应用层代码变得极其简洁。
-
-**第三，end_turn 作为天然的终止信号。** ReAct 需要一套额外的规则来判断「Agent 是否完成了」，比如检测输出中是否包含「Final Answer」。而 Tool-Use Loop 用模型的 `end_turn` 信号作为终止条件，这是 API 层面的原语，语义清晰，不需要任何解析。
-
-用一个表格来总结两者的区别：
+3. **end_turn 作为天然的终止信号。** ReAct 需要一套额外的规则来判断「Agent 是否完成了」，比如检测输出中是否包含「Final Answer」。而 Tool-Use Loop 用模型的 `end_turn` 信号作为终止条件，这是 API 层面的原语，语义清晰，不需要任何解析。
 
 | **维度**   | **ReAct**                     | **Tool-Use Loop**          |
 | ---------- | ----------------------------- | -------------------------- |
@@ -1706,7 +1467,7 @@ ReAct 的设计哲学是「帮模型思考」，用显式的 Thought 步骤引�
 
 这种「大道至简」的设计，反而是最高效的。
 
-#### [Plan Mode](https://xiaolinnote.com/claudecode/source/cc_source.html#plan-mode)
+#### Plan Mode
 
 Claude Code 不仅有 Tool-Use Loop 这种「边想边做」模式，还有 **Plan Mode**，一个更精细的两阶段工作流：先规划、再执行。
 
@@ -1724,17 +1485,13 @@ Plan Mode 最值得学习的设计是**「工具即能力」**。
 
 就像调用 Read 工具读文件一样自然。整个过程不需要引擎层做任何特殊处理，`query()` 仍然只是一个简单的 `while(true)` 循环。
 
-### [四、System Prompt 的构造](https://xiaolinnote.com/claudecode/source/cc_source.html#四、system-prompt-的构造)
+### 1.4 System Prompt 的构造
 
-System Prompt 就是 Claude Code 的灵魂，它定义了 Agent 的身份、行为规范、可用工具、安全约束……一切。
-
-但 Claude Code 的 System Prompt 不是一个静态的文本文件。它是**动态组装**的，由十几个 Section 拼接而成，而且在组装过程中做了非常精巧的**缓存优化**。
+System Prompt 就是 Claude Code 的灵魂，它定义了 Agent 的身份、行为规范、可用工具、安全约束……一切。不是一个静态的文本文件。它是**动态组装**的，由十几个 Section 拼接而成，而且在组装过程中做了非常精巧的**缓存优化**。
 
 我们先来看一下，Claude Code 的 System Prompt 到底长什么样，它是怎么「调教」大模型变成一个靠谱的编程 Agent 的。
 
-*注：Claude Code 源码中所有 Prompt 原文均为英文。为了让大家更好地理解设计思路，下面展示的 Prompt 内容我翻译成了中文，并保留了关键术语的英文原文。*
-
-#### [角色定义与安全红线](https://xiaolinnote.com/claudecode/source/cc_source.html#角色定义与安全红线)
+#### 角色定义与安全红线
 
 每个 Agent 的 System Prompt 都要回答一个根本问题：你是谁？Claude Code 的开场是这样的：
 
@@ -1747,32 +1504,24 @@ System Prompt 就是 Claude Code 的灵魂，它定义了 Agent 的身份、行�
 提供的 URL。
 ```
 
-注意两个关键点。第一，它把自己定位为「interactive agent」，而不是「assistant」或「chatbot」，这从一开始就暗示了模型应该主动采取行动，而不是被动回答。第二，立刻划了安全红线：不能乱编 URL。这
+注意两个关键点。第一，它把自己定位为「interactive agent」，而不是「assistant」或「chatbot」，这从一开始就暗示了模型应该主动采取行动，而不是被动回答。第二，立刻划了安全红线：不能乱编 URL。这看起来是个小事，但对编程 Agent 非常重要，如果模型瞎编一个 npm 包的 URL，用户执行了就可能中招。
 
-看起来是个小事，但对编程 Agent 非常重要，如果模型瞎编一个 npm 包的 URL，用户执行了就可能中招。
-
-紧接着是一段安全约束指令，这段话非常值得每个 Agent 开发者抄作业：
+紧接着是一段安全约束指令：
 
 ```plain
-重要：允许协助已授权的安全测试、防御性安全研究、CTF 挑战赛
-和教育场景。拒绝涉及破坏性技术、DoS 攻击、大规模目标扫描、
-供应链攻击或用于恶意目的的检测规避请求。
+重要：允许协助已授权的安全测试、防御性安全研究、CTF 挑战赛和教育场景。拒绝涉及破坏性技术、DoS 攻击、大规模目标扫描、供应链攻击或用于恶意目的的检测规避请求。
 ```
 
 这段 Prompt 没有用「绝对不能做 X」的口吻，而是先说「可以做什么」（授权的安全测试、CTF 挑战），再划定「不能做什么」（DoS、供应链攻击）。
 
 这种「先肯定再约束」的写法，比纯禁止清单效果好得多，它给了模型清晰的判断依据，而不是一堆模糊的红线。
 
-#### [行为准则](https://xiaolinnote.com/claudecode/source/cc_source.html#行为准则)
-
-接下来是一大段关于「怎么做事」的行为指南，这部分是 Claude Code System Prompt 的精华。我挑几条最值得学习的：
+#### 行为准则
 
 **关于修改代码前先阅读：**
 
 ```markdown
-一般来说，不要对你没有阅读过的代码提出修改建议。如果用户
-要求你查看或修改某个文件，先读一遍它。在提出修改建议之前，
-先理解现有代码。
+一般来说，不要对你没有阅读过的代码提出修改建议。如果用户要求你查看或修改某个文件，先读一遍它。在提出修改建议之前，先理解现有代码。
 ```
 
 这条看起来简单，但解决了 Agent 的一个常见问题：很多 Agent 会根据用户描述直接生成代码，而不先看看现有代码是什么样的，结果经常和项目风格不一致或者引入重复实现。
@@ -1801,7 +1550,7 @@ System Prompt 就是 Claude Code 的灵魂，它定义了 Agent 的身份、行�
 
 这条解决了 Agent 的另一个常见问题，「摆烂式重试」或「草率放弃」。Claude Code 要求模型先搞清楚为什么失败了，再决定是修复还是换方案，而不是两个极端。
 
-#### [操作安全](https://xiaolinnote.com/claudecode/source/cc_source.html#操作安全)
+#### 操作安全
 
 Claude Code 对「什么操作需要用户确认」做了非常详细的规定。我建议每个 Agent 开发者都研读这段 Prompt：
 
@@ -1829,7 +1578,7 @@ Claude Code 对「什么操作需要用户确认」做了非常详细的规定�
 
 这解决了「权限蔓延」的问题，用户同意了一次 push 不代表以后都自动 push，**授权是一次性的、有范围的**。这个原则在 Agent 权限设计中非常重要。
 
-#### [工具使用指南](https://xiaolinnote.com/claudecode/source/cc_source.html#工具使用指南)
+#### 工具使用指南
 
 ```markdown
 当有专用工具可用时，不要用 Bash 来执行命令。使用专用工具可以
@@ -1930,7 +1679,7 @@ Claude Code 对模型的输出风格也有严格规定：
 
 **分割线之上的内容，对所有用户都完全一样。** 不管你是北京的 Java 工程师还是纽约的 Python 开发者，你看到的「角色定义」「行为准则」「Git 安全协议」这些内容是一模一样的。
 
-**分割线之下的内容，每个用户都不同。** 你的工作目录、你的 [CLAUDE.md](http://claude.md/)、你的记忆文件、你连接的 MCP 服务，这些是因人而异的。
+**分割线之下的内容，每个用户都不同。** 你的工作目录、你的 [CLAUDE.md]、你的记忆文件、你连接的 MCP 服务，这些是因人而异的。
 
 为什么要这么分？因为 Claude API 有一个 **Prompt Cache** 机制：如果两次请求的 Prompt 前缀完全相同，API 会复用上次的计算结果，**费用可以降低 90%**。对于几万 Token 的 System Prompt 来说，缓存命中与否意味着每次请求几美分和几美元的差距。
 
@@ -2009,7 +1758,7 @@ Claude Code 明确规定了**什么不应该存到记忆里**，这个设计和�
 
 然后是 Git 历史和最近的改动，`git log` 和 `git blame` 才是权威来源，不需要记忆系统再来存一遍。调试方案和修复方法也不存，因为修复已经在代码里了，commit 消息已经记录了上下文。
 
-[CLAUDE.md](http://claude.md/) 里已经写了的内容也不存，避免重复。最后是临时任务状态和当前对话上下文，这些是会话级的信息，不需要跨会话保持。
+[CLAUDE.md] 里已经写了的内容也不存，避免重复。最后是临时任务状态和当前对话上下文，这些是会话级的信息，不需要跨会话保持。
 
 这个排除清单背后的核心原则是：**可以从当前代码推导出来的信息，一律不存**。
 
@@ -2933,7 +2682,7 @@ Claude Code 的处理是两段式的，非常有意思。
 
 但 agent 就不一样了，窗口压力来自三处叠加。
 
-**第一处，开局就是大头**。一个 agent 开局，光是 system prompt + 工具描述 + [CLAUDE.md](http://claude.md/) 这些「固定开支」，就要塞进 5k 到 10k token。你还没开始干活，桌子就已经占了一角。
+**第一处，开局就是大头**。一个 agent 开局，光是 system prompt + 工具描述 + [CLAUDE.md] 这些「固定开支」，就要塞进 5k 到 10k token。你还没开始干活，桌子就已经占了一角。
 
 **第二处，工具调用会在上下文里留下两条记录，而且持续累积**。这一点很多人不知道，是上下文爆得快的元凶之一。普通聊天里模型回一句话，上下文就多一条文本。但工具调用不一样：模型先发一条 tool_use（告诉系统我要调什么工具、参数是啥），工具跑完再回一条 tool_result（把结果塞回上下文），这两条都会留下来。
 
@@ -3082,7 +2831,7 @@ Auto-Compact 作为金字塔最顶层的兜底机制，核心就三件事。
 
 第二件，**全量重写对话**。这个最反直觉：所有历史消息，不分新旧，全部送进摘要器重新写一份。
 
-第三件，**关键信息走另外的恢复通道**。文件内容、记忆文件（也就是 [CLAUDE.md](http://claude.md/) 这类）、异步任务的状态，这些东西不靠摘要保住，靠「重新注入」。
+第三件，**关键信息走另外的恢复通道**。文件内容、记忆文件（也就是 [CLAUDE.md] 这类）、异步任务的状态，这些东西不靠摘要保住，靠「重新注入」。
 
 这里顺便插一句「异步任务」是啥：Claude Code 支持主 agent 派几个后台子 agent 同时干活，比如让一个去搜文档、另一个去跑测试。这种正在跑的子任务状态也属于关键信息，压缩时必须保住，不然主 agent 醒来后会不知道子任务进展到哪了。
 
@@ -3090,7 +2839,7 @@ Auto-Compact 作为金字塔最顶层的兜底机制，核心就三件事。
 
 好比你是一家公司的老板，每个季度要做总结。一种做法是「把所有的会议记录都翻一遍」。这种方法你能记住一堆细节，但脑子里乱成一锅粥。
 
-Auto-Compact 的做法是另一种：会议记录全部归档进档案室（这部分等于丢了，对话里看不到了）；桌面上换上一份新写的「精华版季度纪要」（这是摘要）；员工手册（也就是 [CLAUDE.md](http://claude.md/)）该挂哪挂哪不动，下次开会还能翻（下一轮重新加载）；最近用过的几份关键文档（最近 read 的文件），放到桌面随手翻的位置（重新注入为附件）。
+Auto-Compact 的做法是另一种：会议记录全部归档进档案室（这部分等于丢了，对话里看不到了）；桌面上换上一份新写的「精华版季度纪要」（这是摘要）；员工手册（也就是 [CLAUDE.md]）该挂哪挂哪不动，下次开会还能翻（下一轮重新加载）；最近用过的几份关键文档（最近 read 的文件），放到桌面随手翻的位置（重新注入为附件）。
 
 这套做法的精髓在哪？在于它承认对话历史是会过时的。过去的细节虽然有价值，但 95% 都不需要原样保留，重要的是「我的目标是什么、我做到哪一步了、犯过哪些错、下一步该干嘛」这种结构化的状态。
 
@@ -3251,19 +3000,19 @@ export const POST_COMPACT_MAX_FILES_TO_RESTORE = 5
 
 这个设计实际上是把「最近文件」这个概念量化了。不是模糊地说「保留最近的」，而是用 5 个文件、5k 每文件、50k 总额这三个参数，把它工程化定义死。这样不管对话多复杂，文件恢复的开销都是可控的。
 
-#### [CLAUDE.md](http://claude.md/) 不进摘要
+#### [CLAUDE.md] 不进摘要
 
-讲完文件，看另一个值得讲的东西：记忆文件，比如 [CLAUDE.md](http://claude.md/)。
+讲完文件，看另一个值得讲的东西：记忆文件，比如 [CLAUDE.md]。
 
-你可能会猜：[CLAUDE.md](http://claude.md/) 这种永久性的指令，压缩之后会被塞进附件里吧？
+你可能会猜：[CLAUDE.md] 这种永久性的指令，压缩之后会被塞进附件里吧？
 
-错。Claude Code 这里做了一个很反直觉的决策：**[CLAUDE.md](http://claude.md/) 不会被注入到压缩后的消息里**。
+错。Claude Code 这里做了一个很反直觉的决策：**[CLAUDE.md] 不会被注入到压缩后的消息里**。
 
 那它怎么生效？答案是：通过「清空缓存」让它在下一轮对话自动重新加载。
 
-逻辑是这样的：Claude Code 内部有个叫 `getUserContext` 的缓存（用来存「用户级上下文」，[CLAUDE.md](http://claude.md/) 的内容就放在这）。每次对话开始，会先查这个缓存。压缩的时候，系统把这个缓存清掉。这样下一轮对话发起的时候，Claude Code 发现缓存空了，就会从磁盘重新读 [CLAUDE.md](http://claude.md/)。
+逻辑是这样的：Claude Code 内部有个叫 `getUserContext` 的缓存（用来存「用户级上下文」，[CLAUDE.md] 的内容就放在这）。每次对话开始，会先查这个缓存。压缩的时候，系统把这个缓存清掉。这样下一轮对话发起的时候，Claude Code 发现缓存空了，就会从磁盘重新读 [CLAUDE.md]。
 
-为什么这么干？因为 [CLAUDE.md](http://claude.md/) 是「永久存活」的上下文，每一轮都会自动重新加载，不需要塞到压缩后的消息里占地方。这种「全局指令」和「当下对话」是两套机制管理的，互不干扰。
+为什么这么干？因为 [CLAUDE.md] 是「永久存活」的上下文，每一轮都会自动重新加载，不需要塞到压缩后的消息里占地方。这种「全局指令」和「当下对话」是两套机制管理的，互不干扰。
 
 #### [system prompt 和异步任务](https://xiaolinnote.com/claudecode/source/cc_compact.html#system-prompt-和异步任务)
 
@@ -3442,7 +3191,7 @@ Claude Code 是这么处理的，整个流水线大概是这么走：
 
 第一层，触发时机。用的是绝对 token 阈值，公式是「有效上下文窗口减去 13k 缓冲」。这里有个细节最能体现你真翻过源码：所谓「有效上下文窗口」本身就已经先从原始窗口里抠掉了约 20k，专门留给摘要自己的输出，而这 20k 才是基于摘要任务 p99.99 输出长度（实测 17,387 token）向上取整加冗余得来的；13k 是在这之上再加的一道独立缓冲。所以离原始窗口的距离其实是 20k 加 13k 约 33k。这一层讲清楚，面试官就知道你不是临时抱佛脚。
 
-第二层，取舍逻辑。反直觉的点是它不保留最近 N 条，而是把所有历史消息一刀切全部送进摘要器重写一份。关键的状态信息单独走「附件通道」恢复，比如最近读过的 5 个文件（每个最多 5k token，总预算 50k）、异步任务状态、当前计划文件。[CLAUDE.md](http://claude.md/) 这种永久指令则不进摘要，而是通过清空 getUserContext 缓存让它在下一轮自动重新加载。
+第二层，取舍逻辑。反直觉的点是它不保留最近 N 条，而是把所有历史消息一刀切全部送进摘要器重写一份。关键的状态信息单独走「附件通道」恢复，比如最近读过的 5 个文件（每个最多 5k token，总预算 50k）、异步任务状态、当前计划文件。[CLAUDE.md] 这种永久指令则不进摘要，而是通过清空 getUserContext 缓存让它在下一轮自动重新加载。
 
 第三层，摘要 prompt 设计。用 9 部分结构化清单约束输出，重点强调「所有用户消息」必须枚举不能落、「当前正在做的事」要精确到文件和函数名。摘要用的是当前对话的同一个模型，不省钱换小模型，目的是保证质量，顺便复用 prompt cache。
 
@@ -4092,7 +3841,7 @@ MemGPT（现在叫 Letta）那一派的方案。
 
 Claude Code 的记忆机制其实是**两条独立的线**，并行工作：
 
-**静态层是 [CLAUDE.md](http://claude.md/) 体系**，本质是「声明式指令」。你写好放那里，agent 启动时全量加载。这一层解决的是「我们怎么协作」「这个项目要遵守什么规则」这种**确定性的事情**。
+**静态层是 [CLAUDE.md] 体系**，本质是「声明式指令」。你写好放那里，agent 启动时全量加载。这一层解决的是「我们怎么协作」「这个项目要遵守什么规则」这种**确定性的事情**。
 
 **动态层是自动记忆系统**，本质是「学习式偏好」。agent 在跟你互动的过程中，把它认为「值得记下来的事」自动写成记忆文件存到磁盘上，下次对话再按需检索。这一层解决的是「我从跟你的互动中学到了什么」这种**不确定的事情**。
 
@@ -4104,19 +3853,19 @@ Claude Code 的记忆机制其实是**两条独立的线**，并行工作：
 
 ------
 
-### [四、静态层：](https://xiaolinnote.com/claudecode/source/cc_memory.html#四、静态层-claude-md-的六个层级)[CLAUDE.md](http://claude.md/) 的六个层级
+### [四、静态层：](https://xiaolinnote.com/claudecode/source/cc_memory.html#四、静态层-claude-md-的六个层级)[CLAUDE.md] 的六个层级
 
-很多人对 [CLAUDE.md](http://claude.md/) 的印象停留在「项目根目录放一个 md 文件，写点项目说明」。但你打开 Claude Code 源码就会发现，[CLAUDE.md](http://claude.md/) 这套体系**远比你想的复杂**。
+很多人对 [CLAUDE.md] 的印象停留在「项目根目录放一个 md 文件，写点项目说明」。但你打开 Claude Code 源码就会发现，[CLAUDE.md] 这套体系**远比你想的复杂**。
 
-#### [为什么不能只有一个 ](https://xiaolinnote.com/claudecode/source/cc_memory.html#为什么不能只有一个-claude-md)[CLAUDE.md](http://claude.md/)
+#### [为什么不能只有一个 ](https://xiaolinnote.com/claudecode/source/cc_memory.html#为什么不能只有一个-claude-md)[CLAUDE.md]
 
-我们先想一个问题，如果只有一个 [CLAUDE.md](http://claude.md/)，会发生什么？
+我们先想一个问题，如果只有一个 [CLAUDE.md]，会发生什么？
 
 你很快会发现，想往里塞的「规则」根本不是同一个来源。公司级的强制策略（比如「禁止 commit secrets」）得全员生效、谁也改不得；你个人的习惯（比如 commit message 用中文）希望跨所有项目通用；项目自己的规则要签入 git、给团队共享。
 
 还有几类更微妙的。本地调试用的约定不想签入 git，只想在自己机器上读到；团队一起摸索出来的经验，希望同步给所有成员；以及 Claude Code 自己从对话里学到的你的偏好，也总得有个地方落下来。
 
-这六种来源，可见范围不同、谁能改也不同，硬塞进一个 [CLAUDE.md](http://claude.md/) 只会要么打架要么混乱。所以 Claude Code 索性把它拆成了**六个层级**。
+这六种来源，可见范围不同、谁能改也不同，硬塞进一个 [CLAUDE.md] 只会要么打架要么混乱。所以 Claude Code 索性把它拆成了**六个层级**。
 
 #### [六个层级各管一摊](https://xiaolinnote.com/claudecode/source/cc_memory.html#六个层级各管一摊)
 
@@ -4135,17 +3884,17 @@ Claude Code 的记忆机制其实是**两条独立的线**，并行工作：
 
 六层之间是**叠加关系**不是覆盖关系。Claude Code 启动时把它们**全部拼接**进 system prompt，让模型一起看到。
 
-#### [@include：让 ](https://xiaolinnote.com/claudecode/source/cc_memory.html#include-让-claude-md-互相引用)[CLAUDE.md](http://claude.md/) 互相引用
+#### [@include：让 ](https://xiaolinnote.com/claudecode/source/cc_memory.html#include-让-claude-md-互相引用)[CLAUDE.md] 互相引用
 
 光分层还不够，还有个实际问题。
 
-假设你们公司有一份「通用安全规范」，每个项目都得遵守，难道每个项目的 [CLAUDE.md](http://claude.md/) 都把它**复制一遍**吗？
+假设你们公司有一份「通用安全规范」，每个项目都得遵守，难道每个项目的 [CLAUDE.md] 都把它**复制一遍**吗？
 
 太蠢了。
 
 Claude Code 给的方案是 `@include` 指令。
 
-你在 [CLAUDE.md](http://claude.md/) 里写一行 `@~/company/security-rules.md`，加载的时候它就**自动把那个文件的内容读进来拼上**，思路跟 C 语言的 `#include` 一模一样。
+你在 [CLAUDE.md] 里写一行 `@~/company/security-rules.md`，加载的时候它就**自动把那个文件的内容读进来拼上**，思路跟 C 语言的 `#include` 一模一样。
 
 当然，背后还得防循环引用、防路径遍历这些工程坑，这里就不展开了。
 
@@ -4172,7 +3921,7 @@ paths: ["**/*.tsx", "**/*.jsx"]
 
 加载的时候，Claude Code 会**比对当前编辑的文件路径**，只有匹配上的规则才会被拼进 system prompt，匹配不上的就跳过。
 
-这个设计的妙处在于，它让 [CLAUDE.md](http://claude.md/) **不再是「一次性全塞」**，而是「按需注入」。一个大项目可以有几十条规则，每条只在它真正需要的时候才占用 token，整体上下文窗口就省下来了。
+这个设计的妙处在于，它让 [CLAUDE.md] **不再是「一次性全塞」**，而是「按需注入」。一个大项目可以有几十条规则，每条只在它真正需要的时候才占用 token，整体上下文窗口就省下来了。
 
 #### [截断双保险：防长行索引炸弹](https://xiaolinnote.com/claudecode/source/cc_memory.html#截断双保险-防长行索引炸弹)
 
@@ -4207,9 +3956,9 @@ export const MAX_ENTRYPOINT_BYTES = 25_000
 
 #### [为什么还需要动态记忆](https://xiaolinnote.com/claudecode/source/cc_memory.html#为什么还需要动态记忆)
 
-[CLAUDE.md](http://claude.md/) 这套体系再完善，也有一个根本局限：**得你主动写**。
+[CLAUDE.md] 这套体系再完善，也有一个根本局限：**得你主动写**。
 
-你昨天跟 Claude 抱怨「这个 mock 测试又骗过 CI 了」，今天换会话再写测试，它依然得你重新强调「别用 mock」。[CLAUDE.md](http://claude.md/) 又不会自己长出新内容。
+你昨天跟 Claude 抱怨「这个 mock 测试又骗过 CI 了」，今天换会话再写测试，它依然得你重新强调「别用 mock」。[CLAUDE.md] 又不会自己长出新内容。
 
 理想的状态应该是：**Claude 在跟你聊天的过程中，自动把它学到的东西记下来**，下次你不用再说一遍。
 
@@ -4282,7 +4031,7 @@ export const MEMORY_TYPES = [
 - 代码模式、架构、文件路径、项目结构（用 `grep` / `CLAUDE.md` 就能得到，存了反而和实际状态不一致）
 - Git 历史和最近改动（`git log` / `git blame` 是权威，记忆只会落后于真相）
 - 调试方案和修复方法（fix 已经在代码里，commit 已经记录了上下文）
-- [CLAUDE.md](http://claude.md/) 里已经写过的内容
+- [CLAUDE.md] 里已经写过的内容
 - 临时任务状态和当前对话上下文
 
 为什么这条「不该存」清单这么重要？
@@ -4555,7 +4304,7 @@ Claude Code 的两道防线是：
 
 展开来说：
 
-- **两层架构**：[CLAUDE.md](http://claude.md/) 六层级（声明式）+ 自动记忆系统（学习式）
+- **两层架构**：[CLAUDE.md] 六层级（声明式）+ 自动记忆系统（学习式）
 - **四种类型**：user / feedback / project / reference，强制分类决策
 - **索引常驻**：[MEMORY.md](http://memory.md/) 索引始终加载、内容按需加载
 - **小模型选择**：用 Sonnet 当选择器选 top-5，过滤已露脸 + 过滤工具文档
@@ -4988,7 +4737,7 @@ Fork Subagent 的直觉是这样的：**派一个子 agent 出去干活，但这
 具体要对齐哪些东西呢？有五样必须跟父 agent 完全一致：
 
 1. **系统 prompt 的内容**（最核心的，对齐第一位）
-2. **用户上下文**（拼在消息前的那部分动态内容，比如当前项目的 [CLAUDE.md](http://claude.md/) 内容）
+2. **用户上下文**（拼在消息前的那部分动态内容，比如当前项目的 [CLAUDE.md] 内容）
 3. **系统上下文**（拼在 system prompt 后的环境信息）
 4. **工具池的顺序和定义**（工具的字段结构会被序列化进 API 请求，顺序都不能变）
 5. **对话历史的前缀**（决定了 user/assistant 消息序列中「从哪里开始分叉」）
@@ -5316,7 +5065,7 @@ pdf/
 
 就这么点东西。没有二进制文件，没有依赖包，你连个安装脚本都找不到。**全是给人也能直接读的文本**。
 
-核心是那个 [SKILL.md](http://skill.md/)。它的开头有一段用 `---` 包起来的元信息，行话叫 frontmatter，长这样。
+核心是那个 [SKILL.md]。它的开头有一段用 `---` 包起来的元信息，行话叫 frontmatter，长这样。
 
 ```markdown
 ---
@@ -5359,7 +5108,7 @@ frontmatter 里其实还有不少可选字段，比如限制这个 skill 能用�
 mkdir -p ~/.claude/skills/style-check
 ```
 
-第二步，在里面创建 [SKILL.md](http://skill.md/)，写上 frontmatter。
+第二步，在里面创建 [SKILL.md]，写上 frontmatter。
 
 ```markdown
 ---
@@ -5393,7 +5142,7 @@ description: 检查代码是否符合团队风格规范。
 
 先把这个惊讶存着，后面第四节专门拆它。这里先来算一笔更要命的账。
 
-我这个 skill 才一百来字，没什么负担。但你看看社区里那些正经 skill，一份 [SKILL.md](http://skill.md/) 几千字起步，再带上好几个补充文档。而一个重度用户装几十个 skill 稀松平常，我自己机器上现在就躺着三十多个。
+我这个 skill 才一百来字，没什么负担。但你看看社区里那些正经 skill，一份 [SKILL.md] 几千字起步，再带上好几个补充文档。而一个重度用户装几十个 skill 稀松平常，我自己机器上现在就躺着三十多个。
 
 假设装了 50 个 skill，每份手册平均折算 3000 token（token 说人话就是模型眼里的「字数」）。如果把它们全文塞进系统提示词，光这一项就是 15 万 token。
 
@@ -5454,7 +5203,7 @@ return commands.map((cmd, i) =>
 
 #### [第二层：选中了，才把整本书抽出来](https://xiaolinnote.com/claudecode/source/cc_skill.html#第二层-选中了-才把整本书抽出来)
 
-当模型判断当前任务需要某个 skill（怎么判断的下一节细说），它会发起一次调用，这时候 [SKILL.md](http://skill.md/) 的完整正文才被读进来，注入当前对话。
+当模型判断当前任务需要某个 skill（怎么判断的下一节细说），它会发起一次调用，这时候 [SKILL.md] 的完整正文才被读进来，注入当前对话。
 
 注入的方式也很有意思。你以为会塞进系统提示词？错，它**包装成一条用户消息（user message），直接插进了对话流**。
 
@@ -5476,7 +5225,7 @@ newMessages: tagMessagesWithToolUseID(
 
 还记得 pdf skill 目录里那几个 [reference.md](http://reference.md/) 和脚本吗？它们在第二层注入时**依然不会被加载**。
 
-[SKILL.md](http://skill.md/) 正文里只是留了几句指路的话，「表单填写这种复杂操作，先阅读 [forms.md](http://forms.md/)」。模型读到这句，真遇到表单任务，才会自己动手把那个文件 Read 进来。
+[SKILL.md] 正文里只是留了几句指路的话，「表单填写这种复杂操作，先阅读 [forms.md](http://forms.md/)」。模型读到这句，真遇到表单任务，才会自己动手把那个文件 Read 进来。
 
 这一层的妙处在于，它根本不需要任何专门的机制。Claude 本来就有读文件的工具，skill 只要在手册里把路指清楚，剩下的交给模型自由发挥。
 
@@ -5661,11 +5410,11 @@ skill 放在项目的 `.claude/skills/` 目录里，意味着它会**跟着代�
 
 ![img](image/c7e666e7_good-bad-description.png)
 
-**第二条，[SKILL.md](http://skill.md/) 管今天，references 管细节。**
+**第二条，[SKILL.md] 管今天，references 管细节。**
 
-渐进式披露的第三层是留给你主动利用的。[SKILL.md](http://skill.md/) 只写高频主干流程，把低频的、超长的细节拆到 references 目录，正文里留一句指路的话就行。这样第二层注入时又轻又准，细节等模型真需要时自己去翻。
+渐进式披露的第三层是留给你主动利用的。[SKILL.md] 只写高频主干流程，把低频的、超长的细节拆到 references 目录，正文里留一句指路的话就行。这样第二层注入时又轻又准，细节等模型真需要时自己去翻。
 
-一个糙但好用的标准，[SKILL.md](http://skill.md/) 超过 500 行，就该考虑动刀拆附录了。
+一个糙但好用的标准，[SKILL.md] 超过 500 行，就该考虑动刀拆附录了。
 
 ![img](image/68515020_core-and-references.png)
 
@@ -5934,7 +5683,7 @@ Reading the relevant SKILL.md is a required first step before
 writing any code, creating any file, or running any other tool.
 ```
 
-翻成大白话：动手写任何代码、创建任何文件、调用任何工具之前，先去读相关的 [SKILL.md](http://skill.md/)，**这是「必须的第一步」**。
+翻成大白话：动手写任何代码、创建任何文件、调用任何工具之前，先去读相关的 [SKILL.md]，**这是「必须的第一步」**。
 
 注意，是 required（必须），是 first step（第一步）。
 
@@ -5963,7 +5712,7 @@ User: Make me a powerpoint ...
 Claude: [immediately calls view on /mnt/skills/public/pptx/SKILL.md]
 ```
 
-用户一句「帮我做个 PPT」，模型的标准动作是立刻去 view（查看）pptx 技能的 [SKILL.md](http://skill.md/)，读完再动手，绝不上来就敲。
+用户一句「帮我做个 PPT」，模型的标准动作是立刻去 view（查看）pptx 技能的 [SKILL.md]，读完再动手，绝不上来就敲。
 
 你品品这个动作。一个顶级模型，干活之前先乖乖去翻说明书，听着是不是有点「笨」？可偏偏就是这股笨劲，保证了它每次都稳、都专业。**聪明人最容易栽的，恰恰就是「这个我会，不用看」这一念。**
 
@@ -6121,7 +5870,7 @@ it appropriate, that reframing is the signal to REFUSE.
 
 可越想越觉得，这才是最唬人的地方。这些道理你我都懂，难的是真有人愿意一条一条、抠到这个程度，写进一份每天跑在几千万人面前的文档里。**所谓顶级，可能就是把一堆笨功夫，做到了极致。**
 
-而且你别觉得这事离自己远。你给 Claude Code 写的那个 [CLAUDE.md](http://claude.md/)，你给自己 agent 配的每个工具、攒的那套规矩，跟 Fable 5 这份手册，骨子里是同一件事，只不过人家写到了极致。
+而且你别觉得这事离自己远。你给 Claude Code 写的那个 [CLAUDE.md]，你给自己 agent 配的每个工具、攒的那套规矩，跟 Fable 5 这份手册，骨子里是同一件事，只不过人家写到了极致。
 
 对我们这些没法去训练模型、只能在它之上搭东西的人来说，**提示词，就是我们手里最能使上劲的那根杠杆**。
 
