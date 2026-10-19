@@ -1,22 +1,6 @@
 # 1. 你了解过哪些 AI Agent 开发框架？
 
-👔面试官：你了解过哪些 AI Agent 开发框架？
-
-🙋‍♂️我：了解过 LangChain、LangGraph、LlamaIndex、CrewAI、AutoGen……反正都是封装大模型和工具调用的，用哪个都差不多。
-
-👔面试官：只会报名字不算了解。它们解决的问题、抽象层次和适用场景都不同，怎么会差不多？
-
-🙋‍♂️我：那 LangChain 生态最大，所有项目都使用 LangChain，复杂流程多写几个 Chain 就行。
-
-👔面试官：复杂的有状态流程还只想到 Chain？LangGraph 为什么会出现？LlamaIndex 又为什么长期强调数据和上下文增强？
-
-🙋‍♂️我：那我多背几个框架名称和 GitHub Star，面试时全部说一遍，应该就显得了解得比较全面。
-
-👔面试官：框架名称说得多，不等于理解得深。你应该围绕项目难点说明为什么选，而不是拿热度和名词数量代替技术判断。
-
-面试官要听的是你的选型依据：主流框架分别解决什么问题，放到具体业务里又该怎么选。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/langchain/agent_frameworks.html#💡-简要回答)
+## 💡 简要回答
 
 我重点了解过 LangChain、LangGraph 和 LlamaIndex。
 
@@ -28,9 +12,9 @@ LlamaIndex 的优势集中在数据接入、文档解析、索引和检索，适
 
 除此之外，我也了解 OpenAI Agents SDK 和 CrewAI。前者适合以 OpenAI 模型为主的轻量 Agent，后者擅长使用角色和任务表达多 Agent 协作。不过在通用 Python Agent 开发岗位中，我会优先掌握 LangChain、LangGraph 和 LlamaIndex，再根据公司的技术栈补充其他框架。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/langchain/agent_frameworks.html#📝-详细解析)
+## 📝 详细解析
 
-### [Agent 框架解决了什么？](https://xiaolinnote.com/ai/langchain/agent_frameworks.html#agent-框架解决了什么)
+### Agent 框架解决了什么？
 
 假设不用任何框架，自己实现一个能查询资料、调用接口并记住上下文的 Agent，需要做多少事情？
 
@@ -42,7 +26,7 @@ Agent 框架会把这些重复工程抽象成可复用组件。不同框架各�
 
 比较框架时，重点要落到业务约束：项目卡在哪里，哪套抽象更适合解决这个问题。
 
-### [为什么重点看 LangChain？](https://xiaolinnote.com/ai/langchain/agent_frameworks.html#为什么重点看-langchain)
+### 为什么重点看 LangChain？
 
 LangChain 的定位已经不只是早期的「把多个 Prompt 串成 Chain」。它提供模型、消息、Prompt、工具、结构化输出、中间件和 Agent 等通用抽象，并集成了大量模型供应商、向量数据库和外部工具。
 
@@ -50,7 +34,7 @@ LangChain 的定位已经不只是早期的「把多个 Prompt 串成 Chain」�
 
 不过，LangChain 的高层抽象更适合常见 Agent 模式。当业务出现复杂循环、精细分支、长时间暂停和断点恢复时，就需要进一步使用 LangGraph 控制执行流程。
 
-### [LangGraph 和 LangChain 是什么关系？](https://xiaolinnote.com/ai/langchain/agent_frameworks.html#langgraph-和-langchain-是什么关系)
+### LangGraph 和 LangChain 是什么关系？
 
 LangGraph 使用 `State + Node + Edge` 表达 Agent 工作流：State 保存共享状态，Node 负责执行模型或工具，Edge 决定下一步运行哪个节点。
 
@@ -64,7 +48,7 @@ LangGraph 使用 `State + Node + Edge` 表达 Agent 工作流：State 保存共�
 
 因此，面试时不要把 LangChain 和 LangGraph 简单说成两个互相替代的框架。二者既有职责差异，也经常组合使用。
 
-### [LlamaIndex 强在哪里？](https://xiaolinnote.com/ai/langchain/agent_frameworks.html#llamaindex-强在哪里)
+### LlamaIndex 强在哪里？
 
 很多人把 LlamaIndex 简单理解成「另一个 LangChain」，这会忽略它最有辨识度的能力。
 
@@ -80,7 +64,7 @@ LlamaIndex 更强调在私有数据之上构建 AI 应用。它长期积累了�
 
 LlamaIndex 也提供 Agent、Memory、多 Agent Pattern 和 Workflow，所以它并不只是 RAG 工具。不过从选型角度看，LangChain 的入口更偏通用 Agent 组装，LlamaIndex 的优势更集中在数据密集型应用。
 
-### [三个框架怎么配合？](https://xiaolinnote.com/ai/langchain/agent_frameworks.html#三个框架怎么配合)
+### 三个框架怎么配合？
 
 LangChain、LangGraph 和 LlamaIndex 并不一定三选一。一个企业知识库 Agent 可以先用 LlamaIndex 处理文档、建立索引并提供检索结果，再把这项检索能力包装成 Tool，交给 LangChain Agent 决定何时调用。
 
@@ -90,7 +74,7 @@ LangChain、LangGraph 和 LlamaIndex 并不一定三选一。一个企业知识�
 
 是否需要同时引入三者，取决于项目复杂度。如果只是简单工具调用，不必为了技术栈完整而引入 LlamaIndex；如果只是普通知识库问答，也不一定需要复杂的 LangGraph 工作流。
 
-### [其他框架要了解吗？](https://xiaolinnote.com/ai/langchain/agent_frameworks.html#其他框架要了解吗)
+### 其他框架要了解吗？
 
 除了上面三个框架，还可以简单了解 OpenAI Agents SDK 和 CrewAI，但不必在通用 Python Agent 面试中平均分配准备时间。
 
@@ -102,7 +86,7 @@ LangChain、LangGraph 和 LlamaIndex 并不一定三选一。一个企业知识�
 
 AutoGen、Semantic Kernel 和 Microsoft Agent Framework 更偏微软生态或存量项目。对于通用 Python Agent 岗位，可以知道它们的定位，不需要在这道题中详细展开。Dify 则更接近低代码 AI 应用开发平台，也不宜和 Python Agent 框架放在同一层面重点比较。
 
-### [到底该怎么选？](https://xiaolinnote.com/ai/langchain/agent_frameworks.html#到底该怎么选)
+### 到底该怎么选？
 
 选框架前，先别急着比较功能数量，而要把问题从外到内收窄。
 
@@ -120,7 +104,7 @@ Demo 能跑，只完成了选型的一半。流程越长，越要继续追问：
 | OpenAI Agents SDK | OpenAI 技术栈下的轻量 Agent SDK | 客服分流、语音助手、工具 Agent     | 了解并按需深入 |
 | CrewAI            | 角色化多 Agent 协作             | 研究、内容生产、多角色审核         | 了解并按需深入 |
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/langchain/agent_frameworks.html#🎯-面试总结)
+## 🎯 面试总结
 
 面试时，不需要一口气罗列十几个框架。框架说得越多，面试官越可能继续追问，而没有实际使用经验的框架很容易暴露出只是听过名字。
 
@@ -130,23 +114,7 @@ Demo 能跑，只完成了选型的一半。流程越长，越要继续追问：
 
 # 2. 请你谈谈对 LangChain 中核心概念「Chain」的理解，以及它的核心作用与设计理念。
 
-👔面试官：你怎么理解 LangChain 里的 Chain？
-
-🙋‍♂️我：Chain 就是把 Prompt 和大模型连起来，先拼提示词，再让模型回答。
-
-👔面试官：这只能算最简单的一条链。检索器、输出解析器、自定义函数能不能进 Chain？一个步骤的输出又怎么交给下一个步骤？
-
-🙋‍♂️我：那就都塞进 `LLMChain`，复杂一点再套一个 `SequentialChain`，LangChain 主要就是靠这些 Chain 类来编排。
-
-👔面试官：你这个答案停在旧版本了。LangChain v1 已经把这些旧式 Chain 移到 `langchain-classic`，新代码还应该这么写吗？
-
-🙋‍♂️我：应该改用 LCEL，用 `|` 把步骤连起来。不过 `|` 可能只是让代码短一点，本质上还是按顺序调几个函数吧。
-
-👔面试官：又漏了一层。LCEL 组合出来的是 Runnable，整条链会获得统一的同步、异步、批处理、流式调用和配置能力。那 Chain、Runnable、LCEL 三者到底是什么关系？
-
-Chain 把零散组件组织成可组合、可执行、可观测的数据流水线，`|` 只是其中一种表达方式。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/langchain/chain.html#💡-简要回答)
+## 💡 简要回答
 
 Chain 是一种应用编排思路：把 Prompt、模型、检索器、输出解析器和自定义逻辑等步骤，按照明确的数据流连接起来，让上一步的输出成为下一步的输入，最终形成一个可以整体执行的流程。
 
@@ -160,9 +128,9 @@ Chain 是一种应用编排思路：把 Prompt、模型、检索器、输出解�
 
 确定性的线性或分支流程可以用 Runnable 和 LCEL，Agent 让模型在运行时动态决定下一步；带循环、持久状态和人工审批的复杂工作流，则更适合用 LangGraph。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/langchain/chain.html#📝-详细解析)
+## 📝 详细解析
 
-### [为什么需要 Chain？](https://xiaolinnote.com/ai/langchain/chain.html#为什么需要-chain)
+### 为什么需要 Chain？
 
 假设我们要做一个最简单的商品评价分类功能。完整过程不是只调用一次模型，而是要先清洗用户输入，再把变量填进 Prompt，调用模型，最后把模型返回的消息解析成业务需要的字符串。
 
@@ -176,7 +144,7 @@ Chain 解决的就是这个问题。它先让每个零件暴露相对统一的�
 
 所以，从业务视角看，Chain 是「把多个处理步骤串成一个完整任务」；从软件设计视角看，它是在做数据流编排和组件组合。
 
-### [Chain 只能线性执行吗？](https://xiaolinnote.com/ai/langchain/chain.html#chain-只能线性执行吗)
+### Chain 只能线性执行吗？
 
 很多林友看到 Chain 这个单词，会自然地把它理解成从左到右的一根直线。这个直觉只对了一半。
 
@@ -196,7 +164,7 @@ Chain 解决的就是这个问题。它先让每个零件暴露相对统一的�
 
 这也解释了 Chain 和 Agent 最容易混淆的地方。Chain 通常由开发者决定「下一步调用谁」，Agent 则让模型根据当前状态动态决定「下一步做什么工具、是否继续循环」。一个偏确定性编排，一个偏运行时决策。
 
-### [Runnable 解决了什么？](https://xiaolinnote.com/ai/langchain/chain.html#runnable-解决了什么)
+### [Runnable 解决了什么？
 
 Prompt、模型、检索器和解析器的类型、职责都不同，Runnable 给它们提供了统一的组合接口。
 

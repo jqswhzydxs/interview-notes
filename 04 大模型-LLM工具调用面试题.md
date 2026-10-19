@@ -1,18 +1,8 @@
 # 1. 什么是 Function Calling ？原理是什么？
 
-👔面试官：来聊聊 Function Calling 吧，说说它是什么、原理是怎样的？
 
-🙋‍♂️我：Function Calling 就是让大模型直接调用 API 嘛，模型自己去访问网络、查数据库，然后把结果返回给用户。
 
-👔面试官：模型「自己」去访问网络？你确定？模型有直接执行代码的能力吗？它能联网吗？
-
-🙋‍♂️我：呃……那应该是模型输出一段调用指令，然后……后端代码去执行？但我记得好像模型输出的就是自然语言，开发者自己解析文本去调用的吧？
-
-👔面试官：你说的那是 Function Calling 出现之前的土办法，靠 if/else 解析自然语言，极其脆弱。Function Calling 的核心就是模型输出结构化的 JSON，而不是自然语言。你连「模型只负责决策、代码负责执行」这个最基本的分工都没搞清楚，工具定义的 schema 怎么写、两轮对话的流程是什么、并行调用怎么做，这些都回去好好看看吧。
-
-好，这段面试踩的雷还挺典型的，很多人一上来就把「模型决策」和「代码执行」搞混了。下面我把 Function Calling 的完整机制拆开讲清楚。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/tools/1_function_calling.html#💡-简要回答)
+## 💡 简要回答
 
 Function Calling 我的理解是这样一套机制：开发者用 JSON schema 把工具描述好传给模型，模型判断需要调工具的时候不输出自然语言，而是直接输出一段结构化的 tool_calls JSON，告诉你「我要调哪个函数、参数是什么」，你的代码拿到这段 JSON 去真正执行，把结果塞回对话，模型再生成最终答案。
 
@@ -20,9 +10,9 @@ Function Calling 我的理解是这样一套机制：开发者用 JSON schema �
 
 我觉得最核心的设计是，模型全程只做决策，执行的事情一律由宿主代码完成，职责分得很清楚。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/tools/1_function_calling.html#📝-详细解析)
+## 📝 详细解析
 
-### [背景，Function Calling 解决了什么问题](https://xiaolinnote.com/ai/tools/1_function_calling.html#背景-function-calling-解决了什么问题)
+### 背景，Function Calling 解决了什么问题
 
 LLM 在没有 Function Calling 之前，想让模型帮你调工具，完全靠解析自然语言。模型输出「我需要查一下北京的天气」，你再写 if/else 判断它「说」的是要查天气，然后手动去调 API。这个做法极其脆弱，模型换个说法，你的 if/else 就失配了，也根本没办法标准化。
 
@@ -32,7 +22,7 @@ Function Calling 的出现把这件事固定下来了：模型不再「说」要
 
 ![img](image/1776863691463-8f5c0591-aaf4-4d98-aa57-e2a12fe95fc9.webp)
 
-### [三个角色，把 Function Calling 理解成一场任务委托](https://xiaolinnote.com/ai/tools/1_function_calling.html#三个角色-把-function-calling-理解成一场任务委托)
+### 三个角色，把 Function Calling 理解成一场任务委托
 
 理解 Function Calling 的关键是搞清楚谁做什么。可以把这套流程理解成一场「任务委托」：
 
@@ -42,7 +32,7 @@ Function Calling 的出现把这件事固定下来了：模型不再「说」要
 
 关键点：模型全程只是在「下指令」，它不亲自执行任何代码，也没有直接访问网络的权限。执行的事一律由宿主程序代码完成，这个分工要想清楚。
 
-### [工具定义，schema 的每个字段都有含义](https://xiaolinnote.com/ai/tools/1_function_calling.html#工具定义-schema-的每个字段都有含义)
+### 工具定义，schema 的每个字段都有含义
 
 工具 schema 就是一份结构化的「工具说明书」，用 JSON 格式写，告诉模型这个工具叫什么、能做什么、需要哪些参数。
 
@@ -81,7 +71,7 @@ tools = [
 
 ![img](image/1776864343500-856d21bc-0902-4c7e-b247-e2ff72f84527.webp)
 
-### [完整的调用流程，两轮对话加中间执行](https://xiaolinnote.com/ai/tools/1_function_calling.html#完整的调用流程-两轮对话加中间执行)
+### 完整的调用流程，两轮对话加中间执行
 
 Function Calling 的运行时本质上是「两轮对话 + 中间执行」的闭环。
 
@@ -131,7 +121,7 @@ if msg.finish_reason == "tool_calls":  # 模型要调工具，还没给最终答
     # 输出：北京今天天气晴朗，气温 15°C，东北风 3 级，适合外出。
 ```
 
-### [并行工具调用](https://xiaolinnote.com/ai/tools/1_function_calling.html#并行工具调用)
+### 并行工具调用
 
 看完单个工具的流程，再来想一个问题：如果用户一口气问了好几件事，比如「帮我查北京、上海、广州三个城市的天气」，模型一次该调一个工具，还是可以同时调多个？这就要说到 Function Calling 的并行调用设计。
 
@@ -147,7 +137,7 @@ if msg.finish_reason == "tool_calls":  # 模型要调工具，还没给最终答
 
 ![img](image/1776864094005-778c8685-e95d-4fa8-ae9e-770a5f505a24.webp)
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/tools/1_function_calling.html#🎯-面试总结)
+## 🎯 面试总结
 
 回头看开头的面试对话，踩的雷其实很典型。
 
@@ -161,19 +151,7 @@ if msg.finish_reason == "tool_calls":  # 模型要调工具，还没给最终答
 
 # 2. LLM 是如何学会调用外部工具的？
 
-👔面试官：说说大模型是怎么学会调用外部工具的？
-
-🙋‍♂️我：大模型本身就很聪明嘛，参数量够大，涌现能力一出来，自然就会调用工具了，不需要额外训练吧？
-
-👔面试官：涌现能力说的是参数量到某个阈值后，模型突然展现出小模型没有的理解和推理能力，这是「量变引起质变」。但工具调用要的是输出可解析的结构化 JSON，这是预训练语料里根本不存在的模式，不是参数量大了就自动会的。没训练过的模型遇到「查天气」只会说「我需要查天气 API」，而不是输出可解析的 JSON 调用请求。你说说到底是怎么训练出来的？
-
-🙋‍♂️我：那应该是用 SFT 微调出来的吧？给模型喂大量工具调用的样本，它学会了就行了。
-
-👔面试官：SFT 只解决了「会不会调」的问题，但「该不该调」呢？用户问「1+1 等于几」，模型也去调计算器工具，这不是画蛇添足吗？SFT 之后还有一个关键阶段你完全没提到，回去把 RLHF 在工具调用训练中的作用搞清楚再来。
-
-看得出来，很多人知道 SFT 但忽略了 RLHF 在工具调用中的关键作用。下面我把「模型怎么学会调工具」这件事完整拆开，两个阶段各自解决什么问题，一次讲透。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/tools/2_llm_tool_learning.html#💡-简要回答)
+## 💡 简要回答
 
 这道题我分两块来讲：模型怎么被训练出工具调用能力，以及训练好之后运行时是怎么工作的。
 
@@ -186,9 +164,9 @@ if msg.finish_reason == "tool_calls":  # 模型要调工具，还没给最终答
 
 有一点非常关键：模型全程只是在「下指令」，真正执行工具的是你的代码，不是模型本身。这套「模型决策、代码执行」的运行时机制，就是我们常说的 **Function Calling**。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/tools/2_llm_tool_learning.html#📝-详细解析)
+## 📝 详细解析
 
-### [原始 LLM 的世界，为什么不会调工具](https://xiaolinnote.com/ai/tools/2_llm_tool_learning.html#原始-llm-的世界-为什么不会调工具)
+### 原始 LLM 的世界，为什么不会调工具
 
 想象一个人从出生到成年，只生活在文字的世界里，读过几乎所有的书，却从没接触过任何工具，没用过锤子、没开过车、也没见过 API 是什么。你突然跟他说「去帮我查一下天气 API」，他最多只会用语言描述「我需要查天气 API 来获取数据……」，绝对不会真的去操作工具。
 
@@ -200,7 +178,7 @@ if msg.finish_reason == "tool_calls":  # 模型要调工具，还没给最终答
 
 ![img](image/1776864293645-da1f7644-7230-4f14-8dfd-4923ed531d42.webp)
 
-### [第一阶段：SFT，让模型「见过」工具调用](https://xiaolinnote.com/ai/tools/2_llm_tool_learning.html#第一阶段-sft-让模型「见过」工具调用)
+### 第一阶段：SFT，让模型「见过」工具调用
 
 SFT 是 Supervised Fine-Tuning（监督微调）的缩写，核心思路非常直接：给模型看大量正确的示例，让它学会模仿。就像培养一名新员工，前期让他看几百份填好的工单，他自然就学会了「遇到这类问题该怎么写工单、该走哪个流程」。
 
@@ -218,7 +196,7 @@ SFT 是 Supervised Fine-Tuning（监督微调）的缩写，核心思路非常�
 
 训练数据的来源通常有两种：人工标注，成本高但质量好，一般用于构造核心的种子数据；用更强的模型（比如 GPT-4）自动批量生成，再人工抽查，成本低、量大，是业界现在的主流做法。
 
-### [SFT 的短板，会了，但不知道「该不该调」](https://xiaolinnote.com/ai/tools/2_llm_tool_learning.html#sft-的短板-会了-但不知道「该不该调」)
+### SFT 的短板，会了，但不知道「该不该调」
 
 SFT 让模型学会了「调工具」这个动作，但它不知道什么时候该调、什么时候不该调。你可以想象一个刚培训完的新员工，过于热情，每件事都想走流程，有人问他「1+1 等于几」，他也要去查手册，这明显多此一举，直接回答就行。
 
@@ -230,7 +208,7 @@ SFT 之后的模型也有类似的毛病：可能对简单问题也尝试调工�
 
 这个问题，需要第二阶段的 RLHF 来解决。
 
-### [第二阶段：RLHF，用反馈建立边界感](https://xiaolinnote.com/ai/tools/2_llm_tool_learning.html#第二阶段-rlhf-用反馈建立边界感)
+### 第二阶段：RLHF，用反馈建立边界感
 
 RLHF 是 Reinforcement Learning from Human Feedback（人类反馈强化学习）的缩写。如果说 SFT 是让新员工看示例学规范，那 RLHF 就是老板持续给他的工作表现打分，帮他建立判断力。
 
@@ -256,7 +234,7 @@ RLAIF（AI Feedback）是 RLHF 的变体，用另一个 AI 代替人类标注员
 
 ![img](image/1776864737286-b5b02d43-5ac7-4168-ba1b-6c22e42021a2.webp)
 
-### [运行时，训练好之后怎么用](https://xiaolinnote.com/ai/tools/2_llm_tool_learning.html#运行时-训练好之后怎么用)
+### 运行时，训练好之后怎么用
 
 训练阶段结束，模型上线了。每次你的应用调用模型时，流程是这样的：
 
@@ -265,8 +243,6 @@ RLAIF（AI Feedback）是 RLHF 的变体，用另一个 AI 代替人类标注员
 首先，你的应用代码把「有哪些工具可用」打包成 JSON 格式（叫做 schema，也就是工具的说明书），连同用户的问题一起发给模型。比如告诉模型：「你现在有一个天气查询工具，接受 city 参数，返回该城市的实时天气。」
 
 模型读完工具定义和用户问题后，做了一个判断：这个问题需要查实时天气，我自己不知道，需要工具帮忙。于是它不直接回答，而是输出一段结构化的 JSON：
-
-
 
 ```python
 {
@@ -285,7 +261,7 @@ RLAIF（AI Feedback）是 RLHF 的变体，用另一个 AI 代替人类标注员
 
 这套「模型输出结构化调用请求 -> 代码执行 -> 结果喂回」的机制，有一个专有名词：**Function Calling**。换句话说，Function Calling 就是大模型工具调用能力在运行时的具体实现形式。
 
-### [一个关键认知：模型只负责「决策」，不负责「执行」](https://xiaolinnote.com/ai/tools/2_llm_tool_learning.html#一个关键认知-模型只负责「决策」-不负责「执行」)
+### 一个关键认知：模型只负责「决策」，不负责「执行」
 
 这是理解工具调用最重要的一点。
 
@@ -295,7 +271,7 @@ RLAIF（AI Feedback）是 RLHF 的变体，用另一个 AI 代替人类标注员
 
 ![img](image/1776864879138-3834d7ae-e5e6-4277-86b9-22ef21d79ff4.webp)
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/tools/2_llm_tool_learning.html#🎯-面试总结)
+## 🎯 面试总结
 
 回顾开头的面试对话，第一个雷是以为模型参数量够大就自然会调工具，这是把「语言涌现能力」和「工具调用能力」搞混了。工具调用需要输出结构化 JSON，这不是预训练能学到的，必须经过专项训练。
 
@@ -311,19 +287,7 @@ SFT 通过大量包含完整工具调用流程的对话样本，让模型学会�
 
 # 3. 大模型的 Function Call 能力是怎么训练出来的？
 
-👔面试官：详细说说大模型的 Function Call 能力是怎么训练出来的？
-
-🙋‍♂️我：应该就是在预训练阶段，训练语料里包含了一些 API 调用的代码，模型自然就学会了吧？
-
-👔面试官：预训练学到的是「预测下一个 token」，模型最多能描述「我要调 API」，但不会输出结构化 JSON 调用请求。这是两个完全不同的东西，你把预训练和专项微调搞混了。
-
-🙋‍♂️我：哦，那就是 SFT 微调，给模型看很多工具调用的样本对吧？那训练数据只要包含正常的单工具调用场景就够了？
-
-👔面试官：单工具调用只是最基础的场景。多工具并行调用、工具调用失败后重试、不需要工具直接回答、多轮对话中的工具调用，这些场景训练数据里都要覆盖到，缺一个就会在对应场景翻车。而且你还是只提了 SFT，RLHF 阶段怎么解决「该不该调」的边界感问题，训练数据从哪来，这些关键环节一个都没讲到，回去好好整理一下。
-
-确实，Function Call 的训练远不止「喂点样本」这么简单。下面我把两个训练阶段、训练数据的构造和来源、以及各自解决什么问题，完完整整地讲一遍。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/tools/3_fc_training.html#💡-简要回答)
+## 💡 简要回答
 
 Function Call 的能力主要靠两个训练阶段来培养，这两个阶段解决的是不同的问题。
 
@@ -333,7 +297,7 @@ Function Call 的能力主要靠两个训练阶段来培养，这两个阶段解
 
 一句话总结：SFT 教会怎么调，RLHF 教会什么时候调。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/tools/3_fc_training.html#📝-详细解析)
+## 📝 详细解析
 
 很多人以为 Function Call 是大模型「聪明」之后自然就会的东西，其实不是。就算是 GPT-4，如果没有经过工具调用的专项训练，它遇到「北京今天天气怎么样」这个问题，顶多也就输出一句「我需要查询天气数据」，这是在**描述**一个意图，而不是在**输出**可以被程序解析和执行的结构化 JSON。这两件事之间有本质的差距。
 
@@ -345,7 +309,7 @@ Function Call 的能力主要靠两个训练阶段来培养，这两个阶段解
 
 Function Call 的核心训练分两个阶段，每个阶段解决不同的问题，缺一不可。
 
-### [阶段一：SFT，让模型「学会怎么调」](https://xiaolinnote.com/ai/tools/3_fc_training.html#阶段一-sft-让模型「学会怎么调」)
+### 阶段一：SFT，让模型「学会怎么调」
 
 SFT（Supervised Fine-Tuning，监督微调）的核心动作很简单：给模型喂大量正确示例，让它通过模仿来学习。对 Function Call 能力来说，就是构造「包含完整工具调用流程的对话样本」，一条样本里包含所有角色的消息。
 
@@ -357,7 +321,7 @@ SFT（Supervised Fine-Tuning，监督微调）的核心动作很简单：给模�
 
 大量样本反复训练，模型就把这套「看到工具定义 + 看到用户问题 -> 输出规范 JSON」的模式「记住」了。就像背单词，看一遍不够，反复遇到、反复纠错，最终形成了肌肉记忆。
 
-#### [训练数据需要覆盖哪些场景](https://xiaolinnote.com/ai/tools/3_fc_training.html#训练数据需要覆盖哪些场景)
+#### 训练数据需要覆盖哪些场景
 
 训练数据的多样性直接决定了 Function Call 能力的上限，不能只有「正常调一个工具」这一种情况。
 
@@ -371,7 +335,7 @@ SFT（Supervised Fine-Tuning，监督微调）的核心动作很简单：给模�
 
 最后是**多轮对话中的工具调用**，上下文里已经有过工具结果，模型要能正确理解和引用之前的结果，而不是无视历史重新调用。这些场景的覆盖程度，直接影响模型在实际使用中的表现，缺哪个就会在哪个场景下翻车。
 
-#### [训练数据从哪来](https://xiaolinnote.com/ai/tools/3_fc_training.html#训练数据从哪来)
+#### 训练数据从哪来
 
 构造 Function Call 训练数据主要有两种方式。
 
@@ -381,7 +345,7 @@ SFT（Supervised Fine-Tuning，监督微调）的核心动作很简单：给模�
 
 ![img](image/1776865136230-153bb6fa-0ce3-4287-bbd1-9089195b86c8.webp)
 
-### [阶段二：RLHF，对齐「该不该调」的边界感](https://xiaolinnote.com/ai/tools/3_fc_training.html#阶段二-rlhf-对齐「该不该调」的边界感)
+### 阶段二：RLHF，对齐「该不该调」的边界感
 
 SFT 之后，模型已经学会了「怎么调工具」，但还有一个问题没解决：**什么时候应该调工具，什么时候直接回答**。
 
@@ -408,7 +372,7 @@ RLHF（Reinforcement Learning from Human Feedback，人类反馈强化学习）�
 
 经过足够多的迭代，模型就学会了那种边界感：该调工具时调，能直接回答时不折腾。
 
-#### [RLAIF：用 AI 代替人工打分](https://xiaolinnote.com/ai/tools/3_fc_training.html#rlaif-用-ai-代替人工打分)
+#### RLAIF：用 AI 代替人工打分
 
 RLHF 最大的痛点是人工标注成本极高，标注员需要专业背景，打分慢、价格贵，很难大规模扩展。
 
@@ -416,7 +380,7 @@ RLAIF（Reinforcement Learning from AI Feedback）是它的改进版。你可以
 
 不过代价也很明显：「AI 的偏见会传递」。如果打分的 AI 本身对某些场景的判断有偏差或者盲区，这些偏差也会被学进去。打个比方，如果 AI 评委觉得「遇到数学题都应该调计算器工具」，那被它训练的模型也会学到这个倾向，哪怕有些简单算术不用调工具。所以打分 AI 的质量很关键，选什么模型来当评委、怎么设计评分标准，都需要仔细考虑。现在业界很多模型训练都在混用 RLHF 和 RLAIF，在关键数据上用人工保质量，量大的地方用 AI 提效率，两者互补。
 
-### [两个阶段各司其职](https://xiaolinnote.com/ai/tools/3_fc_training.html#两个阶段各司其职)
+### 两个阶段各司其职
 
 SFT 解决的是「会不会」的问题，RLHF 解决的是「该不该」的问题。
 
@@ -426,7 +390,7 @@ SFT 解决的是「会不会」的问题，RLHF 解决的是「该不该」的�
 
 ![img](image/ddbcf7ed6b96f546bd181008360db5f5.png)
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/tools/3_fc_training.html#🎯-面试总结)
+## 🎯 面试总结
 
 回看开头踩的雷，第一个误区是以为预训练就能学会 Function Call，实际上预训练只学了「预测下一个 token」，模型最多会描述意图，不会输出结构化 JSON，这必须靠 SFT 专项训练。第二个误区是以为训练数据只覆盖单工具调用就够了，实际上多工具并行、调用失败重试、不需要工具直接回答、多轮对话中的调用，这些场景都必须覆盖，缺哪个就在哪个场景翻车。
 
@@ -442,19 +406,7 @@ RLHF 阶段通过人类对多种回答的偏好排序训练奖励模型，再用
 
 # 4. 什么是 MCP（模型上下文协议）？讲讲它的核心内容？
 
-👔面试官：说说什么是 MCP？它的核心内容是什么？
-
-🙋‍♂️我：MCP 就是一个工具调用框架吧，跟 Function Calling 差不多，都是让模型调用外部工具的。
-
-👔面试官：MCP 是协议，不是框架，跟 Function Calling 更不是一个层面的东西。Function Calling 解决的是「模型怎么输出调用请求」，MCP 解决的是「工具怎么标准化接入」。你把这两个搞混了，说说 MCP 到底要解决什么问题？
-
-🙋‍♂️我：呃……MCP 是为了让工具接入更方便？就是 Anthropic 搞的一个 API 标准，让 Claude 能调更多工具？
-
-👔面试官：MCP 是开放协议，不是只给 Claude 用的。它解决的是工具接入碎片化的问题，工具实现一次、到处复用，任何支持 MCP 的客户端都能接入。Client-Server 架构、三类核心能力 Tools/Resources/Prompts 的区别、底层 JSON-RPC 通信机制，这些核心内容你一个都没提到，回去补课吧。
-
-看来 MCP 这个概念确实容易和 Function Calling 搞混。下面我从「MCP 到底要解决什么问题」出发，把它的架构、三类核心能力、底层通信机制完整讲清楚。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/tools/4_what_is_mcp.html#💡-简要回答)
+## 💡 简要回答
 
 MCP 是 Anthropic 在 2024 年底推出的开放协议，我理解它主要解决的是「模型接工具太碎片化」的问题。
 
@@ -466,9 +418,9 @@ MCP 的思路是把这件事标准化：工具提供方按协议实现一个 Ser
 
 我把它理解成给「AI 接工具」这件事定了一套行业标准。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/tools/4_what_is_mcp.html#📝-详细解析)
+## 📝 详细解析
 
-### [没有 MCP 之前，接工具有多麻烦](https://xiaolinnote.com/ai/tools/4_what_is_mcp.html#没有-mcp-之前-接工具有多麻烦)
+### 没有 MCP 之前，接工具有多麻烦
 
 想象你要给 Claude 接入 GitHub 工具。你得手写 GitHub API 的调用代码、处理认证（OAuth token 怎么传）、处理各种返回格式、把 API 响应转成模型能理解的格式……好不容易接好了。
 
@@ -478,7 +430,7 @@ MCP 的思路是把这件事标准化：工具提供方按协议实现一个 Ser
 
 ![img](image/1772114354922-0796d37a-4925-4146-a221-2b2606644e83.webp)
 
-### [MCP 的核心思路，定一套行业标准接口](https://xiaolinnote.com/ai/tools/4_what_is_mcp.html#mcp-的核心思路-定一套行业标准接口)
+### MCP 的核心思路，定一套行业标准接口
 
 MCP（Model Context Protocol，模型上下文协议）的设计思路，可以用 USB 接口来类比。在 USB 标准出现之前，鼠标用这个接口、键盘用那个接口、打印机又是另一个，换台电脑就要愁接口不兼容。USB 出现之后，所有外设统一接口，任何设备插到任何电脑都能工作，设备厂商只需要做一次适配，全球所有 USB 电脑都能用。
 
@@ -486,7 +438,7 @@ MCP 做的是同一件事：为「AI 接工具」这件事定了一套统一的�
 
 ![img](image/1776865581325-6f27789d-c506-4089-91ca-78a2711e89da.webp)
 
-### [MCP 的 Client-Server 架构](https://xiaolinnote.com/ai/tools/4_what_is_mcp.html#mcp-的-client-server-架构)
+### MCP 的 Client-Server 架构
 
 MCP 采用标准的 Client-Server 架构。
 
@@ -496,7 +448,7 @@ Server 是工具的实现方。比如 GitHub 官方维护一个 GitHub MCP Serve
 
 ![img](image/1776865700094-9d7b71e7-b1b3-4b81-a63e-26d041d14622.webp)
 
-### [三类核心能力，Tools、Resources、Prompts](https://xiaolinnote.com/ai/tools/4_what_is_mcp.html#三类核心能力-tools、resources、prompts)
+### 三类核心能力，Tools、Resources、Prompts
 
 MCP Server 可以向 Client 暴露三类能力，各有各的定位。
 
@@ -510,7 +462,7 @@ MCP Server 可以向 Client 暴露三类能力，各有各的定位。
 
 ![img](image/1776865817786-87eeb289-2779-4313-91d1-c3d3ff8d4c5a.webp)
 
-### [底层通信，JSON-RPC 2.0 是什么](https://xiaolinnote.com/ai/tools/4_what_is_mcp.html#底层通信-json-rpc-2-0-是什么)
+### 底层通信，JSON-RPC 2.0 是什么
 
 理解 MCP 的底层，先要知道 JSON-RPC 是什么。
 
@@ -528,7 +480,7 @@ JSON-RPC 是一种轻量级的远程函数调用协议，用 JSON 格式来表�
 
 Streamable HTTP 并不是「抛弃 SSE」，而是把原来的两个端点合并成一个 `/mcp` 端点。Client 用 POST 发请求，Server 根据情况灵活返回：短请求直接回一个普通 JSON 响应，长请求则把这个 HTTP 响应升级为 SSE 流，持续推送中间结果。架构更简洁，部署也更友好（一个端点就够，serverless 环境也能跑），本质还是 HTTP 加 SSE，只是用法变了。
 
-### [MCP 生态发展这么快，背后的原因是什么](https://xiaolinnote.com/ai/tools/4_what_is_mcp.html#mcp-生态发展这么快-背后的原因是什么)
+### MCP 生态发展这么快，背后的原因是什么
 
 MCP 是 Anthropic 在 2024 年底发布的，发布后发展速度很快，主要有两个原因。
 
@@ -538,7 +490,7 @@ MCP 是 Anthropic 在 2024 年底发布的，发布后发展速度很快，主�
 
 目前 Claude Desktop、Cursor、Windsurf 等主流 AI 工具都内置了 MCP 支持。对开发者来说，MCP 把「给 AI 接工具」这件事的门槛从「写一堆对接代码」降到了「改一行配置」，这才是它被快速采用的核心原因。
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/tools/4_what_is_mcp.html#🎯-面试总结)
+## 🎯 面试总结
 
 回看开头的面试对话，最典型的误区就是把 MCP 和 Function Calling 搞混了。Function Calling 解决的是「模型怎么输出结构化的工具调用请求」，而 MCP 解决的是「工具怎么标准化接入、一次实现到处复用」，两者是不同层面的东西。另一个常见错误是以为 MCP 是 Anthropic 专属的，实际上它是开放协议，任何支持 MCP 的客户端都能接入。
 
@@ -554,19 +506,7 @@ MCP 是 Anthropic 在 2024 年底发布的，发布后发展速度很快，主�
 
 # 5. MCP 由哪几部分组成？
 
-👔面试官：说说 MCP 由哪几部分组成？
-
-🙋‍♂️我：MCP 就是一个协议嘛，主要就是 Client 和 Server 两部分，Client 发请求，Server 返回结果，跟普通的 HTTP 接口差不多。
-
-👔面试官：就 Client 和 Server？那 Host 是什么角色？而且你说「跟 HTTP 接口差不多」，MCP 的能力类型你了解吗？Server 能暴露哪些东西？
-
-🙋‍♂️我：Host 应该就是 Client 的别名吧？Server 暴露的就是工具，比如调 API、读文件这些，都算工具。
-
-👔面试官：Host 和 Client 是两个不同的角色，Host 是宿主应用，Client 是 Host 里负责通信的模块，一个 Host 可以连多个 Server。而且 Server 暴露的不只是 Tools，还有 Resources 和 Prompts，三者职责完全不同，你把只读数据和有副作用的操作混为一谈了。另外底层的传输协议你也没提，消息格式和传输方式这一层也是 MCP 的核心组成部分。
-
-好吧，MCP 的组成确实不是「Client + Server」这么简单，下面我从三个层次把它拆清楚，看完你就知道每一层各自负责什么了。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/tools/5_mcp_components.html#💡-简要回答)
+## 💡 简要回答
 
 MCP 由三层组成，可以从角色、能力、协议三个维度来理解。
 
@@ -578,9 +518,9 @@ MCP 由三层组成，可以从角色、能力、协议三个维度来理解。
 
 这三层合在一起，就是 MCP 的完整组成。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/tools/5_mcp_components.html#📝-详细解析)
+## 📝 详细解析
 
-### [先建立整体感：三层来看就清楚了](https://xiaolinnote.com/ai/tools/5_mcp_components.html#先建立整体感-三层来看就清楚了)
+### 先建立整体感：三层来看就清楚了
 
 很多人第一次接触 MCP 会被各种概念搞乱，什么 Host、Client、Server、Tools、Resources、Prompts、JSON-RPC、stdio、SSE……一堆名词扔过来，确实容易懵。其实你只要把它拆成三层来看就清楚了：第一层是角色架构，搞清楚谁和谁在通信；第二层是能力类型，搞清楚 Server 能暴露什么东西给模型用；第三层是传输协议，搞清楚消息是怎么传的。
 
@@ -588,7 +528,7 @@ MCP 由三层组成，可以从角色、能力、协议三个维度来理解。
 
 ![img](image/dee057939986ef96e8e4eb70c9729ec9.png)
 
-### [第一层：角色架构，Host / Client / Server](https://xiaolinnote.com/ai/tools/5_mcp_components.html#第一层-角色架构-host-client-server)
+### 第一层：角色架构，Host / Client / Server
 
 MCP 定义了三个角色，弄清楚每个角色负责什么是理解整个系统的关键。
 
@@ -604,7 +544,7 @@ MCP 定义了三个角色，弄清楚每个角色负责什么是理解整个系�
 
 一个 Host 同时连多个 Server，模型就同时拥有了所有这些工具能力，而应用代码完全不需要为此多写一行。
 
-### [第二层：能力类型，Tools / Resources / Prompts](https://xiaolinnote.com/ai/tools/5_mcp_components.html#第二层-能力类型-tools-resources-prompts)
+### 第二层：能力类型，Tools / Resources / Prompts
 
 理解了角色分工，接下来看 Server 到底能暴露什么给 Client。很多人以为 Server 就只提供「工具」，其实不止，MCP 定义了三类能力，每类解决不同的需求，设计上有明确的职责分工。
 
@@ -620,13 +560,11 @@ MCP 定义了三个角色，弄清楚每个角色负责什么是理解整个系�
 
 ![img](image/7468938efafaaa259ef4d7a49b7972b0.png)
 
-### [第三层：传输协议，JSON-RPC 2.0 + 传输方式](https://xiaolinnote.com/ai/tools/5_mcp_components.html#第三层-传输协议-json-rpc-2-0-传输方式)
+### 第三层：传输协议，JSON-RPC 2.0 + 传输方式
 
 Client 和 Server 之间的通信由两部分组成：消息格式和传输方式，这两层是解耦的。
 
 **消息格式**统一用 JSON-RPC 2.0。每条消息是一个 JSON 对象，格式固定：Client 发请求时说清楚「调哪个方法、参数是什么、这次请求的 ID 是多少」，Server 返回响应时带上执行结果或错误信息，通过 ID 匹配请求和响应。用 JSON 格式的好处是易读、易调试、任何编程语言都能实现，不管 Server 是 Python 写的还是 TypeScript 写的，消息格式是一样的。
-
-
 
 ```json
 // Client 向 Server 查询工具列表
@@ -655,7 +593,7 @@ Streamable HTTP 并不是抛弃 SSE，而是把双端点合并成一个 `/mcp`�
 
 ![img](image/57ab5ced30bdc07b37a02d1088459a72.png)
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/tools/5_mcp_components.html#🎯-面试总结)
+## 🎯 面试总结
 
 回到开头踩的雷，最大的问题是把 MCP 简单理解成「Client + Server」的二元结构，忽略了 Host 这个角色。
 
@@ -669,19 +607,7 @@ Streamable HTTP 并不是抛弃 SSE，而是把双端点合并成一个 `/mcp`�
 
 # 6. MCP 和 Function Calling 有什么区别？有没有实际跑过 MCP？
 
-👔面试官：来聊聊 MCP 和 Function Calling 的区别吧。
-
-🙋‍♂️我：MCP 就是 Function Calling 的升级版嘛，MCP 出来之后 Function Calling 就被淘汰了，以后工具调用都走 MCP 就行了。
-
-👔面试官：淘汰？MCP 底层靠什么驱动的你知道吗？它可离不开 Function Calling。这两个根本不是同一层面的东西，你把层次搞混了。
-
-🙋‍♂️我：哦，那 MCP 应该就是给 Function Calling 包了一层壳吧？功能上没什么本质区别，就是写法不一样而已？
-
-👔面试官：如果只是写法不一样，Anthropic 为什么要专门设计一个协议出来？Function Calling 解决的是单次调用的格式问题，MCP 解决的是工具怎么标准化管理、跨项目复用和自动发现的问题，两者的抽象层次完全不同。你真跑过 MCP 吗？接入一个 MCP Server 需要写多少代码，你知道吗？
-
-看来这两个概念的层次关系确实容易搞混，下面我把它们各自解决什么问题、怎么配合工作的逻辑理清楚。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/tools/6_mcp_vs_fc.html#💡-简要回答)
+## 💡 简要回答
 
 我理解这两者不是竞争关系，解决的不是同一层面的问题。
 
@@ -693,9 +619,9 @@ MCP 底层其实还是用 Function Calling 来触发工具调用，只是在它�
 
 关于实际跑过的经验，我用 Claude Desktop 配过文件系统和 GitHub 的 MCP Server，在配置文件里加几行就能用，Claude 会自动发现工具，完全不用写对接代码。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/tools/6_mcp_vs_fc.html#📝-详细解析)
+## 📝 详细解析
 
-### [Function Calling 有了，为什么还需要 MCP？](https://xiaolinnote.com/ai/tools/6_mcp_vs_fc.html#function-calling-有了-为什么还需要-mcp)
+### Function Calling 有了，为什么还需要 MCP？
 
 很多人第一次看到 MCP 会有一个直觉困惑：Function Calling 不是已经能调工具了吗，模型想用工具直接定义 schema 就行，为什么还要再搞一个协议出来？
 
@@ -709,13 +635,13 @@ MCP 底层其实还是用 Function Calling 来触发工具调用，只是在它�
 
 Function Calling 和 MCP 也是同样的关系：Function Calling 管「一次函数调用请求长什么样」，MCP 管「一堆工具怎么被组织、发现、跨项目复用」。前者是格式，后者是规范+生态约定，少了谁这套机制都运转不起来。
 
-### [Function Calling 解决的是「一次调用」的格式问题](https://xiaolinnote.com/ai/tools/6_mcp_vs_fc.html#function-calling-解决的是「一次调用」的格式问题)
+### Function Calling 解决的是「一次调用」的格式问题
 
 从开发者视角看，Function Calling 回答的是这几个问题：工具定义用什么格式传给模型？模型想调工具时怎么表达「我要调哪个函数、参数是什么」？工具执行结果怎么喂回对话？
 
 它定义的是单次调用的消息格式，仅此而已。每次使用，开发者都要手动写工具的 schema 定义，手动写调用逻辑，手动处理结果。Function Calling 本身没有任何工具管理、工具发现、跨项目复用的概念。
 
-### [Function Calling 的痛点，每次都是一次性的](https://xiaolinnote.com/ai/tools/6_mcp_vs_fc.html#function-calling-的痛点-每次都是一次性的)
+### Function Calling 的痛点，每次都是一次性的
 
 那「每次手动」到底有多痛？你可能觉得复制一份 schema 也没多大工作量，但工具一多、项目一多，问题就暴露出来了。
 
@@ -727,7 +653,7 @@ Function Calling 和 MCP 也是同样的关系：Function Calling 管「一次�
 
 有没有发现问题？同一个工具，换个项目就要重新对接一遍，每次都是一次性的手工活。这就是 Function Calling 解决不了的核心问题：**工具的管理、复用和跨平台兼容**。
 
-### [MCP 解决的是「工具生态」的问题](https://xiaolinnote.com/ai/tools/6_mcp_vs_fc.html#mcp-解决的是「工具生态」的问题)
+### MCP 解决的是「工具生态」的问题
 
 既然痛点是「每个应用各自维护一套工具定义」，那解决思路也就很自然了：把工具做成独立的标准化服务，谁要用就来连，不用每次都重写一遍。这就是 MCP 的核心思路。
 
@@ -739,7 +665,7 @@ Function Calling 和 MCP 也是同样的关系：Function Calling 管「一次�
 
 ![img](image/72b13cbfa7e1e8b2ab72338bb811676c.png)
 
-### [最关键的联系，MCP 底层依然靠 Function Calling 驱动](https://xiaolinnote.com/ai/tools/6_mcp_vs_fc.html#最关键的联系-mcp-底层依然靠-function-calling-驱动)
+### 最关键的联系，MCP 底层依然靠 Function Calling 驱动
 
 这是很多人没想清楚的一点：MCP 不是 Function Calling 的替代品，而是建立在 Function Calling 之上的。
 
@@ -751,11 +677,9 @@ Function Calling 和 MCP 也是同样的关系：Function Calling 管「一次�
 
 ![img](image/d436f2376ff6b059981b8a76bdde734d.png)
 
-### [实际体验，接入一个 MCP Server](https://xiaolinnote.com/ai/tools/6_mcp_vs_fc.html#实际体验-接入一个-mcp-server)
+### 实际体验，接入一个 MCP Server
 
 以 Claude Desktop 接入文件系统 MCP 为例。只需要编辑 `claude_desktop_config.json`，加入如下配置：
-
-
 
 ```json
 {
@@ -779,8 +703,6 @@ Function Calling 和 MCP 也是同样的关系：Function Calling 管「一次�
 如果想自己写一个 MCP Server，其实也很简单。核心就三步：首先用 `@app.list_tools()` 装饰器告诉 Client 这个 Server 提供哪些工具及其参数格式，然后用 `@app.call_tool()` 装饰器实现每个工具的真实执行逻辑，最后用 stdio 方式运行，让 Client 能通过管道和它通信。
 
 完整的代码如下：
-
-
 
 ```python
 import asyncio
@@ -845,8 +767,6 @@ if __name__ == "__main__":
 
 然后编辑你的 `claude_desktop_config.json`，添加这个 Python 服务：
 
-
-
 ```json
 {
   "mcpServers": {
@@ -864,7 +784,7 @@ if __name__ == "__main__":
 
 配好之后重启 Claude Desktop，直接输入「帮我算一下 25 加 17 等于多少」，Claude 就会自动调用你写的 `add_numbers` 工具并返回结果。整个过程你只写了工具逻辑本身，所有的通信、发现、调用路由都由 MCP 框架搞定了。
 
-### [什么时候选哪个](https://xiaolinnote.com/ai/tools/6_mcp_vs_fc.html#什么时候选哪个)
+### 什么时候选哪个
 
 如果只是临时给自己的应用接一两个工具，Function Calling 就够用了，简单直接，不需要引入额外的进程和协议。
 
@@ -874,7 +794,7 @@ if __name__ == "__main__":
 
 ![img](image/7dacb4449a8472ac3cbcc6eb91cc2f3e.png)
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/tools/6_mcp_vs_fc.html#🎯-面试总结)
+## 🎯 面试总结
 
 回到开头的面试对话，最大的雷就是把 MCP 当成 Function Calling 的「替代品」或「升级版」，这是很多人的第一反应，但完全搞反了两者的关系。
 
@@ -886,19 +806,7 @@ if __name__ == "__main__":
 
 # 7. Function Calling 也属于工具调用，请问什么场景下使用 Function Calling，什么场景下使用 MCP？
 
-👔面试官：Function Calling 和 MCP 都能做工具调用，那具体什么场景下该选哪个？
-
-🙋‍♂️我：这个简单，小项目用 Function Calling，大项目用 MCP 就行了，主要看项目规模。
-
-👔面试官：项目规模大就一定要用 MCP？如果一个大项目的工具只在内部用、不需要复用呢？你的判断维度太单一了，规模只是其中一个因素。
-
-🙋‍♂️我：那应该是看工具数量吧？工具少就 Function Calling，工具多就 MCP，毕竟 MCP 能自动发现工具。
-
-👔面试官：工具多确实是一个考虑因素，但不是唯一的。如果社区已经有现成的 MCP Server，哪怕只需要一个工具，你还自己手写 Function Calling 去对接 API 吗？还有部署环境的限制、工具复用需求、是不是在做 Agent 系统，这些维度你都没考虑到。场景选型不能只看一个指标。
-
-看来场景选型比想象中复杂，不是一刀切的事，下面我把各种场景的判断逻辑梳理清楚。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/tools/7_fc_vs_mcp_usage.html#💡-简要回答)
+## 💡 简要回答
 
 如果只是给单个应用接一两个工具、场景临时、不需要复用，Function Calling 就够了，简单直接，不需要引入额外的进程和配置。
 
@@ -908,9 +816,9 @@ if __name__ == "__main__":
 
 此外，做 Agent 系统的话更应该选 MCP，工具来源多、数量大，手写 Function Calling 的维护成本会让代码变得难以管理。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/tools/7_fc_vs_mcp_usage.html#📝-详细解析)
+## 📝 详细解析
 
-### [先建立一个直觉：内嵌 vs 独立](https://xiaolinnote.com/ai/tools/7_fc_vs_mcp_usage.html#先建立一个直觉-内嵌-vs-独立)
+### 先建立一个直觉：内嵌 vs 独立
 
 Function Calling 的工具是「内嵌」在应用代码里的，工具定义（schema）和调用逻辑都直接写在你的项目代码中，工具和应用绑在一起，应用换了就要重写一遍。
 
@@ -920,7 +828,7 @@ MCP 的工具是「独立」的，封装成一个独立运行的进程，对外�
 
 ![img](image/0f122fd33a783318c748298f9162df9e.png)
 
-### [Function Calling 的适用场景](https://xiaolinnote.com/ai/tools/7_fc_vs_mcp_usage.html#function-calling-的适用场景)
+### Function Calling 的适用场景
 
 什么时候用 Function Calling 就够了？简单来说，就是「轻量、临时、不需要复用」的场景。
 
@@ -934,15 +842,13 @@ MCP 的工具是「独立」的，封装成一个独立运行的进程，对外�
 
 最后还有一个容易被忽略的因素：部署环境的限制。某些受限的云环境或 Serverless 平台不允许启动子进程，stdio 模式的 MCP Server 就没法用了。这种情况只能退回 Function Calling，工具逻辑都写在主进程里，反而是最稳妥的选择。
 
-### [MCP 的适用场景](https://xiaolinnote.com/ai/tools/7_fc_vs_mcp_usage.html#mcp-的适用场景)
+### MCP 的适用场景
 
 那什么时候该上 MCP 呢？一句话概括：只要工具不是「自己用、用一次就扔」，MCP 基本都值得考虑。
 
 最核心的场景就是工具需要跨项目或跨团队复用。想想看，同一套 GitHub 操作工具，你自己的 Claude Desktop 要用、同事的 Cursor 要用、团队的 CI/CD Agent 也要用。如果用 Function Calling，意味着三处各维护一份 schema 和调用代码，工具接口一变就要同步改三处，漏改一个就出 bug。MCP 的做法就优雅多了：工具封装成独立 Server，任何人在配置文件里加几行就能接进来用，维护的责任在 Server 那一侧，所有客户端自动受益。
 
 还有一个特别务实的理由：社区已经有现成的 MCP Server 了。GitHub、Slack、PostgreSQL、Puppeteer、Google Maps 这类高频工具，都有经过测试、文档完整的官方或社区 MCP Server。你不需要自己写一遍，直接配置就能用：
-
-
 
 ```json
 // 在 claude_desktop_config.json 里加几行，一行工具代码都不用写
@@ -968,7 +874,7 @@ MCP 的工具是「独立」的，封装成一个独立运行的进程，对外�
 
 ![img](image/3bcb1e4495c495d878e6cf4e73960a03.png)
 
-### [一个实用的判断方法](https://xiaolinnote.com/ai/tools/7_fc_vs_mcp_usage.html#一个实用的判断方法)
+### 一个实用的判断方法
 
 碰到「用 Function Calling 还是 MCP」这个选择题，其实不需要纠结太久，按几个问题依次过一遍就清楚了。
 
@@ -986,7 +892,7 @@ MCP 的工具是「独立」的，封装成一个独立运行的进程，对外�
 
 总结成一句话：「只用自己、只用一次、不需要复用」才适合 Function Calling，其他情况优先考虑 MCP。两者不是竞争关系，MCP 底层本来就是靠 Function Calling 驱动的，选哪个取决于你的工程需求，而不是技术层面的优劣。
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/tools/7_fc_vs_mcp_usage.html#🎯-面试总结)
+## 🎯 面试总结
 
 回到开头的面试对话，最典型的误区就是用单一维度来做选型判断，比如只看项目规模或只看工具数量。
 
@@ -996,19 +902,7 @@ MCP 的工具是「独立」的，封装成一个独立运行的进程，对外�
 
 # 8. 为什么有些特定的推理模型不支持 MCP 协议？
 
-👔面试官：为什么有些推理模型不支持 MCP 协议？
-
-🙋‍♂️我：应该是这些模型比较新，还没来得及做 MCP 的适配吧，等厂商更新一下 SDK 就能支持了。
-
-👔面试官：这不是适配不适配的问题。MCP 底层靠什么驱动的？如果模型连 Function Calling 都支持不了，MCP 怎么可能用得起来？你得想想推理模型在生成机制上和普通模型有什么不同。
-
-🙋‍♂️我：嗯，推理模型会先生成思维链再回答。那是不是因为思维链太长了，占满了上下文窗口，没空间放工具定义了？
-
-👔面试官：上下文窗口不是核心矛盾。关键是推理模型的思考过程是一次性连续生成的，不能中途打断，而工具调用天然需要在生成过程中暂停去等外部执行结果。这两种生成范式是冲突的，你想想为什么冲突、后来又是怎么解决的。
-
-这个问题的本质是生成范式的冲突，下面我从推理模型的工作机制开始，把这个冲突的来龙去脉讲清楚。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/tools/8_reasoning_no_mcp.html#💡-简要回答)
+## 💡 简要回答
 
 我理解根本原因是两者的生成范式有冲突。
 
@@ -1018,9 +912,9 @@ MCP 的工具是「独立」的，封装成一个独立运行的进程，对外�
 
 当然这个问题不是无解的，后来 o3 和 Claude Extended Thinking 都找到了折中方案，比如让工具调用发生在思考阶段结束之后，保证思考过程还是一次性完整生成的。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/tools/8_reasoning_no_mcp.html#📝-详细解析)
+## 📝 详细解析
 
-### [先弄清楚推理模型是什么](https://xiaolinnote.com/ai/tools/8_reasoning_no_mcp.html#先弄清楚推理模型是什么)
+### 先弄清楚推理模型是什么
 
 普通模型的工作方式很直接：问题进来，答案出去，收到输入就开始生成 token，一路生成到结束。
 
@@ -1030,7 +924,7 @@ MCP 的工具是「独立」的，封装成一个独立运行的进程，对外�
 
 这套「先思考再回答」的机制，正是推理模型在复杂推理、数学、代码问题上比普通模型强的根本原因。但也正是这个机制，和工具调用产生了根本冲突。
 
-### [工具调用的本质是「中途暂停」](https://xiaolinnote.com/ai/tools/8_reasoning_no_mcp.html#工具调用的本质是「中途暂停」)
+### 工具调用的本质是「中途暂停」
 
 要理解冲突，先要搞清楚工具调用的完整流程。
 
@@ -1040,7 +934,7 @@ MCP 的工具是「独立」的，封装成一个独立运行的进程，对外�
 
 ![img](image/c49e59f91e10a2c1ea71bfe99e24656c.png)
 
-### [直觉类比，写推理过程中途被打断](https://xiaolinnote.com/ai/tools/8_reasoning_no_mcp.html#直觉类比-写推理过程中途被打断)
+### 直觉类比，写推理过程中途被打断
 
 推理模型遇到这个「中途暂停」会是什么感觉？
 
@@ -1052,7 +946,7 @@ MCP 的工具是「独立」的，封装成一个独立运行的进程，对外�
 
 中途强行打断，之前建立的推理状态会断掉，模型没办法从中间接着想，只能整个重来。
 
-### [「那保存状态再恢复不就行了？」](https://xiaolinnote.com/ai/tools/8_reasoning_no_mcp.html#「那保存状态再恢复不就行了-」)
+### 「那保存状态再恢复不就行了？」
 
 有人可能会问：那暂停时把状态保存起来，工具执行完再恢复，不就解决了？
 
@@ -1062,7 +956,7 @@ MCP 的工具是「独立」的，封装成一个独立运行的进程，对外�
 
 更难解决的是一致性问题。思考过程中途接入工具结果，等于在模型「想到一半」时改变了输入。模型之前的思路是基于「我还不知道工具结果」建立的，突然工具结果来了，模型需要重新校准，之前的推理链和新来的工具结果可能是矛盾的，怎么融合？这个「思考状态一致性」的问题没有简单的解法。
 
-### [训练目标上的冲突](https://xiaolinnote.com/ai/tools/8_reasoning_no_mcp.html#训练目标上的冲突)
+### 训练目标上的冲突
 
 除了生成范式，训练层面也有根本性的冲突。
 
@@ -1074,13 +968,13 @@ MCP 的工具是「独立」的，封装成一个独立运行的进程，对外�
 
 ![img](image/db510894741292a00a8377c7153c547d.png)
 
-### [早期推理模型的真实情况](https://xiaolinnote.com/ai/tools/8_reasoning_no_mcp.html#早期推理模型的真实情况)
+### 早期推理模型的真实情况
 
 OpenAI o1-preview 是最典型的案例，2024 年 9 月发布时明确不支持 Function Calling，官方文档直接标注了这个限制。不过要注意区分版本：o1-preview 是早期预览版，确实不支持工具调用；但 2024 年 12 月发布的正式版 o1 已经加上了 Function Calling 支持，说明 OpenAI 在后续版本中找到了兼容方案。DeepSeek-R1 早期版本也是类似情况，推理能力很强，但工具调用支持极弱甚至没有。
 
 这些早期限制不是懒得做，而是上面这些结构性冲突导致的工程取舍：先把推理能力做扎实，再想办法处理工具调用兼容的问题。
 
-### [后来是怎么解决的，折中方案](https://xiaolinnote.com/ai/tools/8_reasoning_no_mcp.html#后来是怎么解决的-折中方案)
+### 后来是怎么解决的，折中方案
 
 后续版本找到的工程解法是：**让工具调用发生在思考阶段结束之后**。
 
@@ -1096,7 +990,7 @@ o3 和 Claude Extended Thinking 走的都是这条路，所以它们现在已经
 
 但你要知道这个内在限制的本质仍然存在，各家的解法都是在「保证推理质量」和「支持工具调用」之间做权衡。
 
-### [为什么不支持 Function Calling 就不支持 MCP？](https://xiaolinnote.com/ai/tools/8_reasoning_no_mcp.html#为什么不支持-function-calling-就不支持-mcp)
+### 为什么不支持 Function Calling 就不支持 MCP？
 
 这个传导关系很直接。
 
@@ -1110,7 +1004,7 @@ MCP 协议在底层完全依赖 Function Calling。整个调用链是这样的�
 
 ![img](image/1c354cee801500c8bf5abdf8cc1a40ae.png)
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/tools/8_reasoning_no_mcp.html#🎯-面试总结)
+## 🎯 面试总结
 
 回到开头的面试对话，最常见的误区有两个：一是以为不支持 MCP 只是「还没适配」，把结构性的技术冲突当成了工程进度问题；二是把原因归结为上下文窗口不够大，没有抓到真正的矛盾点。
 
@@ -1122,19 +1016,7 @@ MCP 协议在底层完全依赖 Function Calling。整个调用链是这样的�
 
 # 9. Skill 是什么？
 
-👔面试官：说说 Agent Skill 是什么？
-
-🙋‍♂️我：Skill 就是提示词嘛，把常用的 prompt 保存下来，下次用的时候直接贴上去就行了，跟复制粘贴差不多。
-
-👔面试官：就是「复制粘贴 prompt」？那我每次开新对话都要手动贴一遍，团队里十个人每个人贴的还不一样，这算什么「能力」？你觉得这样能规模化吗？
-
-🙋‍♂️我：那……可以把 prompt 写到一个共享文档里，大家统一从那里复制？
-
-👔面试官：你说的是人工流程管理，不是技术方案。Skill 的核心不是「保存 prompt」，而是把指令、脚本、模板打包成一个模块，Agent 能自动发现它、按需加载它，根本不需要人手动去贴。你连 Skill 和普通 prompt 的区别都没搞清楚，更别提它和 MCP 工具的关系了。
-
-好，这段对话踩的雷很典型，很多人一上来就把 Skill 等同于「保存好的 prompt」。下面我把 Skill 的本质和设计思路拆开讲清楚。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/tools/9_skill.html#💡-简要回答)
+## 💡 简要回答
 
 Agent Skill 是把「指令、脚本、模板」一体化打包成可复用能力包的机制，关键在于三件事：Agent 能自动发现它、按需加载它、在需要时调用里面的脚本和资源。它不只是「存 prompt」，而是一份 Agent 能自己翻阅的「操作手册 + 工具箱」。每个 Skill 是一个文件夹，里面有一份 `SKILL.md` 指令文件，还可以带上脚本、模板、参考文档这些资源。
 
@@ -1142,9 +1024,9 @@ Agent Skill 是把「指令、脚本、模板」一体化打包成可复用能�
 
 Anthropic 在 2025 年 10 月推出了 Agent Skills，同年 12 月把规范作为开放标准发布出来，允许其他 Agent 平台按照这套格式来兼容 Skills 生态。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/tools/9_skill.html#📝-详细解析)
+## 📝 详细解析
 
-### [为什么需要 Skill？从「重复贴 prompt」的痛点说起](https://xiaolinnote.com/ai/tools/9_skill.html#为什么需要-skill-从「重复贴-prompt」的痛点说起)
+### 为什么需要 Skill？从「重复贴 prompt」的痛点说起
 
 你一定遇到过这种情况：每次让 AI 帮你做代码审查，你都要贴一大段指令，告诉它「检查这几类问题、用这种格式输出、重点关注安全漏洞」。第一次贴的时候还好，第二次、第三次你就开始烦了，每次新对话都要从头贴一遍，漏掉某个细节就会导致输出质量不稳定。
 
@@ -1156,11 +1038,9 @@ Anthropic 在 2025 年 10 月推出了 Agent Skills，同年 12 月把规范作�
 
 Skill 要解决的就是这个问题：把那些你反复在用的指令、流程、模板，打包成一个标准化的模块，Agent 自己知道什么时候该用它、怎么用它，不再依赖你手动复制粘贴。
 
-### [Skill 的结构长什么样](https://xiaolinnote.com/ai/tools/9_skill.html#skill-的结构长什么样)
+### Skill 的结构长什么样
 
 一个 Skill 说白了就是一个文件夹，里面最核心的是一份叫 `SKILL.md` 的文件，再加上一些可选的辅助资源。结构很直观：
-
-
 
 ```
 code-review/                  # Skill 文件夹，名字就是这个 Skill 的标识
@@ -1176,8 +1056,6 @@ code-review/                  # Skill 文件夹，名字就是这个 Skill 的�
 ![img](image/ad6768a16c65066060d5e3a00794c128.png)
 
 `SKILL.md` 的内容分两部分。顶部是一段 YAML 格式的元数据，叫 frontmatter，声明这个 Skill 的名字和一句话描述；下面是正文，用 Markdown 写具体的指令和步骤。来看一个实际的例子：
-
-
 
 ```yaml
 ---
@@ -1205,7 +1083,7 @@ description: "对代码进行全面审查，检查 bug、安全漏洞和性能�
 
 你会发现，这和普通 prompt 的区别就很明显了。普通 prompt 只是一段文字，用完就没了；而 Skill 是一个完整的文件夹，里面的指令、脚本、模板可以持续维护、版本管理，团队里所有人用的都是同一份。
 
-### [渐进式加载：Skill 最聪明的设计](https://xiaolinnote.com/ai/tools/9_skill.html#渐进式加载-skill-最聪明的设计)
+### 渐进式加载：Skill 最聪明的设计
 
 Skill 最让人眼前一亮的设计，不是「能打包」这件事本身，而是它的加载方式。
 
@@ -1225,7 +1103,7 @@ Skill 最让人眼前一亮的设计，不是「能打包」这件事本身，�
 
 为什么这个设计这么重要？因为 context window 是 Agent 最宝贵的资源。如果把所有 Skill 的全部内容一股脑塞进去，真正有用的用户任务信息反而会被淹没，Agent 的注意力被分散，输出质量反而下降。渐进式加载的本质就是「让 Agent 只在需要的时候获取需要的知识」，这和人类的工作方式其实是一样的。
 
-### [Skill 和 Tool、Prompt 分别是什么关系](https://xiaolinnote.com/ai/tools/9_skill.html#skill-和-tool、prompt-分别是什么关系)
+### Skill 和 Tool、Prompt 分别是什么关系
 
 这三个概念经常被混淆，但它们处于完全不同的层次，用一个类比就能讲清楚。
 
@@ -1241,7 +1119,7 @@ Skill 就是那份「操作手册」和「SOP 流程」。它教 Agent 拿到这
 
 ![img](image/8df9a218955f003ffac5168bc9b657b5.png)
 
-### [Skill 从 Anthropic 走向开放标准](https://xiaolinnote.com/ai/tools/9_skill.html#skill-从-anthropic-走向开放标准)
+### Skill 从 Anthropic 走向开放标准
 
 Agent Skills 最早是 Anthropic 在 2025 年 10 月推出的，一开始只在 Claude 自家的生态里用，覆盖了 Claude Code、Claude API 和 [claude.ai](http://claude.ai/) 这三个入口。推出两个月后，Anthropic 做了一个很聪明的决定：在 2025 年 12 月把 Agent Skills 的规范作为开放标准发布出来，任何想做 Agent 平台的团队都可以按这个规范来实现自己的 Skills 支持。
 
@@ -1251,7 +1129,7 @@ Agent Skills 最早是 Anthropic 在 2025 年 10 月推出的，一开始只在 
 
 你可能会问，开放成标准有什么好处？好处是你写一份 Skill，未来有机会在不同的 Agent 平台之间复用，而不是被某一家产品绑死。这就像 USB 接口一样，你买一根 USB-C 数据线，手机能用、电脑也能用，不用每个设备买一根专用线。Anthropic 想做的就是让 Agent Skills 朝着这个方向发展，虽然现在主要还是 Claude 生态在用，社区里也有项目开始探索在其他 Agent 平台上兼容这个格式，后续能走到哪一步还要看行业的采纳情况。
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/tools/9_skill.html#🎯-面试总结)
+## 🎯 面试总结
 
 回到开头踩的雷，最常见的误区就是把 Skill 等同于「保存好的 prompt」。面试回答这道题，第一个要说清楚的是 Skill 的本质：它不是一段 prompt，而是一个包含指令、脚本、模板的可复用能力模块，Agent 可以自动发现和按需加载。
 
@@ -1259,23 +1137,11 @@ Agent Skills 最早是 Anthropic 在 2025 年 10 月推出的，一开始只在 
 
 第三个要讲清楚的是 Skill 和其他概念的关系：MCP/Tool 提供外部工具和数据访问，Skill 提供用这些工具完成任务的知识和流程，两者互补；Prompt 是一次性的临时指令，Skill 是持久化的可复用模块；Slash Command 需要手动触发，Skill 可以被 Agent 自动发现。
 
-最后可以加一句，Agent Skills 已经从 Anthropic 的产品功能发展成了开放标准（2025 年 12 月开源），目前主要在 Claude Code、Claude API、[claude.ai](http://claude.ai/) 这三个入口上使用，社区也在探索把这个格式带到其他 Agent 平台，未来有望成为跨平台的能力模块约定。
+最后可以加一句，Agent Skills 已经从 Anthropic 的产品功能发展成了开放标准（2025 年 12 月开源），目前主要在 Claude Code、Claude API、[claude.ai] 这三个入口上使用，社区也在探索把这个格式带到其他 Agent 平台，未来有望成为跨平台的能力模块约定。
 
 # 10. MCP 和 Agent Skill 的区别是什么？
 
-👔面试官：MCP 和 Agent Skill 有什么区别？
-
-🙋‍♂️我：它们都是给 Agent 加能力的吧？MCP 是用工具列表来描述 Agent 能做什么，Skill 也是描述 Agent 能做什么，本质上差不多，只是格式不同。
-
-👔面试官：「本质上差不多」？那你觉得为什么要搞两套东西，一套不就够了？如果真的差不多，为什么 MCP 和 Skill 的结构、加载方式、使用场景完全不一样？
-
-🙋‍♂️我：嗯……可能 Skill 就是一种更高级的 prompt 模板？把常用的指令保存下来，比 MCP 多了一些描述信息？
-
-👔面试官：你又把 Skill 降格成「prompt 模板」了。Skill 可不只是一段指令文字，它是一个完整的文件夹，里面有指令、脚本、模板、参考文档，而且能被 Agent 自动发现和按需加载。MCP 给 Agent 提供的是工具和数据的访问能力，Skill 教 Agent 拿到这些工具之后该怎么用。一个是「能力」，一个是「知识和流程」，层次完全不同。你把这两者的定位和分工搞清楚。
-
-好，这段对话的误区很典型，很多人把 MCP 和 Skill 当成同类概念。下面我把两者各自的定位和配合方式拆开讲清楚。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/tools/10_mcp_vs_skill.html#💡-简要回答)
+## 💡 简要回答
 
 MCP 和 Agent Skill 不是同类概念，不是竞争关系，而是互补的。
 
@@ -1285,9 +1151,9 @@ Skill 解决的是「Agent 拿到这些能力之后，该按什么步骤、什�
 
 简单记：MCP 是给 Agent 配的电脑和软件，Skill 是给 Agent 发的操作手册和 SOP。在实际系统里，两者经常同时工作，Skill 定义流程，流程中调用 MCP 提供的工具。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/tools/10_mcp_vs_skill.html#📝-详细解析)
+## 📝 详细解析
 
-### [从定位说起：两者解决的不是同一个问题](https://xiaolinnote.com/ai/tools/10_mcp_vs_skill.html#从定位说起-两者解决的不是同一个问题)
+### 从定位说起：两者解决的不是同一个问题
 
 很多人第一次接触这两个概念会觉得它们都跟「Agent 能做什么」有关，但仔细一想会发现，两者的目的和工作层次完全不同。
 
@@ -1301,7 +1167,7 @@ Skill 解决的是另一类问题：「Agent 有了这些能力之后，该怎�
 
 ![img](image/05e1c701b5d32240546bd0fbef096732.png)
 
-### [MCP：让 Agent 有「手」](https://xiaolinnote.com/ai/tools/10_mcp_vs_skill.html#mcp-让-agent-有「手」)
+### MCP：让 Agent 有「手」
 
 理解了两者的定位差异，先来展开看看 MCP。为什么说它是 Agent 的「手」？因为如果没有 MCP，Agent 就只会「说话」，不会「做事」。
 
@@ -1309,7 +1175,7 @@ MCP Server 暴露的 Tools、Resources、Prompts 就是 Agent 操作外部世界
 
 简单说，MCP 让 Agent 从「只会聊天」进化成了「能真正干活」，这是一切上层能力的前提。
 
-### [Skill：给 Agent 一份「操作手册」](https://xiaolinnote.com/ai/tools/10_mcp_vs_skill.html#skill-给-agent-一份「操作手册」)
+### Skill：给 Agent 一份「操作手册」
 
 有了 MCP 之后，Agent 确实能查数据、调 API 了，但面对一个复杂任务，它怎么知道该按什么顺序用这些工具？该关注哪些维度？该用什么标准判断质量？这就是 Skill 要解决的问题。
 
@@ -1324,13 +1190,11 @@ Skill 和普通 prompt 最大的区别在于两点。
 
 ![img](image/85e3d344474cb02cb55ee091ec7b8655.png)
 
-### [两者怎么配合工作](https://xiaolinnote.com/ai/tools/10_mcp_vs_skill.html#两者怎么配合工作)
+### 两者怎么配合工作
 
 看到这里你可能会想，既然 MCP 提供工具、Skill 提供流程，那它们在实际系统里是怎么配合的？咱们用一个代码审查的场景走一遍就清楚了。
 
 用户对 Agent 说「帮我审查一下这次提交的代码」。Agent 收到任务后，先扫描自己可用的 Skill 列表，发现有一个叫 code-review 的 Skill 和这个任务匹配度很高。于是 Agent 加载它的 `SKILL.md` 正文，读取里面的执行流程。这份 `SKILL.md` 长这个样子：
-
-
 
 ```yaml
 ---
@@ -1353,8 +1217,6 @@ description: "对代码进行全面审查，识别 bug、安全漏洞和性能�
 你看，`SKILL.md` 的作用就是告诉 Agent「做什么、按什么顺序做」，它就是一份操作手册。
 
 但 Skill 只定义了流程，真正「动手」的时候还是得靠 MCP。Agent 执行第一步「读取代码文件」，需要调用文件系统 MCP Server 提供的工具：
-
-
 
 ```python
 # Skill 第一步说：读取待审查的代码文件
@@ -1382,7 +1244,7 @@ Agent 读到这条指令时，会先调用一个 MCP Tool 去扫描这次提交�
 
 ![img](image/c5d4e026cb0aa4a0cc580782d067abd6.png)
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/tools/10_mcp_vs_skill.html#🎯-面试总结)
+## 🎯 面试总结
 
 回到开头对话踩的雷，最大的误区就是把 MCP 和 Skill 当成同类概念来对比。面试回答这道题，第一个必须说清楚的是两者的定位差异：MCP 提供工具和数据的访问能力，解决的是「Agent 怎么做事」；Skill 提供完成任务的知识和流程，解决的是「Agent 该怎么做事」。一个是能力，一个是知识。
 
@@ -1392,19 +1254,7 @@ Agent 读到这条指令时，会先调用一个 MCP Tool 去扫描这次提交�
 
 # 11. Function Calling、Skill、MCP 这三个有什么区别？
 
-👔面试官：Function Calling、Skill、MCP 这三个概念有什么区别？
-
-🙋‍♂️我：这三个都是让模型调用外部工具的方式吧？Function Calling 是 OpenAI 的方案，MCP 是 Anthropic 的方案，Skill 也是 Anthropic 的方案，它们是不同时期搞出来的竞争方案。
-
-👔面试官：竞争方案？那你觉得一个系统里只需要选其中一个用就行了？它们是可以互相替代的？
-
-🙋‍♂️我：也不完全是替代关系……它们应该各有侧重？比如 Function Calling 管函数调用，MCP 管工具标准化，Skill 管流程模板？但我不太确定它们之间有没有层级关系。
-
-👔面试官：你前半段说的方向沾边了，但关键问题是你没搞清楚这三者的层级依赖。它们不是并列的三个方案，而是从底到顶的三层架构：Function Calling 是最底层的调用语言，MCP 在它之上做工具标准化，Skill 在最上层把使用工具完成任务的知识和流程封装成可复用模块。你把每层解决什么问题搞清楚，三者的区别就一目了然了。
-
-好，这段对话踩的雷挺典型的，很多人一上来就把这三个当成平行的竞争方案。下面我把三者的层级关系和各自定位拆开讲清楚。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/tools/11_fc_skill_mcp.html#💡-简要回答)
+## 💡 简要回答
 
 这三个概念在不同层次工作，不是竞争关系。
 
@@ -1416,9 +1266,9 @@ Agent Skill 在最上层做知识和流程的封装，解决的是「拿到工�
 
 简单记就是：Function Calling 是语言，MCP 是工具箱，Skill 是操作手册。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/tools/11_fc_skill_mcp.html#📝-详细解析)
+## 📝 详细解析
 
-### [为什么会有三个概念](https://xiaolinnote.com/ai/tools/11_fc_skill_mcp.html#为什么会有三个概念)
+### 为什么会有三个概念
 
 这三个概念放在一起确实很容易让人迷惑，但其实它们各自解决的是完全不同层次的问题，是三层架构，不是三个竞争方案。
 
@@ -1436,7 +1286,7 @@ Function Calling 是最先出现的，当时的核心问题是「模型只会生
 
 ![img](image/5d9d1609e5dd88c62b3b665a9d684918.png)
 
-### [从「谁和谁通信」来看三者位置](https://xiaolinnote.com/ai/tools/11_fc_skill_mcp.html#从「谁和谁通信」来看三者位置)
+### 从「谁和谁通信」来看三者位置
 
 理解三者最清晰的切入点是：每个机制发生在哪两个角色之间。
 
@@ -1450,7 +1300,7 @@ Function Calling 是最先出现的，当时的核心问题是「模型只会生
 
 ![img](image/bc6c6068181eb9ed13b753c6e83f99a0.png)
 
-### [三者的层级依赖关系](https://xiaolinnote.com/ai/tools/11_fc_skill_mcp.html#三者的层级依赖关系)
+### 三者的层级依赖关系
 
 搞清楚了三者各自的位置，接下来一个很自然的问题是：它们之间有没有上下级关系？答案是有的，而且层级非常明确。
 
@@ -1478,7 +1328,7 @@ Function Calling 是你的「手」，能拿刀、能点火、能翻锅，这是
 
 ![img](image/4e95e9e43c98d50f07cb12201efd28a7.png)
 
-### [用一个完整故事串联三者](https://xiaolinnote.com/ai/tools/11_fc_skill_mcp.html#用一个完整故事串联三者)
+### 用一个完整故事串联三者
 
 把三者放在同一个场景里感受一下各层分工。用户对 Agent 说「帮我分析最近三个月的销售数据，找出下滑的产品线，给改进建议」。
 
@@ -1492,7 +1342,7 @@ Function Calling 是你的「手」，能拿刀、能点火、能翻锅，这是
 
 ![img](image/f26a74c8cf8ab8c8d9debd2870777643.png)
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/tools/11_fc_skill_mcp.html#🎯-面试总结)
+## 🎯 面试总结
 
 回到开头对话踩的雷，最大的误区就是把 Function Calling、MCP、Skill 当成三个平行的竞争方案。面试回答这道题，第一个必须说清楚的是三者的层级关系：Function Calling 是最底层的调用协议，解决的是「模型怎么触发函数调用」；MCP 在 Function Calling 之上，解决的是「工具怎么标准化封装和发现」；Skill 在最上层，解决的是「拿到工具后按什么流程完成任务」。三层从下到上，各司其职。
 
@@ -1502,19 +1352,7 @@ Function Calling 是你的「手」，能拿刀、能点火、能翻锅，这是
 
 # 12. 什么是 A2A 协议？它和 MCP 协议的区别是什么？
 
-👔面试官：说说什么是 A2A 协议，它和 MCP 有什么区别？
-
-🙋‍♂️我：A2A 是 Google 出的一个协议，我理解它就是 MCP 的竞品吧，Google 想自己搞一套标准来替代 MCP。
-
-👔面试官：竞品？MCP 解决的是什么问题，A2A 解决的又是什么问题，你搞清楚了吗？这两个协议面向的对象都不一样，怎么会是竞品？
-
-🙋‍♂️我：那 A2A 应该是用来让 Agent 调用工具的另一种方式？就是和 MCP 一样连工具，只是协议格式不同？
-
-👔面试官：A2A 全称是 Agent-to-Agent，注意看名字，是 Agent 到 Agent，不是 Agent 到工具。MCP 是 Agent 连工具和数据，A2A 是多个 Agent 之间互相通信协作。一个向下连工具，一个向外连 Agent，方向完全不同。你再想想，为什么需要多个 Agent 协作，单个 Agent 不够用吗？
-
-确实，A2A 和 MCP 经常被放在一起比较，但很多人把它们的定位搞混了。下面我从「单个 Agent 的天花板」讲起，把 A2A 的设计思路和它与 MCP 的关系理清楚。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/tools/12_a2a_protocol.html#💡-简要回答)
+## 💡 简要回答
 
 A2A 是 Google 发布的开放协议，专门解决多个 AI Agent 之间怎么互相通信协作的问题。
 
@@ -1524,9 +1362,9 @@ A2A 是 Google 发布的开放协议，专门解决多个 AI Agent 之间怎么�
 
 两者是互补的，不冲突：MCP 向下连工具，A2A 向上连 Agent，在复杂的多 Agent 系统里这两个通常都要用到。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/tools/12_a2a_protocol.html#📝-详细解析)
+## 📝 详细解析
 
-### [为什么单个 Agent 不够用，上下文和专业边界](https://xiaolinnote.com/ai/tools/12_a2a_protocol.html#为什么单个-agent-不够用-上下文和专业边界)
+### 为什么单个 Agent 不够用，上下文和专业边界
 
 要理解 A2A 是干什么的，得先把「单 Agent 的天花板」搞清楚。
 
@@ -1552,7 +1390,7 @@ A2A 是 Google 发布的开放协议，专门解决多个 AI Agent 之间怎么�
 
 解决方案很自然：把任务拆开，交给不同的专业 Agent 并行处理，最后汇总。一个「调度 Agent」负责任务拆分，「市场分析 Agent」专门做趋势调研，「技术研究 Agent」专门做工具对比，每个只需聚焦自己擅长的部分，整体效果远好于一个 Agent 包揽所有。
 
-### [多 Agent 的基础问题，Agent 之间怎么互相认识？](https://xiaolinnote.com/ai/tools/12_a2a_protocol.html#多-agent-的基础问题-agent-之间怎么互相认识)
+### 多 Agent 的基础问题，Agent 之间怎么互相认识？
 
 多 Agent 系统有一个绕不开的基础问题：Agent A 要把任务委托给 Agent B，它得先知道 B 能做什么。但怎么知道呢？
 
@@ -1570,7 +1408,7 @@ Agent Card 里最关键的是 **Skill 列表**，每个 Skill 描述一类能力
 
 ![img](image/1772162963663-7f439e06-953c-4e3f-afd7-bc9050bfe7f2.webp)
 
-### [Task，A2A 里的一等公民](https://xiaolinnote.com/ai/tools/12_a2a_protocol.html#task-a2a-里的一等公民)
+### Task，A2A 里的一等公民
 
 A2A 里任务协作的基本单位是 **Task**。
 
@@ -1588,7 +1426,7 @@ Task 有完整的生命周期状态管理。一个 Task 刚被创建时是 submi
 
 调度 Agent 的视角很干净：给 Agent B 提交一个 Task，定期查一下状态，等到 `completed` 了去取 artifacts。整个过程不需要知道 B 内部用了什么工具、调了几次 LLM，完全黑盒。每个专业 Agent 自己的实现对外不可见，这正是解耦的意义所在。
 
-### [A2A 的架构本质，Agent 的微服务化](https://xiaolinnote.com/ai/tools/12_a2a_protocol.html#a2a-的架构本质-agent-的微服务化)
+### A2A 的架构本质，Agent 的微服务化
 
 如果你有后端开发经验，A2A 其实不陌生：它就是 Agent 世界里的**微服务架构**。
 
@@ -1600,7 +1438,7 @@ Task 有完整的生命周期状态管理。一个 Task 刚被创建时是 submi
 
 ![img](image/a9964e6bdfd173d6cb710da1594435f2.png)
 
-### [A2A 和 MCP 的关系，一纵一横，各管一层](https://xiaolinnote.com/ai/tools/12_a2a_protocol.html#a2a-和-mcp-的关系-一纵一横-各管一层)
+### A2A 和 MCP 的关系，一纵一横，各管一层
 
 理清两者关系最简单的方式是看方向：MCP 是 Agent 向下连工具，A2A 是 Agent 向外连其他 Agent。
 
@@ -1614,7 +1452,7 @@ Task 有完整的生命周期状态管理。一个 Task 刚被创建时是 submi
 
 ![img](image/41e918ff4684fd3ebb53b7701e6f8044.png)
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/tools/12_a2a_protocol.html#🎯-面试总结)
+## 🎯 面试总结
 
 回到开头的面试对话，最大的雷是把 A2A 当成 MCP 的「竞品」或「替代方案」，这说明没搞清楚两者面向的对象完全不同。
 
@@ -1628,19 +1466,7 @@ Task 有完整的生命周期状态管理。一个 Task 刚被创建时是 submi
 
 # 13. MCP 协议通常采用什么通信方式？
 
-👔面试官：MCP 协议通常采用什么通信方式？
-
-🙋‍♂️我：MCP 应该是用 WebSocket 吧？因为需要双向通信，Client 发请求、Server 推结果，WebSocket 全双工正好合适。
-
-👔面试官：MCP 并没有用 WebSocket。你想想，MCP 有本地工具和远程工具两种场景，本地场景需要走网络吗？
-
-🙋‍♂️我：本地的话……应该也是走 HTTP 吧，在本机起个服务，Client 通过 localhost 访问？
-
-👔面试官：想复杂了。本地场景用的是 stdio，直接通过进程的标准输入输出通信，根本不需要网络。远程场景才用 HTTP，而且不是 WebSocket，是 SSE。另外不管哪种传输方式，底层消息格式统一用 JSON-RPC 2.0，这一点你也没提到。传输方式和消息格式是解耦的，这个设计是 MCP 灵活性的关键。
-
-看来通信方式这块确实有不少容易搞混的地方，下面我把 MCP 的消息格式和两种传输方式都讲清楚。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/tools/13_mcp_transport.html#💡-简要回答)
+## 💡 简要回答
 
 MCP 支持两种主要的传输方式，分别适用于不同场景。
 
@@ -1652,9 +1478,9 @@ MCP 早期版本（2024-11-05 规范）的远程传输是「HTTP + SSE」双端�
 
 不管哪种传输方式，底层消息格式都统一用 JSON-RPC 2.0，传输方式只影响「怎么传」，消息协议本身不变。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/tools/13_mcp_transport.html#📝-详细解析)
+## 📝 详细解析
 
-### [MCP 的消息格式：JSON-RPC 2.0](https://xiaolinnote.com/ai/tools/13_mcp_transport.html#mcp-的消息格式-json-rpc-2-0)
+### MCP 的消息格式：JSON-RPC 2.0
 
 在说传输方式之前，先说消息格式，因为不管用哪种传输方式，消息格式都是同一套。
 
@@ -1667,8 +1493,6 @@ MCP 早期版本（2024-11-05 规范）的远程传输是「HTTP + SSE」双端�
 ![img](image/1c89f7be0d22d35a7fbf87e9fa3758a2.png)
 
 每条消息就是一个 JSON 对象，格式固定：
-
-
 
 ```json
 // 请求消息（Client -> Server）
@@ -1694,7 +1518,7 @@ MCP 早期版本（2024-11-05 规范）的远程传输是「HTTP + SSE」双端�
 
 JSON-RPC 本身只定义消息格式，不关心底层怎么传输，MCP 在此基础上定义了两种传输层实现。
 
-### [传输方式一：stdio（标准输入输出）](https://xiaolinnote.com/ai/tools/13_mcp_transport.html#传输方式一-stdio-标准输入输出)
+### 传输方式一：stdio（标准输入输出）
 
 stdio 是 MCP 最常用的传输方式，适合**本地工具**的场景。
 
@@ -1715,8 +1539,6 @@ stdio 方式有几个很明显的优点。
 
 在实际使用中，你只需要在配置文件里告诉 Client「用什么命令启动 Server」就行了，比如在 Claude Desktop 的 `claude_desktop_config.json` 里这样配置：
 
-
-
 ```json
 {
   "mcpServers": {
@@ -1729,7 +1551,7 @@ stdio 方式有几个很明显的优点。
 }
 ```
 
-### [传输方式二：Streamable HTTP（当前标准的远程传输）](https://xiaolinnote.com/ai/tools/13_mcp_transport.html#传输方式二-streamable-http-当前标准的远程传输)
+### 传输方式二：Streamable HTTP（当前标准的远程传输）
 
 远程场景下，Server 作为独立的 HTTP 服务运行，Client 通过网络连接访问。MCP 当前推荐的远程传输方式是 **Streamable HTTP**。
 
@@ -1741,7 +1563,7 @@ Streamable HTTP 的优点很明确。Server 可以部署在云端，多个 Clien
 
 当然，相比 stdio 多了网络开销，延迟会略高一些，而且你还需要处理认证、网络中断重连等在本地场景下完全不用操心的问题。
 
-### [为什么 SSE 被弃用了](https://xiaolinnote.com/ai/tools/13_mcp_transport.html#为什么-sse-被弃用了)
+### 为什么 SSE 被弃用了
 
 你可能看到一些早期的 MCP 教程还在讲 SSE（Server-Sent Events）传输方式，这里要说明一下：HTTP + SSE 双端点方案是 MCP 早期版本（2024-11-05 规范）采用的远程传输方案，**在 2025 年 3 月的规范更新里被标记为 deprecated**，仍然保留向后兼容，但新项目应该直接用 Streamable HTTP。
 
@@ -1755,7 +1577,7 @@ Streamable HTTP 的做法是把这两条通道合并成一个端点：Client 照
 
 ![img](image/fb56f0eac75580b6a9540fa74be7ddde.png)
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/tools/13_mcp_transport.html#🎯-面试总结)
+## 🎯 面试总结
 
 回到开头踩的雷，最常见的误区就是想当然地以为 MCP 用 WebSocket 或者 HTTP REST 接口。
 
@@ -1767,19 +1589,7 @@ Streamable HTTP 的做法是把这两条通道合并成一个端点：Client 照
 
 # 14. 说说 WebSocket 和 SSE 通信的区别及局限性？
 
-👔面试官：说说 WebSocket 和 SSE 通信的区别及局限性？
-
-🙋‍♂️我：SSE 和 WebSocket 都是长连接，区别就是 SSE 比较简单，WebSocket 比较复杂。做 AI 对话的话，WebSocket 更好，因为它功能更强大，全双工嘛。
-
-👔面试官：「功能更强大就更好」？那为什么 OpenAI、Anthropic 的流式 API 全都用 SSE 而不是 WebSocket？你得从实际场景出发去分析，不能只看功能强不强。
-
-🙋‍♂️我：可能是因为 SSE 更简单吧？不过我觉得 SSE 就是 WebSocket 的简化版，功能上是 WebSocket 的子集，没什么本质区别。
-
-👔面试官：这个理解不对。SSE 是 HTTP 协议的原生特性，WebSocket 是一个独立协议，两者底层机制完全不同。而且各自都有明确的局限性，SSE 有连接数限制、只支持文本传输；WebSocket 有状态、扩展难、容易被代理拦截。选型要看场景需求，不是简单的「谁是谁的子集」。
-
-看来 SSE 和 WebSocket 的区别远不止「简单 vs 复杂」这么表面，下面我从底层原理到实际局限，把两者的核心差异和各自的坑都讲清楚。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/tools/14_sse_vs_websocket.html#💡-简要回答)
+## 💡 简要回答
 
 我觉得最核心的区别是通信方向：SSE 是服务端单向推，客户端只能接收，想发消息只能另起一个 HTTP 请求；WebSocket 是全双工，双方都可以随时主动发消息。
 
@@ -1789,9 +1599,9 @@ WebSocket 的复杂性只有在真正需要双向实时交互的时候才值得�
 
 两者各有局限：SSE 在 HTTP/1.1 下有连接数上限，只支持文本传输；WebSocket 有状态、横向扩展麻烦，还容易被企业代理或防火墙拦掉。大多数 LLM 文字对话产品用 SSE 就够了。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/tools/14_sse_vs_websocket.html#📝-详细解析)
+## 📝 详细解析
 
-### [先从 HTTP 的本质说起](https://xiaolinnote.com/ai/tools/14_sse_vs_websocket.html#先从-http-的本质说起)
+### 先从 HTTP 的本质说起
 
 要真正理解 SSE 和 WebSocket 的区别，不能只看它们各自的功能列表，得先回到更底层的问题：它们到底在解决什么问题？答案是普通 HTTP 做不到的事情。
 
@@ -1805,7 +1615,7 @@ WebSocket 的复杂性只有在真正需要双向实时交互的时候才值得�
 
 ![img](image/931df16789fe81bed7f2058fb3f708e8.png)
 
-### [SSE：用普通 HTTP「撑开」一条单向水管](https://xiaolinnote.com/ai/tools/14_sse_vs_websocket.html#sse-用普通-http「撑开」一条单向水管)
+### SSE：用普通 HTTP「撑开」一条单向水管
 
 SSE（Server-Sent Events，服务器推送事件）本质上是对 HTTP 的一种「巧用」，不是新协议，而是 HTTP/1.1 里本来就有的特性，只不过以前很少用。
 
@@ -1829,7 +1639,7 @@ SSE 之所以成为 LLM 流式输出的行业标准，还有一个很关键但�
 
 所以你希望每个 token 都准确到达、不乱序，这恰恰是 TCP 的强项。你愿意等网络重传，因为等来的是正确的内容。这和语音场景（WebRTC）完全相反，那里 TCP 的重传机制会造成不可接受的延迟，所以语音要换 UDP；但文字场景里 TCP 反而是你的朋友，你需要它。
 
-### [WebSocket：从 HTTP 升级成真正的双向信道](https://xiaolinnote.com/ai/tools/14_sse_vs_websocket.html#websocket-从-http-升级成真正的双向信道)
+### WebSocket：从 HTTP 升级成真正的双向信道
 
 理解了 SSE 是怎么回事，WebSocket 就很好对比了。WebSocket 是一个独立的协议，建立在 TCP 之上，但不是 HTTP 的特性。它的建立过程有一个特殊的「握手仪式」：客户端先发一个看起来像普通 HTTP 请求的东西，但请求头里带了一句话「我想升级成 WebSocket」。
 
@@ -1843,7 +1653,7 @@ SSE 之所以成为 LLM 流式输出的行业标准，还有一个很关键但�
 
 ![img](image/c58713d66fb6927716a2dc8cb49a6585.png)
 
-### [SSE 的局限：不只是「单向」那么简单](https://xiaolinnote.com/ai/tools/14_sse_vs_websocket.html#sse-的局限-不只是「单向」那么简单)
+### SSE 的局限：不只是「单向」那么简单
 
 说完了两者的核心区别，接下来要聊它们各自的局限性了，这往往是面试官追问的重点。先看 SSE。
 
@@ -1865,7 +1675,7 @@ SSE 只能从服务端推向客户端，用户发消息必须走一个独立的 
 
 还有一个实现细节是断线重连。SSE 有内置的重连机制，断线后会自动尝试重连，这是优点。但要做到「断了接着上次继续」而不丢消息，服务端必须支持 `Last-Event-ID`，客户端重连时带上上次收到的最后一条消息 ID，服务端从那条之后重放。很多实现省略了这块，结果断线后用户会丢失中间的内容，重连看到的是截断的回答。
 
-### [WebSocket 的局限：有状态带来的扩展麻烦](https://xiaolinnote.com/ai/tools/14_sse_vs_websocket.html#websocket-的局限-有状态带来的扩展麻烦)
+### WebSocket 的局限：有状态带来的扩展麻烦
 
 WebSocket 最麻烦的问题是「有状态」。
 
@@ -1893,7 +1703,7 @@ SSE 就不会有这个问题，它始终是普通 HTTP 请求，任何代理都�
 
 说起来不难，但实现起来是不少的工作量，而且一旦断线重连，那些还在等待响应的请求该怎么处理，也需要专门设计重试逻辑。
 
-### [在 AI 场景下怎么选？](https://xiaolinnote.com/ai/tools/14_sse_vs_websocket.html#在-ai-场景下怎么选)
+### 在 AI 场景下怎么选？
 
 大原则是「单向推就用 SSE，真正需要双向才上 WebSocket」。文字对话天然是单向推：模型在说话，你在看，你想回复直接发一个新的 POST 就行，SSE 完全够。只有当你需要客户端在任意时刻主动说话，比如实时打断、多人协同编辑、游戏类实时同步，才值得引入 WebSocket 的复杂度。
 
@@ -1910,7 +1720,7 @@ SSE 就不会有这个问题，它始终是普通 HTTP 请求，任何代理都�
 
 ![img](image/4f14b036b9c7354d7be7089d70af98c4.png)
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/tools/14_sse_vs_websocket.html#🎯-面试总结)
+## 🎯 面试总结
 
 回到开头踩的雷，最大的误区是觉得「WebSocket 功能更强大所以更好」，或者把 SSE 当成 WebSocket 的简化版。
 
@@ -1926,19 +1736,7 @@ WebSocket 的三个坑也要说到：有状态导致横向扩展麻烦（需要 
 
 # 15. 为什么要用 WebRTC 协议？它和 WebSocket（WS）在 AI 对话流中的核心差异是什么？
 
-👔面试官：为什么 AI 实时语音要用 WebRTC？它和 WebSocket 在 AI 对话流中的核心差异是什么？
-
-🙋‍♂️我：WebRTC 主要是因为它支持点对点通信，延迟比较低。WebSocket 需要经过服务器中转，所以延迟高一些。不过两者都能传语音，差别不是很大。
-
-👔面试官：你说的 P2P 只是 WebRTC 的一个特点，不是核心原因。关键问题是底层协议的区别，WebSocket 基于 TCP，WebRTC 基于 UDP，这两者对丢包的处理策略完全不同，你知道这意味着什么吗？
-
-🙋‍♂️我：TCP 丢包会重传，UDP 不重传。但是 TCP 重传不是好事吗？能保证数据完整啊，语音也需要完整传输吧？
-
-👔面试官：恰恰相反。语音场景里 TCP 的重传是灾难。丢了一个 20ms 的音频片段，TCP 强制等重传，后面所有音频全部堵住，延迟一堆积通话就卡死了。语音可以容忍丢包，但绝不容忍延迟。而且 WebRTC 不只是换了个传输协议，它还内置了回声消除、噪声抑制、自适应码率这些音频处理能力，这些用 WebSocket 全得自己造轮子。
-
-原来语音和文字对网络的要求完全不同，下面我就从这个根本差异出发，把 WebRTC 和 WebSocket 的核心区别讲透。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/tools/15_webrtc_vs_ws.html#💡-简要回答)
+## 💡 简要回答
 
 我理解核心原因是 WebSocket 基于 TCP，而 TCP 的可靠性设计在实时语音场景里反而是负担。
 
@@ -1950,7 +1748,7 @@ WebRTC 走的是 UDP，丢包了不等重传，直接用插值算法填补，用
 
 所以 OpenAI Realtime API 这类实时语音产品选 WebRTC，就是因为 TCP 根本撑不住语音场景的延迟要求。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/tools/15_webrtc_vs_ws.html#📝-详细解析)
+## 📝 详细解析
 
 要理解为什么语音场景需要 WebRTC，得先想清楚一个问题：传输文字和传输语音，对网络的要求本质上是不同的。
 
@@ -1964,7 +1762,7 @@ WebRTC 走的是 UDP，丢包了不等重传，直接用插值算法填补，用
 
 WebSocket 底层是 TCP，所以它天然带着 TCP 的这个问题。用 WebSocket 传语音，每次网络轻微抖动导致丢包，TCP 就会触发重传等待，整条流的延迟都会随之堆积，不可避免。
 
-### [WebRTC 的根本：选择 UDP，主动放弃可靠性](https://xiaolinnote.com/ai/tools/15_webrtc_vs_ws.html#webrtc-的根本-选择-udp-主动放弃可靠性)
+### WebRTC 的根本：选择 UDP，主动放弃可靠性
 
 WebRTC 是 Google 主导开发、W3C 和 IETF 联合标准化的协议族，2011 年开始推进，最初目的就是让浏览器之间能直接做实时音视频通话，不需要安装任何插件。它最核心的设计决策是把底层从 TCP 换成 UDP。
 
@@ -1976,7 +1774,7 @@ UDP 完全不管可靠性，发出去的包丢了就丢了，没有重传，也�
 
 这是一个典型的工程权衡：用偶尔轻微的音质损失，换取稳定的低延迟。对语音通话而言，这是正确的取舍。
 
-### [WebRTC 不是单一协议，而是一套协议组合](https://xiaolinnote.com/ai/tools/15_webrtc_vs_ws.html#webrtc-不是单一协议-而是一套协议组合)
+### WebRTC 不是单一协议，而是一套协议组合
 
 你可能以为 WebRTC 就是一个协议，跟 WebSocket 一样，换个名字而已。其实不是，WebRTC 更像是一套「协议全家桶」，在 UDP 之上叠加了好几层协议，每层各管一件事，组合在一起才能完成实时音视频通信。
 
@@ -1994,7 +1792,7 @@ RTP 是专门为实时媒体设计的协议，每个包都带时间戳和序列�
 
 ![img](image/5afbae08c03fed021a613eb6ae055f56.png)
 
-### [SDP 信令：WebRTC 握手的「协商书」](https://xiaolinnote.com/ai/tools/15_webrtc_vs_ws.html#sdp-信令-webrtc-握手的「协商书」)
+### SDP 信令：WebRTC 握手的「协商书」
 
 WebRTC 建立连接前，双方需要互相告知对方自己的能力：支持哪些音视频编解码格式、网络地址是什么、加密参数是什么。这个协商过程通过 SDP（Session Description Protocol）来完成。
 
@@ -2002,7 +1800,7 @@ SDP 本身只是一种格式，不规定如何传输。双方需要通过一个�
 
 ![img](image/ce5065b2068cfed49b06ff0858ebb4f3.png)
 
-### [NAT 穿透：ICE/STUN/TURN 解决的问题](https://xiaolinnote.com/ai/tools/15_webrtc_vs_ws.html#nat-穿透-ice-stun-turn-解决的问题)
+### NAT 穿透：ICE/STUN/TURN 解决的问题
 
 现实中大多数用户都在路由器后面，没有公网 IP，直接用内网地址互相连接是行不通的。WebRTC 用 ICE 框架来解决这个问题，ICE 会按优先级依次尝试三种连接方式：
 
@@ -2016,7 +1814,7 @@ SDP 本身只是一种格式，不规定如何传输。双方需要通过一个�
 
 这三层降级保证了 WebRTC 在各种网络环境下都能建立连接，只是在最差情况下退化成类似 WebSocket 经过服务器中转的模式。
 
-### [WebRTC 内置的音频处理能力](https://xiaolinnote.com/ai/tools/15_webrtc_vs_ws.html#webrtc-内置的音频处理能力)
+### WebRTC 内置的音频处理能力
 
 WebRTC 不只是一个传输协议，它把多年来实时语音通信领域积累的工程经验都内置进去了，这是用 WebSocket 传语音最难补齐的部分。
 
@@ -2028,7 +1826,7 @@ WebRTC 不只是一个传输协议，它把多年来实时语音通信领域积�
 
 最后是自适应码率控制（ABR）：WebRTC 通过 RTCP 持续监测网络状况，动态调整音频比特率。网络好时用高码率保证音质，网络差时降低码率优先保证流畅，不会因为网络波动就直接卡死。这些能力组合在一起，才让 WebRTC 能在各种真实网络环境下维持可接受的通话质量。
 
-### [OpenAI Realtime API 选择 WebRTC 的决策逻辑](https://xiaolinnote.com/ai/tools/15_webrtc_vs_ws.html#openai-realtime-api-选择-webrtc-的决策逻辑)
+### OpenAI Realtime API 选择 WebRTC 的决策逻辑
 
 OpenAI 在 2024 年发布了 Realtime API，用于实现实时语音对话：用户说话，AI 实时听，AI 说话，用户实时听，双方可以随时打断对方。
 
@@ -2038,7 +1836,7 @@ OpenAI 在 2024 年发布了 Realtime API，用于实现实时语音对话：用
 
 ![img](image/dc2ab665e6a2e3c42762516c58ae2054.png)
 
-### [WebSocket 和 WebRTC 的核心差异总结](https://xiaolinnote.com/ai/tools/15_webrtc_vs_ws.html#websocket-和-webrtc-的核心差异总结)
+### WebSocket 和 WebRTC 的核心差异总结
 
 | 维度       | WebSocket                   | WebRTC                                                 |
 | ---------- | --------------------------- | ------------------------------------------------------ |
@@ -2053,7 +1851,7 @@ OpenAI 在 2024 年发布了 Realtime API，用于实现实时语音对话：用
 
 选型原则很清晰：文字对话用 SSE 或 WebSocket，实时语音用 WebRTC。WebRTC 的复杂度是真实存在的，信令服务器、STUN/TURN 服务器的部署和运维都需要成本，但这些复杂度换来的是无可替代的低延迟和音频质量，在 AI 语音助手这类产品里是值得付出的代价。
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/tools/15_webrtc_vs_ws.html#🎯-面试总结)
+## 🎯 面试总结
 
 回到开头踩的雷，最大的误区是觉得 WebSocket 和 WebRTC「都能传语音，差别不大」。
 
@@ -2065,19 +1863,7 @@ OpenAI 在 2024 年发布了 Realtime API，用于实现实时语音对话：用
 
 # 16. 有没有用过大模型的网关框架？网关层解决了什么问题？
 
-👔面试官：有没有用过大模型的网关框架？网关层主要解决什么问题？
-
-🙋‍♂️我：网关就是一个代理层嘛，主要是做负载均衡的，把请求分发到不同的模型 API 上，避免单个 API 被打满。
-
-👔面试官：只是负载均衡？那我直接用 Nginx 做反向代理不就行了，为什么还需要专门的 LLM 网关？
-
-🙋‍♂️我：嗯……LLM 网关应该还有一些额外功能，比如可以统一接口格式？然后可能还有缓存？但我不太确定跟普通 API 网关有什么本质区别。
-
-👔面试官：你只说到了冰山一角。LLM 网关除了统一接口和负载均衡，更核心的价值是 API Key 集中管理避免泄漏、按团队做 token 配额防止额度被一个服务用光、成本追踪知道钱花在哪、语义缓存用向量相似度匹配命中缓存省钱降延迟、还有 prompt 安全过滤。你把「没有网关时的痛点」和「网关怎么解决这些痛点」系统性地梳理一遍。
-
-好，这段对话踩的雷很常见，很多人把 LLM 网关等同于普通的 API 网关或反向代理。下面我把网关的定位和它解决的核心问题拆开讲清楚。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/tools/16_llm_gateway.html#💡-简要回答)
+## 💡 简要回答
 
 我用过 LiteLLM，它是目前最活跃的开源 LLM 网关。我理解网关本质上是架在应用和模型 API 之间的中间层，主要解决几个实际问题。
 
@@ -2087,9 +1873,9 @@ OpenAI 在 2024 年发布了 Realtime API，用于实现实时语音对话：用
 
 还有一个我觉得挺实用的能力是语义缓存，两个用户问了语义相近的问题，直接命中缓存返回上次的结果，根本不打底层模型，省钱还降延迟。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/tools/16_llm_gateway.html#📝-详细解析)
+## 📝 详细解析
 
-### [先建立直觉：网关是什么，放在哪](https://xiaolinnote.com/ai/tools/16_llm_gateway.html#先建立直觉-网关是什么-放在哪)
+### 先建立直觉：网关是什么，放在哪
 
 在讲功能之前，先搭一个清晰的架构感知。没有网关时，你的应用直接对接各个模型 API：应用 -> OpenAI API、应用 -> Anthropic API、应用 -> 其他 API。
 
@@ -2099,7 +1885,7 @@ OpenAI 在 2024 年发布了 Realtime API，用于实现实时语音对话：用
 
 网关就是一个**中间人**，坐在你的应用和各个模型 API 之间。你的应用只认识网关，不需要直接对接多个 API。这个「中间人」的定位是理解网关所有功能的基础，它集中拦截和处理了所有出入流量，所以能在这个位置统一做很多事情。
 
-### [没有网关时的痛点](https://xiaolinnote.com/ai/tools/16_llm_gateway.html#没有网关时的痛点)
+### 没有网关时的痛点
 
 一个稍微大一点的 AI 产品，同时用多个模型是常态：主流程用 GPT-4o，成本敏感的任务用 GPT-4o-mini 或 Claude Haiku，代码任务用 Claude Sonnet，向量化用 text-embedding-3-small。每家厂商的 SDK 不一样，鉴权方式不一样，参数格式也有细微差异。如果不做网关，这些差异会渗透到每个业务服务里。
 
@@ -2121,7 +1907,7 @@ OpenAI 在 2024 年发布了 Realtime API，用于实现实时语音对话：用
 
 有了网关之后就完全不一样了。API Key 只存在网关这一个地方，业务服务拿到的是网关分配的虚拟 Key，根本接触不到真实密钥。想换模型？改网关的路由配置就行，业务代码一行都不用动。重试、限流、超时这些逻辑也只需要在网关实现一次，所有服务自动享受，不用各自重复造轮子。
 
-### [多模型统一接口：换模型对业务代码隐形](https://xiaolinnote.com/ai/tools/16_llm_gateway.html#多模型统一接口-换模型对业务代码隐形)
+### 多模型统一接口：换模型对业务代码隐形
 
 这个功能理解起来很简单。大多数 LLM 网关（比如 LiteLLM）对外暴露一个 OpenAI 兼容的接口，你的业务代码就像调 OpenAI 一样调它，只需要把请求地址改成网关的地址，API Key 改成网关分配的虚拟 Key。
 
@@ -2131,7 +1917,7 @@ OpenAI 在 2024 年发布了 Realtime API，用于实现实时语音对话：用
 
 网关收到请求后，根据路由配置决定把这个请求发到哪个实际模型，可能是 OpenAI、Azure、Anthropic，或任何其他。业务代码完全不知道底层是哪个模型在工作，「换模型」这件事对业务层彻底隐形了。这意味着你可以在不触碰任何业务代码的情况下做 A/B 测试、成本优化、模型迭代。
 
-### [负载均衡和故障转移：可靠性兜底](https://xiaolinnote.com/ai/tools/16_llm_gateway.html#负载均衡和故障转移-可靠性兜底)
+### 负载均衡和故障转移：可靠性兜底
 
 模型 API 并不是 100% 可靠，OpenAI 会偶发 503，某个地区的节点会超时，高峰期会被限流。单独对接时，业务层需要自己处理这些异常，而且往往处理不完整。
 
@@ -2139,7 +1925,7 @@ OpenAI 在 2024 年发布了 Realtime API，用于实现实时语音对话：用
 
 有了网关，你可以给同一个「模型名」配置多条路由规则，主路由指向 OpenAI，备用路由指向 Azure OpenAI 或 Anthropic。当主路由连续失败达到设定的阈值时，网关自动把后续请求切换到备用路由，整个过程业务层完全无感知，用户也不会感受到任何异常。这种「多活」策略在生产环境里是保障可用性的重要手段。
 
-### [限流和配额：防止一个团队把额度用光](https://xiaolinnote.com/ai/tools/16_llm_gateway.html#限流和配额-防止一个团队把额度用光)
+### 限流和配额：防止一个团队把额度用光
 
 没有配额管理时很容易出现这样的情况：研发团队为了测试跑了一个批量脚本，一个小时内消耗了当天绝大部分 token 额度，导致产品团队的用户反馈系统整个下午都在报错。
 
@@ -2147,13 +1933,13 @@ OpenAI 在 2024 年发布了 Realtime API，用于实现实时语音对话：用
 
 有了网关的配额管理，可以给每个团队的虚拟 Key 设置独立的 token 日预算，比如研发团队每天 100 万 token、产品团队每天 50 万 token。一旦某个团队的虚拟 Key 超出配额，该 Key 的请求直接返回 429 错误，其他团队完全不受影响，API 额度不会被「误伤」。
 
-### [成本追踪和可观测性：知道钱花在哪](https://xiaolinnote.com/ai/tools/16_llm_gateway.html#成本追踪和可观测性-知道钱花在哪)
+### 成本追踪和可观测性：知道钱花在哪
 
 网关集中记录了每次调用的 token 用量、响应时间、错误率等数据，这让你可以回答「哪个接口最烧钱」「研发团队和产品团队各用了多少」「GPT-4o 和 Claude Sonnet 的 P95 响应时间分别是多少」这类问题。
 
 有了这些数据，成本优化才有依据，比如发现某个接口消耗了 40% 的 token，但实际上可以用便宜得多的模型替代。网关通常可以直接对接 Langfuse、Prometheus 等监控系统，不需要在业务代码里手动埋点，数据天然集中。
 
-### [Prompt 安全和内容过滤：统一的安全防线](https://xiaolinnote.com/ai/tools/16_llm_gateway.html#prompt-安全和内容过滤-统一的安全防线)
+### Prompt 安全和内容过滤：统一的安全防线
 
 在网关层可以统一做输入输出的安全校验，包括检测 prompt 注入攻击（用户试图通过特殊指令劫持模型行为）、过滤个人隐私信息（比如身份证号、手机号不应该被发送到外部 API）、内容安全审核等。
 
@@ -2161,7 +1947,7 @@ OpenAI 在 2024 年发布了 Realtime API，用于实现实时语音对话：用
 
 ![img](image/b785b3b095fbcec42273040ab522760e.png)
 
-### [语义缓存：省钱的同时降延迟](https://xiaolinnote.com/ai/tools/16_llm_gateway.html#语义缓存-省钱的同时降延迟)
+### 语义缓存：省钱的同时降延迟
 
 普通 HTTP 缓存是精确匹配，请求内容一字不差才能命中缓存。但 LLM 的问题往往有大量语义相近的变体：「北京今天热吗」「北京现在天气怎样」「今天北京气温多少」，三个问题本质上是同一个需求，但精确匹配全部 miss，每次都要打底层模型，就是三次完整的 LLM 调用费用。
 
@@ -2181,7 +1967,7 @@ OpenAI 在 2024 年发布了 Realtime API，用于实现实时语音对话：用
 
 ![img](image/52104a5dffcb20e57b45f22b739c88eb.png)
 
-### [常见网关框架对比](https://xiaolinnote.com/ai/tools/16_llm_gateway.html#常见网关框架对比)
+### 常见网关框架对比
 
 说了这么多网关的功能，你可能想知道实际开发中用哪个框架比较好。
 
@@ -2198,7 +1984,7 @@ OpenAI 在 2024 年发布了 Realtime API，用于实现实时语音对话：用
 | One API          | 开源，Go          | 国内社区活跃，支持国产模型，部署简单                         |
 | Nginx/Envoy 自研 | 自研              | 灵活但工作量大，适合有特殊需求的大厂                         |
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/tools/16_llm_gateway.html#🎯-面试总结)
+## 🎯 面试总结
 
 回到开头对话踩的雷，最常见的误区就是把 LLM 网关等同于普通的负载均衡器或反向代理。面试回答这道题，首先要说清楚网关的定位：它是架在应用和模型 API 之间的中间层，集中拦截和处理所有出入流量，所以能在这个位置统一做很多事情。
 
@@ -2210,23 +1996,7 @@ OpenAI 在 2024 年发布了 Realtime API，用于实现实时语音对话：用
 
 # 17. 工具很多时，Agent 如何做 Tool Routing，减少 Token 并避免选错工具？
 
-👔面试官：如果一个 Agent 接了上百个工具，你会怎么做 Tool Routing？
-
-🙋‍♂️我：把所有工具的名称、描述和参数都放进 Prompt，让大模型自己选，它理解能力强，工具多一点也没关系。
-
-👔面试官：上百份 Schema 全塞进去，不仅占 Token，相似工具还会互相干扰。每轮都让模型读一遍，成本和延迟怎么控制？
-
-🙋‍♂️我：那我先按业务分成几个 Agent，每个 Agent 只挂一类工具，这样不就行了吗？
-
-👔面试官：这是 Multi-Agent Routing，决定任务交给哪个 Agent。Tool Routing 决定的是当前 Agent 此刻能看到、能选择哪些工具，两者不是一回事。即使拆成多个 Agent，每个 Agent 内部仍然可能有几十个工具。
-
-🙋‍♂️我：那就用 Embedding 搜出最相似的几个工具，排第一的直接执行。
-
-👔面试官：相似不等于可调用。用户权限、租户隔离、工具状态和参数条件都没检查，而且检索也可能漏召回。正确做法不是「向量搜一下就调用」，而是先做确定性过滤，再分层召回候选，最后让模型精选，并为低置信度和失败情况准备兜底。
-
-工具一多，难点已经不只是让模型「会调用」，而是怎样让它在当前这一刻只看到少量、相关而且有权使用的工具。下面我们沿着一条完整链路把这件事说清楚。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/tools/17_tool_routing.html#💡-简要回答)
+## 💡 简要回答
 
 工具很多时，我不会把全部 Schema 都塞给模型，而是做分层 Tool Routing。
 
@@ -2238,9 +2008,9 @@ Tool Routing 路由的是「工具候选集」，Multi-Agent Routing 路由的�
 
 上线后我会同时看候选工具的 Recall@K、最终工具选择准确率、无工具场景的拒选准确率、参数合法率、任务成功率、工具 Schema Token、端到端延迟和越权暴露率。低置信度时优先澄清或扩大召回，不能让模型猜一个高风险工具直接执行。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/tools/17_tool_routing.html#📝-详细解析)
+## 📝 详细解析
 
-### [为什么不能把全部工具都塞进 Prompt？](https://xiaolinnote.com/ai/tools/17_tool_routing.html#为什么不能把全部工具都塞进-prompt)
+### 为什么不能把全部工具都塞进 Prompt？
 
 假设一个企业 Agent 同时接了客户、订单、支付、审批、知识库和运维系统，每个系统又暴露十几个工具。模型每轮调用前如果都要读完整的工具名称、描述和参数 Schema，会出现四类问题。
 
@@ -2254,7 +2024,7 @@ Tool Routing 路由的是「工具候选集」，Multi-Agent Routing 路由的�
 
 ![img](image/e65b479a_all-tools-vs-routed-candidates.png)
 
-### [先分清 Tool Routing 和 Multi-Agent Routing](https://xiaolinnote.com/ai/tools/17_tool_routing.html#先分清-tool-routing-和-multi-agent-routing)
+### 先分清 Tool Routing 和 Multi-Agent Routing
 
 这两个概念名字相似，但路由的对象不同。
 
@@ -2268,7 +2038,7 @@ Multi-Agent Routing 回答的是：「当前任务或子任务应该交给哪个
 
 ![img](image/f46c434d_agent-routing-vs-tool-routing.png)
 
-### [第一步，建立可路由的工具注册表](https://xiaolinnote.com/ai/tools/17_tool_routing.html#第一步-建立可路由的工具注册表)
+### 第一步，建立可路由的工具注册表
 
 工具路由不能只依赖一个含糊的 `description`。先把每个工具整理成一张结构化的「工具卡片」，后面的规则过滤、检索和评测才有依据。
 
@@ -2292,7 +2062,7 @@ Multi-Agent Routing 回答的是：「当前任务或子任务应该交给哪个
 
 命名空间和标签还能提供稳定的一级索引。用户提到「退款」，可以先命中 `payments` 和 `orders` 两个命名空间，再在里面精确选择，而不是扫描整个企业工具库。
 
-### [第二步，先做确定性过滤](https://xiaolinnote.com/ai/tools/17_tool_routing.html#第二步-先做确定性过滤)
+### 第二步，先做确定性过滤
 
 分层路由的第一步不是相似度搜索，而是先把「绝对不能选」的工具排除掉。
 
@@ -2304,7 +2074,7 @@ Multi-Agent Routing 回答的是：「当前任务或子任务应该交给哪个
 
 例如同一个 `orders.get_detail` 工具，用户可能有权查询自己的订单，却无权查询另一个租户的订单。路由阶段只能判断这个工具是否大体可见，执行阶段还必须根据 `order_id` 再校验资源级权限。
 
-### [第三步，用粗分类缩小业务域](https://xiaolinnote.com/ai/tools/17_tool_routing.html#第三步-用粗分类缩小业务域)
+### 第三步，用粗分类缩小业务域
 
 经过权限过滤后，候选仍然可能很多，这时可以先做一级粗分类。
 
@@ -2314,7 +2084,7 @@ Multi-Agent Routing 回答的是：「当前任务或子任务应该交给哪个
 
 粗分类要偏向高召回。如果一句话同时涉及「查订单」和「取消订单」，应该保留订单查询和订单操作两个类别，而不是只给一个标签。分类器不确定时，也可以跳过这一层，直接进入范围更大的工具检索。
 
-### [第四步，在候选域里检索工具](https://xiaolinnote.com/ai/tools/17_tool_routing.html#第四步-在候选域里检索工具)
+### 第四步，在候选域里检索工具
 
 工具达到几十个甚至更多时，可以把允许召回的工具卡片建成索引，根据当前请求或任务步骤检索 Top-K 候选。
 
@@ -2326,7 +2096,7 @@ Multi-Agent Routing 回答的是：「当前任务或子任务应该交给哪个
 
 ![img](image/3623885f_tool-routing-pipeline.png)
 
-### [第五步，只把候选工具动态绑定给 LLM](https://xiaolinnote.com/ai/tools/17_tool_routing.html#第五步-只把候选工具动态绑定给-llm)
+### 第五步，只把候选工具动态绑定给 LLM
 
 前面几层筛完之后，才轮到大模型做自己擅长的精细语义判断。系统把当前任务上下文，以及少量候选工具的完整描述和 Schema 绑定给模型，让它完成三件事：判断是否真的需要工具、选择一个或多个工具、填写结构化参数。
 
@@ -2337,8 +2107,6 @@ Multi-Agent Routing 回答的是：「当前任务或子任务应该交给哪个
 动态绑定只是决定「模型此刻看见什么」，执行前仍要经过参数 Schema 校验、权限校验、风险策略和必要的人工审批。Tool Routing 不能替代执行层安全。
 
 下面用一段伪代码把这条链路串起来：
-
-
 
 ```python
 def route_tools(query, context, registry):
@@ -2369,7 +2137,7 @@ def route_tools(query, context, registry):
 
 示例里的阈值和 Top-K 只是说明控制点，不是通用最优值。真实项目要根据评测集中的召回率、Token、延迟和误选情况调参。
 
-### [Skill 渐进加载怎样参与 Tool Routing？](https://xiaolinnote.com/ai/tools/17_tool_routing.html#skill-渐进加载怎样参与-tool-routing)
+### Skill 渐进加载怎样参与 Tool Routing？
 
 Skill 和 Tool 可以一起解决上下文膨胀，但分工不一样。
 
@@ -2381,7 +2149,7 @@ Tool 是可执行能力，Tool Routing 决定当前步骤要暴露哪些能力�
 
 ![img](image/b3c799fd_skill-tool-progressive-loading.png)
 
-### [工具描述和 Schema 质量决定路由上限](https://xiaolinnote.com/ai/tools/17_tool_routing.html#工具描述和-schema-质量决定路由上限)
+### 工具描述和 Schema 质量决定路由上限
 
 路由链路再复杂，也救不了一组互相说不清边界的工具。
 
@@ -2391,7 +2159,7 @@ Tool 是可执行能力，Tool Routing 决定当前步骤要暴露哪些能力�
 
 如果两个工具总是被混淆，不要只修改 Prompt。先检查它们是不是职责重叠，能否合并，或者把一个大而全的工具拆成边界清楚的查询与执行工具。工具设计本身，就是 Tool Routing 的一部分。
 
-### [怎么评估 Tool Routing？](https://xiaolinnote.com/ai/tools/17_tool_routing.html#怎么评估-tool-routing)
+### 怎么评估 Tool Routing？
 
 只看最终回答对不对，很难知道问题出在召回、精选、参数还是执行。评测时要把链路拆开看。
 
@@ -2403,7 +2171,7 @@ Tool 是可执行能力，Tool Routing 决定当前步骤要暴露哪些能力�
 
 评测集不要只收集「一句话明确命中一个工具」的简单题，还要加入相似工具形成的 Hard Negative、多意图请求、不需要工具的请求、缺少参数的请求、无权限请求和历史 Badcase。上线后保留每层路由的候选、分数、过滤原因和最终调用 Trace，出错时才能判断是召回漏了，还是模型选错了。
 
-### [路由失败怎么兜底？](https://xiaolinnote.com/ai/tools/17_tool_routing.html#路由失败怎么兜底)
+### 路由失败怎么兜底？
 
 Tool Routing 一定会有不确定的时候，系统必须让这些不确定和失败保持可控。
 
@@ -2417,7 +2185,7 @@ Tool Routing 一定会有不确定的时候，系统必须让这些不确定和�
 
 ![img](image/75dd6d91_tool-routing-fallback.png)
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/tools/17_tool_routing.html#🎯-面试总结)
+## 🎯 面试总结
 
 回到开头，把上百个工具全部塞给模型，会同时带来 Token 占用、相似工具混淆、权限暴露和延迟压力。只用 Embedding 取第一名直接执行也不稳，因为相关性不是可调用性，更不是授权。
 
@@ -2429,23 +2197,7 @@ Tool Routing 一定会有不确定的时候，系统必须让这些不确定和�
 
 # 18. 工具调用格式非法、参数错误、超时或失败时，Agent 如何容错？
 
-👔面试官：Agent 调工具时遇到格式非法、参数错误或者接口超时，你会怎么处理？
-
-🙋‍♂️我：统一重试三次，失败后再返回错误，这样成功率会高一些。
-
-👔面试官：参数错误和鉴权失败重试三次有什么用？下游已经过载时，所有请求一起重试，还可能把服务压得更严重。哪些错误能重试，哪些不能？
-
-🙋‍♂️我：那就只重试超时和 5xx，使用指数退避。格式不合法时，把原始输出再交给模型修一遍。
-
-👔面试官：如果超时发生在发邮件之后、响应返回之前呢？邮件可能已经发出，你直接重试就会发两封。还有，模型修好的参数就一定有权限执行吗？
-
-🙋‍♂️我：可以给工具加幂等键，保证 exactly-once。权限规则也写进 Prompt，让模型自己检查。
-
-👔面试官：幂等键需要服务端配合，Prompt 也代替不了服务端鉴权。网络断开后，调用方甚至不知道第一次操作有没有成功。你还要考虑调用前校验、结果未知、Checkpoint、人工接管和审计，不能用一句 exactly-once 把问题盖过去。
-
-工具调用的容错难点是判断故障发生在哪一层，以及一次失败有没有产生外部副作用。多写几个 `try/except` 解决不了这两个问题。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/tools/18_tool_reliability.html#💡-简要回答)
+## 💡 简要回答
 
 我会把工具调用拆成「决策 -> 校验 -> 执行 -> 确认 -> 恢复」五个阶段，每个阶段使用不同的处理方式。
 
@@ -2457,9 +2209,9 @@ Tool Routing 一定会有不确定的时候，系统必须让这些不确定和�
 
 系统还需要熔断、降级、故障转移和统一的结构化错误。Trace 里记录每次调用的工具版本、参数摘要、耗时、重试决策、幂等键摘要和最终状态，敏感参数要脱敏，方便告警、复盘和审计。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/tools/18_tool_reliability.html#📝-详细解析)
+## 📝 详细解析
 
-### [先分清故障，重试策略才不会用错](https://xiaolinnote.com/ai/tools/18_tool_reliability.html#先分清故障-重试策略才不会用错)
+### 先分清故障，重试策略才不会用错
 
 Agent 一次工具调用至少经过模型决策、宿主程序校验、远程执行和结果回传。任何一层都可能失败，但同一个「失败」提示背后的含义差别很大。
 
@@ -2482,7 +2234,7 @@ Agent 一次工具调用至少经过模型决策、宿主程序校验、远程�
 
 这张表也解释了一个常见误区：HTTP 状态码只能提供线索，重试决策还要结合工具语义和执行阶段。比如连接建立前失败，服务端通常没有收到请求；读取响应时超时，服务端可能已经执行完了。
 
-### [调用前要过三道门](https://xiaolinnote.com/ai/tools/18_tool_reliability.html#调用前要过三道门)
+### 调用前要过三道门
 
 第一道门是结构校验。能使用模型原生的结构化输出或受约束解码时，先约束输出；宿主程序仍要按 JSON Schema 校验工具名、字段类型、必填项、枚举和取值范围。系统可以做少量没有歧义的规范化，比如去掉首尾空格，但不能靠正则猜出收件人、金额或文件路径。
 
@@ -2492,13 +2244,11 @@ Agent 一次工具调用至少经过模型决策、宿主程序校验、远程�
 
 ![img](image/68c875d8_three-validation-gates.png)
 
-### [错误结果也要有统一协议](https://xiaolinnote.com/ai/tools/18_tool_reliability.html#错误结果也要有统一协议)
+### 错误结果也要有统一协议
 
 不少 Agent 遇到工具异常时，直接把堆栈或一句「调用失败」塞回模型。前者可能泄露内部路径和密钥，后者又缺少下一步决策需要的信息。
 
 工具适配层应该返回统一的错误信封，例如：
-
-
 
 ```yaml
 ok: false
@@ -2517,7 +2267,7 @@ error:
 
 `retryable: true` 只是一个条件。工具本身无法安全重放、任务总时限已经耗尽，或者用户已经取消任务时，调度器都不应该继续重试。
 
-### [重试要同时受到次数和时间约束](https://xiaolinnote.com/ai/tools/18_tool_reliability.html#重试要同时受到次数和时间约束)
+### 重试要同时受到次数和时间约束
 
 可靠的重试策略会同时看「错误类型、调用语义、尝试次数、剩余时间」四项信息。
 
@@ -2529,7 +2279,7 @@ error:
 
 ![img](image/cb568e50_bounded-retry-timeline.png)
 
-### [熔断、降级和故障转移各解决什么问题](https://xiaolinnote.com/ai/tools/18_tool_reliability.html#熔断、降级和故障转移各解决什么问题)
+### 熔断、降级和故障转移各解决什么问题
 
 短暂抖动适合重试，持续故障则要熔断。熔断器在连续失败或错误率达到配置条件后进入 Open 状态，让后续调用快速失败；等待冷却时间后放少量探测请求进入 Half-Open，探测成功再回到 Closed。这样可以减少无效请求占用线程和连接，也给下游留出恢复空间。
 
@@ -2537,7 +2287,7 @@ error:
 
 故障转移也有边界。两个搜索服务可以通过统一结果协议互相替换；两个付款渠道如果不共享交易状态和幂等范围，贸然切换可能产生两笔扣款。备用工具必须满足相同的权限、数据一致性和副作用约束，调度器才能自动切换。
 
-### [幂等键有明确的生效边界](https://xiaolinnote.com/ai/tools/18_tool_reliability.html#幂等键有明确的生效边界)
+### 幂等键有明确的生效边界
 
 有副作用的调用要在第一次执行前生成稳定的幂等键，例如由 `run_id + step_id` 组成。后续重试、进程重启和人工恢复都复用这个键，不能每次尝试都生成新键。
 
@@ -2547,7 +2297,7 @@ error:
 
 「Exactly-once」很容易被说得过头。幂等键只有在服务端识别它、保留记录并覆盖完整副作用边界时才有效。下游系统不支持去重、记录已经过期、一次工具调用跨越多个系统，都可能留下部分成功。工程上更准确的目标是允许请求至少一次到达，再用幂等、去重、状态查询和补偿，让业务效果在约定范围内只发生一次。
 
-### [Checkpoint 决定故障后从哪里继续](https://xiaolinnote.com/ai/tools/18_tool_reliability.html#checkpoint-决定故障后从哪里继续)
+### Checkpoint 决定故障后从哪里继续
 
 长任务不能只保存聊天记录。调度器在副作用调用前写入 Checkpoint，记录当前步骤、工具名、参数摘要、幂等键和 `pending` 状态；拿到确定结果后，再把该步骤更新为 `succeeded` 或 `failed`。
 
@@ -2555,7 +2305,7 @@ error:
 
 状态查询仍无法确认结果时，系统应该暂停运行，保存现场并交给人工。人工可以批准重试、修改参数、执行补偿或终止任务。高风险操作也可以在首次执行前主动暂停，让用户确认收件人、金额和影响范围。
 
-### [监控与审计要能还原一次调用](https://xiaolinnote.com/ai/tools/18_tool_reliability.html#监控与审计要能还原一次调用)
+### 监控与审计要能还原一次调用
 
 线上告警只有一句「工具失败」没有排查价值。一次 Trace 至少要串起 `run_id`、`step_id` 和 `tool_call_id`，并记录工具及 Schema 版本、模型与 Prompt 版本、参数脱敏摘要、调用方身份、开始结束时间、每次尝试、错误类别、重试或降级决策、Checkpoint 状态和最终结果。
 
@@ -2563,7 +2313,7 @@ error:
 
 把调用链记录完整后，你才能回答三个生产问题：失败发生在哪一层，系统为什么选择重试或停止，这次副作用最终有没有发生。
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/tools/18_tool_reliability.html#🎯-面试总结)
+## 🎯 面试总结
 
 回答这道题，我会先强调「先分类，再处理」。模型格式错误、业务参数错误、鉴权失败、瞬时故障和副作用结果未知，处理方式不同，统一重试会放大故障，还可能造成重复扣款或重复发送。
 
@@ -2575,27 +2325,7 @@ error:
 
 # 19. MoE 混合专家模型是什么？DeepSeek V3、Qwen 为什么用 MoE？
 
-👔面试官：来讲讲什么是 MoE 混合专家模型？为什么 DeepSeek V3、Qwen 这些主流大模型现在都在用 MoE？
-
-🙋‍♂️我：MoE 就是把多个小模型合在一起，每次用一个，效果好。
-
-👔面试官：……「合在一起」是怎么合的？「每次用一个」具体是哪个组件决定的？再说，MoE 是 2017 年 Google 就提出的，为什么 2024 年才在 LLM 领域火起来？
-
-🙋‍♂️我：哦哦，应该是有个 Router 来选用哪个专家。火起来是因为 DeepSeek？
-
-👔面试官：Router 我接受，DeepSeek 也对，但你只说了「火起来」，没说「为什么火起来」。MoE 解决了什么 Dense 模型解决不了的问题？为什么 DeepSeek V3 总参数 671B 但激活只有 37B？这种「671B / 37B」的设计哲学是什么？
-
-🙋‍♂️我：呃……我没仔细看过 DeepSeek 的论文。
-
-👔面试官：MoE 的核心卖点是「**总参数大但激活参数小**」，能让模型在推理时只用一小部分参数，但训练时能学到一大堆知识。这个 trade-off 你能讲清楚吗？还有，MoE 训练有什么坑？专家不平衡是什么意思？
-
-🙋‍♂️我：呃……
-
-👔面试官：专家不平衡（Expert Imbalance）是 MoE 训练的著名难题，意思是 Router 可能偏爱某几个专家，导致其他专家根本没被训过。这种问题不知道，去面试就是被怼。回去补一下。
-
-问到这里 MoE 这道题的真面目才浮出来，它的核心思想不是「拼几个小模型」，而是「稀疏激活换便宜推理」。Router 怎么挑专家、训练为什么会塌、推理为什么便宜，这几条得一条条拆。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/llm/moe.html#💡-简要回答)
+## 💡 简要回答
 
 我理解 MoE（Mixture of Experts，混合专家模型）的核心思想是把传统 Transformer 中的 FFN（前馈网络）层替换成 N 个并行的「专家网络」，再加一个 Router 来决定每个 token 进哪个专家。
 
@@ -2619,9 +2349,9 @@ error:
 
 MoE 是 2024-2026 年大模型最重要的架构方向之一，DeepSeek V3、DeepSeek R1、Mixtral、Grok、部分 Qwen MoE 模型都用了这条路线。但它不是唯一答案，很多主力 Dense 模型依然在生产里很常见，尤其是中小规模和部署稳定性优先的场景。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/llm/moe.html#📝-详细解析)
+## 📝 详细解析
 
-### [MoE 是什么？为什么 Dense 模型不够用了](https://xiaolinnote.com/ai/llm/moe.html#moe-是什么-为什么-dense-模型不够用了)
+### MoE 是什么？为什么 Dense 模型不够用了
 
 要理解 MoE，得先看清楚传统 Dense 模型的瓶颈。
 
@@ -2648,7 +2378,7 @@ MoE 的核心创新是**打破「知识量」和「推理成本」的绑定**。
 
 这个设计让 MoE 在「**同样推理成本下，参数量可以做到 Dense 的几倍甚至几十倍**」。这就是 MoE 现在大火的根本原因。
 
-### [MoE 的三个核心组件](https://xiaolinnote.com/ai/llm/moe.html#moe-的三个核心组件)
+### MoE 的三个核心组件]
 
 理解了核心思想，下面拆解 MoE 的三个具体组件。
 
@@ -2667,8 +2397,6 @@ MoE 把 Transformer 每一层的 FFN 替换成 N 个并行的 FFN。每个 FFN �
 **2. Router（路由器）**
 
 Router 是 MoE 最关键的组件，决定每个 token 该去哪个专家。结构通常是一个简单的线性层：
-
-
 
 ```python
 # Router 的核心计算（简化版）
@@ -2695,8 +2423,6 @@ top_k_experts = topk(expert_weights, k=2)  # 选 Top-K 个专家
 
 为了解决这个问题，MoE 训练时要加一个**负载均衡损失（Load Balancing Loss）**：
 
-
-
 ```python
 # 负载均衡损失（直觉版）
 expert_load = mean(expert_probability_distribution)  # 每个专家的平均使用率
@@ -2709,13 +2435,11 @@ total_loss = main_loss + α × balance_loss             # 加到主损失里
 
 DeepSeek V3 在这个基础上还提出了 **Auxiliary-Loss-Free Load Balancing** 策略，不用额外的辅助损失，而是动态调整每个专家的「偏置项」让负载自然均衡，进一步降低了对主任务的干扰。
 
-### [总参数 vs 激活参数：MoE 的设计哲学](https://xiaolinnote.com/ai/llm/moe.html#总参数-vs-激活参数-moe-的设计哲学)
+### 总参数 vs 激活参数：MoE 的设计哲学
 
 MoE 最反直觉、也最容易在面试踩坑的概念，是「**总参数 vs 激活参数**」的区别。
 
 来看一个具体计算：
-
-
 
 ```
 Dense 模型 70B：
@@ -2741,7 +2465,7 @@ MoE 模型 671B / 37B（DeepSeek V3）：
 
 这种「学得多 + 跑得快」的甜蜜组合，是 MoE 在 LLM 时代爆发的根本原因。Dense 模型走到 70B 量级已经是推理成本的极限，再往上 175B、500B、1T，推理几乎跑不起来；MoE 通过把激活参数控制在 37B-100B 这个区间，可以把总参数推到 600B、1T、甚至更多。
 
-### [主流 MoE 模型对比：DeepSeek V3、Mixtral、Qwen 各自的设计](https://xiaolinnote.com/ai/llm/moe.html#主流-moe-模型对比-deepseek-v3、mixtral、qwen-各自的设计)
+### 主流 MoE 模型对比：DeepSeek V3、Mixtral、Qwen 各自的设计
 
 不同家公司的 MoE 设计哲学差别挺大。来看几个代表：
 
@@ -2781,7 +2505,7 @@ MoE 模型 671B / 37B（DeepSeek V3）：
 
 这个趋势的内在逻辑是「**更细粒度的稀疏化 = 更高的算力性价比**」。256 个专家、激活 5%，相当于一个总参数极大但每次只用一小撮的智能图书馆。
 
-### [MoE 的三大训练挑战](https://xiaolinnote.com/ai/llm/moe.html#moe-的三大训练挑战)
+### MoE 的三大训练挑战
 
 MoE 看起来很美，但训练起来比 Dense 难得多。三个最大的坑：
 
@@ -2812,7 +2536,7 @@ MoE 模型的并行方式比 Dense 复杂得多。Dense 只用 Tensor Parallel +
 
 通信开销让 MoE 在多机训练时效率打折扣。DeepSeek V3 的工程优化里有大量篇幅讲怎么把 All-to-All 通信和计算重叠（DualPipe 算法），是工程实力的体现。
 
-### [MoE 的部署挑战](https://xiaolinnote.com/ai/llm/moe.html#moe-的部署挑战)
+### MoE 的部署挑战
 
 训练完之后，部署 MoE 还有自己的挑战。
 
@@ -2832,7 +2556,7 @@ MoE 模型的并行方式比 Dense 复杂得多。Dense 只用 Tensor Parallel +
 
 应对这些挑战，业界有一系列工具和优化（vLLM 的 MoE 并行支持、SGLang 的专家亲和性调度、TensorRT-LLM 的 MoE 优化），但整体来说，**MoE 部署的技术成熟度还在快速演进**。这也是为什么很多公司虽然喜欢 MoE 的训练性价比，但部署时还是选 Dense 模型的原因。
 
-### [为什么 2024 年后 MoE 才在 LLM 领域火起来](https://xiaolinnote.com/ai/llm/moe.html#为什么-2024-年后-moe-才在-llm-领域火起来)
+### 为什么 2024 年后 MoE 才在 LLM 领域火起来
 
 最后一个值得讨论的问题：MoE 不是新东西，1991 年就有人提出，2017 Google 的 GShard 就用过 MoE 训过 600B 模型。为什么直到 2024 年 DeepSeek V3 才让整个圈子开始用 MoE？
 
@@ -2854,7 +2578,7 @@ MoE 模型的并行方式比 Dense 复杂得多。Dense 只用 Tensor Parallel +
 
 到 2026 年，MoE 已经成为大模型架构的主流方向之一，但还不能说「几乎所有新模型都用 MoE」。Dense 模型依然有很强生命力，尤其在 1B-70B 这类部署稳定、延迟敏感、工程复杂度要低的场景。更稳的说法是：**MoE 适合把总容量做大、把激活成本压低；Dense 适合部署简单、负载稳定、延迟可控**。
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/llm/moe.html#🎯-面试总结)
+## 🎯 面试总结
 
 回到开头那段对话，问到 MoE，最重要的是先把**核心思想**讲清楚。MoE 把 Transformer 中的 FFN 复制成 N 份「专家」，加一个 Router 选 Top-K 个来处理每个 token。最关键的设计哲学是**总参数 vs 激活参数解耦**：训练时学 N 倍知识，推理时只用 K/N 的算力。这一句先点出来，就抓到了 MoE 的本质。
 
@@ -2868,23 +2592,7 @@ MoE 模型的并行方式比 Dense 复杂得多。Dense 只用 Tensor Parallel +
 
 # 20. 大模型部署有哪些主流方案？vLLM、TGI、llama.cpp、SGLang 实际项目里怎么选？
 
-👔面试官：来讲讲大模型部署有哪些主流方案？vLLM、TGI、llama.cpp、SGLang 这几个怎么选？
-
-🙋‍♂️我：vLLM 用来部署大模型推理，速度快；llama.cpp 是 CPU 推理；TGI 和 SGLang 我没用过。
-
-👔面试官：……「速度快」是表面话，vLLM 凭什么比直接用 transformers 库快？PagedAttention 是什么？为什么这个名字叫「Paged」？
-
-🙋‍♂️我：哦哦，应该是分页管理 KV Cache 吧，类似操作系统的虚拟内存？
-
-👔面试官：方向对，但具体怎么 Paged 你能讲清楚吗？再说，SGLang 的 RadixAttention 和 vLLM 的 PagedAttention 是什么关系？为什么 SGLang 在 Agent / 多轮对话场景比 vLLM 更省？
-
-🙋‍♂️我：呃……RadixAttention 我不太熟。
-
-👔面试官：RadixAttention 是 SGLang 的核心创新，把 KV Cache 组织成共享前缀树（Radix Tree），让多个请求的相同前缀只存一份。这个对 Agent / Few-shot Prompt 这种「前缀重复率高」的场景特别有效。这种细节都不知道，去面试就是被怼。回去补一下。
-
-面试官这一连串追问其实在敲打同一件事，推理框架不是「随便挑一个跑起来」就行。每家解决的核心痛点不一样，PagedAttention、RadixAttention、CPU 量化背后各有一套设计哲学，得对着场景一个个对上。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/llm/deployment_frameworks.html#💡-简要回答)
+## 💡 简要回答
 
 我理解大模型部署框架的本质问题是：**怎么在固定的硬件上跑得更快、更省显存、支持更多并发用户？**
 
@@ -2906,9 +2614,9 @@ MoE 模型的并行方式比 Dense 复杂得多。Dense 只用 Tensor Parallel +
 - **本地 / Mac / 边缘 / 无 GPU**：llama.cpp
 - **极致性能、自家定制**：TensorRT-LLM（NVIDIA 官方）
 
-## [📝 详细解析](https://xiaolinnote.com/ai/llm/deployment_frameworks.html#📝-详细解析)
+## 📝 详细解析
 
-### [部署框架解决的核心问题](https://xiaolinnote.com/ai/llm/deployment_frameworks.html#部署框架解决的核心问题)
+### 部署框架解决的核心问题
 
 要理解为什么需要 vLLM、SGLang 这些专门的部署框架，得先看看「直接用 transformers 库跑模型」会有什么问题。
 
@@ -2930,7 +2638,7 @@ MoE 模型的并行方式比 Dense 复杂得多。Dense 只用 Tensor Parallel +
 
 部署框架就是为了解决这三个痛点。三大优化方向：**内存高效（显存碎片）+ 批量调度（吞吐率）+ 缓存复用（重复计算）**。每个主流框架在这三个方向上都有自己的创新。
 
-### [vLLM 与 PagedAttention：操作系统虚拟内存的灵感](https://xiaolinnote.com/ai/llm/deployment_frameworks.html#vllm-与-pagedattention-操作系统虚拟内存的灵感)
+### vLLM 与 PagedAttention：操作系统虚拟内存的灵感
 
 vLLM 是 UC Berkeley 在 2023 年开源的推理框架，一出来就把行业标准提了一个量级。核心创新是 **PagedAttention**。
 
@@ -2962,7 +2670,7 @@ vLLM 还有第二个杀手锏：**Continuous Batching（连续批处理）**。
 
 vLLM = PagedAttention（显存高效）+ Continuous Batching（吞吐高效），是当前生产环境部署 LLM API 的事实标准。OpenAI、Anthropic 等厂商虽然没开源他们的内部推理栈，但据传也用了类似的优化思路。
 
-### [SGLang 与 RadixAttention：共享前缀的杀手锏](https://xiaolinnote.com/ai/llm/deployment_frameworks.html#sglang-与-radixattention-共享前缀的杀手锏)
+### SGLang 与 RadixAttention：共享前缀的杀手锏
 
 SGLang 是 LMSYS（创建 Vicuna、Chatbot Arena 的团队）在 2024 年推出的新一代推理框架。它**不是要替代 vLLM**，而是针对 vLLM 没解决好的特定场景：**多请求共享前缀**。
 
@@ -2997,7 +2705,7 @@ RadixAttention 用的是计算机科学里的经典数据结构 **Radix Tree（�
 
 但要注意：**纯单请求、无前缀共享场景下，SGLang 相对 vLLM 优势不明显**。两者目前是互补关系不是替代关系。
 
-### [TGI：HuggingFace 生态集成方案](https://xiaolinnote.com/ai/llm/deployment_frameworks.html#tgi-huggingface-生态集成方案)
+### TGI：HuggingFace 生态集成方案
 
 TGI（Text Generation Inference）是 HuggingFace 在 2022 年推出的推理服务，专门为「让 HF Hub 上的模型一键部署成生产 API」设计。
 
@@ -3032,7 +2740,7 @@ TGI（Text Generation Inference）是 HuggingFace 在 2022 年推出的推理服
 - 要部署的模型在 HF Hub 上有现成的，不想自己转格式
 - 需要企业级特性（鉴权、metrics、可观测性）
 
-### [llama.cpp：CPU / 边缘设备的事实标准](https://xiaolinnote.com/ai/llm/deployment_frameworks.html#llama-cpp-cpu-边缘设备的事实标准)
+### llama.cpp：CPU / 边缘设备的事实标准
 
 llama.cpp 是 Georgi Gerganov 在 2023 年初个人项目开始的，现在已经是「**让大模型在非 GPU 设备上跑**」的事实标准。
 
@@ -3080,7 +2788,7 @@ llama.cpp 自定义的模型存储格式，把模型权重 + 量化方案 + 元�
 - 需要 batch 处理（llama.cpp 的批量支持较弱）
 - 多卡 GPU 集群（不是它的设计目标）
 
-### [TensorRT-LLM：NVIDIA 官方极致优化](https://xiaolinnote.com/ai/llm/deployment_frameworks.html#tensorrt-llm-nvidia-官方极致优化)
+### TensorRT-LLM：NVIDIA 官方极致优化
 
 最后简单提一下 NVIDIA 自家的 **TensorRT-LLM**。它的定位很特殊：**针对 NVIDIA GPU 做极致优化，不考虑跨平台**。
 
@@ -3105,7 +2813,7 @@ llama.cpp 自定义的模型存储格式，把模型权重 + 量化方案 + 元�
 
 ![img](image/deployment_frameworks_08_tensorrt_llm_gpu_optimization_f2f5da36.png)
 
-### [怎么选部署方案：决策矩阵](https://xiaolinnote.com/ai/llm/deployment_frameworks.html#怎么选部署方案-决策矩阵)
+### 怎么选部署方案：决策矩阵
 
 把上面几个框架放一起对比：
 
@@ -3137,7 +2845,7 @@ llama.cpp 的批量调度比 vLLM 弱很多，并发上去后吞吐率瓶颈。�
 
 TensorRT-LLM 部署需要先编译 engine（每个模型 / GPU 组合都要编译），不适合「快速试验、模型经常换」的场景。
 
-### [部署的三大隐藏陷阱](https://xiaolinnote.com/ai/llm/deployment_frameworks.html#部署的三大隐藏陷阱)
+### 部署的三大隐藏陷阱
 
 最后讲三个具体上线时容易踩的坑，作为面试加分项。
 
@@ -3155,7 +2863,7 @@ MoE 模型（DeepSeek V3、Mixtral）部署比 Dense 复杂得多（需要专家
 
 ![img](image/deployment_frameworks_10_deployment_hidden_traps_f31a41c4.png)
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/llm/deployment_frameworks.html#🎯-面试总结)
+## 🎯 面试总结
 
 回到开头那段对话，问到部署方案，最重要的是先讲清楚**部署框架解决什么问题**。直接用 transformers 库部署有三大痛点：显存碎片严重、批量调度低效、共享前缀重复计算。每个主流框架的核心创新都是攻击这些痛点的某个维度。这一层铺垫先讲到，面试官就知道你不是在背工具，是真的理解部署框架的设计动机。
 
@@ -3169,29 +2877,13 @@ MoE 模型（DeepSeek V3、Mixtral）部署比 Dense 复杂得多（需要专家
 
 # 21. 大模型能力评测指标有哪些？
 
-👔面试官：来讲讲大模型能力的评测指标有哪些？
-
-🙋‍♂️我：常用的有 MMLU、HumanEval、GSM8K 这些 Benchmark，能反映模型的综合能力。
-
-👔面试官：……Benchmark 的名字会背是基本功。但你能说清楚每个 Benchmark 测什么吗？再说，学术 Benchmark 真的能反映实际效果吗？为什么有些模型在排行榜上很高但实际用起来不好？
-
-🙋‍♂️我：哦哦，可能是过拟合到 Benchmark 上了？
-
-👔面试官：方向对了一半。这个现象有专门的术语叫「**数据污染**」（Data Contamination）。再问你：如果不能完全相信 Benchmark，那工程上到底用什么评测模型？
-
-🙋‍♂️我：呃……用户反馈？
-
-👔面试官：「用户反馈」太笼统。工程上的标准做法是建**业务测试集**，从真实用户请求里采样、人工标注期望输出，每次改 Prompt 或换模型都跑一遍。这种「学术 Benchmark + 业务测试集 + 线上指标」的闭环你能讲清楚吗？回去搞清楚再来。
-
-被这三个问题一通追下来，评测这道题就不再是「背几个 Benchmark 名字」的水平了。Benchmark 各自的局限、业务测试集怎么搭、线上反馈怎么闭环回来，这三件事得一起讲。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/llm/evaluation_metrics.html#💡-简要回答)
+## 💡 简要回答
 
 我对这块的理解是，学术 Benchmark 只能作为参考，真正重要的是在自己业务数据上的表现。MMLU / MMLU-Pro 测综合知识，HumanEval / SWE-bench Verified 测代码，GSM8K / MATH / GPQA 测数学和科学推理，LiveBench、Humanity’s Last Exam 这类更新型评测用来缓解数据污染。这些指标看一眼能大概判断模型能力区间，但不能直接等价成业务效果。我们实际项目里的做法是，从真实用户请求里采样、人工标注期望输出，建一个 50-200 条的测试集，每次改 Prompt 或换模型都在上面跑一遍，加上线上的用户满意率来形成闭环，这才是可靠的评测体系。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/llm/evaluation_metrics.html#📝-详细解析)
+## 📝 详细解析
 
-### [为什么需要评测指标](https://xiaolinnote.com/ai/llm/evaluation_metrics.html#为什么需要评测指标)
+### 为什么需要评测指标
 
 大模型的能力是多维度的，「感觉用起来还不错」不足以支撑工程决策。当你需要从 GPT-4o 换到 Claude，或者决定是否要对模型进行微调，或者衡量 Prompt 优化后的效果提升，都需要量化指标。评测指标的价值在于把「主观感受」转化成「可比较的数字」。
 
@@ -3199,7 +2891,7 @@ MoE 模型（DeepSeek V3、Mixtral）部署比 Dense 复杂得多（需要专家
 
 ![img](image/evaluation_metrics_01_model_health_check_011f583d.png)
 
-### [主流学术 Benchmark 逐一介绍](https://xiaolinnote.com/ai/llm/evaluation_metrics.html#主流学术-benchmark-逐一介绍)
+### 主流学术 Benchmark 逐一介绍
 
 - **MMLU / MMLU-Pro** 是最广泛引用的综合能力测试。MMLU 涵盖 57 个学科领域，从高中数学、历史、法律到医学和计算机科学，全部是四选一的单项选择题。MMLU-Pro 难度更高、选项更多，也更强调推理。可以把它理解成一套超全面的「文化水平考试」，考的是模型的知识广度和推理基础。
 - **HumanEval、MBPP 和 SWE-bench Verified** 是代码能力的基准测试。HumanEval 由 OpenAI 设计，包含 164 道编程题，每道题给出函数签名和 docstring，要求生成完整的函数实现，然后用隐藏的测试用例验证正确性。SWE-bench Verified 更接近真实软件工程，让模型修真实 GitHub issue，能更好评估代码理解、修改和测试能力。Pass@k 是常见指标，表示生成 k 个候选代码，至少 1 个能通过所有测试的比例。
@@ -3209,7 +2901,7 @@ MoE 模型（DeepSeek V3、Mixtral）部署比 Dense 复杂得多（需要专家
 
 ![img](image/evaluation_metrics_02_benchmark_map_8d23c30c.png)
 
-### [Benchmark 的局限性：数据污染问题](https://xiaolinnote.com/ai/llm/evaluation_metrics.html#benchmark-的局限性-数据污染问题)
+### Benchmark 的局限性：数据污染问题
 
 Benchmark 有一个严重的问题：**数据污染**。
 
@@ -3219,7 +2911,7 @@ Benchmark 有一个严重的问题：**数据污染**。
 
 ![img](image/evaluation_metrics_03_data_contamination_db88d110.png)
 
-### [如何建自己的业务评估集](https://xiaolinnote.com/ai/llm/evaluation_metrics.html#如何建自己的业务评估集)
+### 如何建自己的业务评估集
 
 面对 Benchmark 局限性，最务实的做法是建自己的任务特定测试集。
 
@@ -3229,7 +2921,7 @@ Benchmark 有一个严重的问题：**数据污染**。
 
 ![img](image/evaluation_metrics_04_business_golden_set_8222db14.png)
 
-### [离线评估 + 线上指标的闭环](https://xiaolinnote.com/ai/llm/evaluation_metrics.html#离线评估-线上指标的闭环)
+### 离线评估 + 线上指标的闭环
 
 业务测试集解决了离线评估的问题，但只有离线测试集还不够，生产环境里还需要监控实际的用户体验指标：用户对回答是否满意（明确的点赞/踩、隐式的追问行为）、任务完成率（用户是否实现了目标）、会话放弃率（用户中途退出说明体验差）。
 
@@ -3237,7 +2929,7 @@ Benchmark 有一个严重的问题：**数据污染**。
 
 ![img](image/evaluation_metrics_05_eval_feedback_loop_89817116.png)
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/llm/evaluation_metrics.html#🎯-面试总结)
+## 🎯 面试总结
 
 回到开头那段对话，问到大模型评测指标，最重要的是先把**学术 Benchmark 和业务评测的关系**讲清楚。学术 Benchmark（MMLU、HumanEval、GSM8K、MT-Bench、HELM 等）适合横向对比模型的综合能力，但**不能完全相信**，因为存在严重的「数据污染」问题（模型在预训练时可能见过测试题）。这一句先讲到，面试官就知道你不是只会背 Benchmark 名字。
 
@@ -3251,23 +2943,7 @@ Benchmark 有一个严重的问题：**数据污染**。
 
 # 22. 对比使用过哪些主流大模型？你们项目中最终选用了哪个模型？为什么？
 
-👔面试官：来讲讲你对比过哪些主流大模型？项目里最终选了哪个？为什么？
-
-🙋‍♂️我：我们用了 GPT-5.5 / Claude Sonnet 4.6，因为它们能力最强，在排行榜上排名靠前。
-
-👔面试官：……「能力强」「排行榜靠前」是表面话。你们是面向什么用户的项目？数据合规要求是什么？API 成本受得了吗？这些都没说，就直接选最贵的，是典型的新人决策方式。
-
-🙋‍♂️我：呃，我们项目是面向国内企业用户的……
-
-👔面试官：那你怎么用 GPT-5.5？数据出境合规怎么过？再说，国内企业项目不能只看海外模型能力强不强，还要看数据能不能出境、接口能不能稳定访问、成本能不能扛住，你这个选型方向就错了。
-
-🙋‍♂️我：呃……
-
-👔面试官：典型的「不看场景、跟着排行榜选」。模型选型从来不是看跑分最高，是看「**合规、成本、延迟、能力特征**」四个维度匹配业务需求。这种工程化的选型思路你有没有？回去搞清楚再来。
-
-被这几个问题逼到墙角才意识到，模型选型这道开放题考的不是「谁最强」，是「在我的业务约束里谁最合适」。合规、成本、延迟、能力，四条线得一起拉，才答得到点上。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/llm/model_selection.html#💡-简要回答)
+## 💡 简要回答
 
 在项目选型阶段，我会先把模型分成两类：一类是国内可落地的生产候选，比如 DeepSeek、Qwen、豆包这类模型；另一类是海外能力标杆，比如 GPT-5.5 / o 系列、Claude Sonnet / Opus 系列，用来做能力上限参照。
 
@@ -3275,9 +2951,9 @@ Benchmark 有一个严重的问题：**数据污染**。
 
 最终落地时，我不会死磕一个模型，而是用 **Model Routing（模型路由）**：格式要求严格、Tool Use 多的节点优先选指令遵循和结构化输出稳定的模型；高频推理、数据清洗、摘要归纳这类节点优先选性价比高的模型；特别难的问题再路由给能力更强但更贵的模型。选模型从来不是看谁跑分最高，而是看谁最契合业务的**合规、成本、延迟与能力特征**。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/llm/model_selection.html#📝-详细解析)
+## 📝 详细解析
 
-### [1. 为什么不能盯着「排行榜」无脑选？](https://xiaolinnote.com/ai/llm/model_selection.html#_1-为什么不能盯着「排行榜」无脑选)
+### 1. 为什么不能盯着「排行榜」无脑选？
 
 很多新手选模型喜欢盯着大模型榜单，看谁排第一就想用谁，这在工程落地时是个巨大的坑。
 
@@ -3285,7 +2961,7 @@ Benchmark 有一个严重的问题：**数据污染**。
 
 ![img](image/model_selection_01_leaderboard_vs_engineering_gates_ea74abcc.png)
 
-### [2. 主流大模型横向盘点（2026 年视角）](https://xiaolinnote.com/ai/llm/model_selection.html#_2-主流大模型横向盘点-2026-年视角)
+### 2. 主流大模型横向盘点（2026 年视角）
 
 在评估时，我通常把模型分为「国内生产候选」和「海外能力标杆」两个阵营。这里的模型名不要当成固定答案，因为 2026 年模型版本迭代很快，面试时更重要的是讲清选型逻辑。
 
@@ -3302,7 +2978,7 @@ Benchmark 有一个严重的问题：**数据污染**。
 
 ![img](image/model_selection_02_domestic_overseas_models_2bc4daf1.png)
 
-### [3. 我们最终选型落地的思考逻辑](https://xiaolinnote.com/ai/llm/model_selection.html#_3-我们最终选型落地的思考逻辑)
+### 3. 我们最终选型落地的思考逻辑
 
 我们的项目是一个**企业级多智能体 RAG 问答系统**，业务链路涉及：解析长篇企业财报 -> 多个 Agent 规划拆解任务 -> 频繁调用公司内部的数据库与搜索引擎 -> 汇总生成中文报告。
 
@@ -3318,7 +2994,7 @@ Benchmark 有一个严重的问题：**数据污染**。
 
 ![img](image/model_selection_04_data_compliance_9e9da165.png)
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/llm/model_selection.html#🎯-面试总结)
+## 🎯 面试总结
 
 回到开头那段对话，问到大模型选型，最重要的是先把**选型不是看排行榜**讲清楚。模型选型从来不是看跑分最高，是看「**合规、成本、延迟、能力特征**」四个维度匹配业务需求。这一句先讲到，面试官就知道你不是会背榜单的新人，是真的想过工程问题。
 
@@ -3330,23 +3006,7 @@ Benchmark 有一个严重的问题：**数据污染**。
 
 # 23. 为什么长上下文会出现 Lost in the Middle？上下文窗口越大越好吗？
 
-👔面试官：为什么长上下文会出现 Lost in the Middle？上下文窗口是不是越大越好？
-
-🙋‍♂️我：上下文太长以后，模型记不住中间的内容，所以会把它忘掉。把上下文窗口继续扩大，模型就能记住了。
-
-👔面试官：窗口能装进去，为什么就等于模型能用好？一个模型能接收 100 万 token，只能说明请求不会因为超长被拒绝，不能说明它能准确找到第 50 万个 token 里的证据。
-
-🙋‍♂️我：那应该是位置编码外推的问题，RoPE 没有处理好中间位置，所以模型找不到。
-
-👔面试官：如果全是位置编码的问题，为什么同一个模型常常能找到开头和结尾的信息，却更容易漏掉中间的信息？注意力分配、训练数据和任务干扰都不考虑吗？
-
-🙋‍♂️我：那把所有资料都塞进去，再让模型多思考一会儿，应该总能找到吧。
-
-👔面试官：资料越多，噪声和冲突也越多，预填充延迟、显存占用和调用成本还会一起上涨。长窗口是容量，不是质量保证。先搞清楚「装得下」和「用得好」的区别。
-
-这道题最容易踩的坑，就是把上下文窗口当成电脑硬盘，误以为容量越大，模型就一定看得越全、答得越准。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/llm/23_long_context_lost_middle.html#💡-简要回答)
+## 💡 简要回答
 
 我不会把长上下文能力简单理解成「模型最多能接收多少 token」。最大上下文窗口只是输入上限，真正有用的是模型在不同长度、不同位置和不同干扰强度下，能不能稳定找到证据并完成推理，也就是它的有效上下文能力。
 
@@ -3354,9 +3014,9 @@ Lost in the Middle 指的是关键信息放在长文本中间时，模型的利�
 
 所以窗口不是越大越好。输入越长，稠密 Self-Attention 的计算量增长很快，KV Cache、首 token 延迟和调用成本也会增加。工程上我会先做检索和重排，只保留真正相关的片段，再配合结构化摘要、清晰分区和关键约束布局，最后用不同长度、不同证据位置的测试集验证，而不是把所有资料一次性塞给模型。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/llm/23_long_context_lost_middle.html#📝-详细解析)
+## 📝 详细解析
 
-### [先分清「训练长度」「窗口上限」和「有效长度」](https://xiaolinnote.com/ai/llm/23_long_context_lost_middle.html#先分清「训练长度」「窗口上限」和「有效长度」)
+### 先分清「训练长度」「窗口上限」和「有效长度」
 
 看到模型介绍里写着支持 128K、200K，甚至 1M 上下文，很多林友会自然地理解成：「只要内容没超过这个数，模型就能全部记住。」
 
@@ -3370,7 +3030,7 @@ Lost in the Middle 指的是关键信息放在长文本中间时，模型的利�
 
 ![img](image/44fbde19_context-capacity-vs-usability.png)
 
-### [Lost in the Middle 到底是什么现象？](https://xiaolinnote.com/ai/llm/23_long_context_lost_middle.html#lost-in-the-middle-到底是什么现象)
+### Lost in the Middle 到底是什么现象？
 
 假设我们把一条能直接回答问题的证据，分别放在长文档的开头、中间和结尾，再让模型回答同一个问题。很多模型会呈现一种类似 U 形的表现：证据在开头和结尾时更容易答对，放在中间时正确率更容易下降。
 
@@ -3382,7 +3042,7 @@ Lost in the Middle 指的是关键信息放在长文本中间时，模型的利�
 
 ![img](image/0403e276_lost-in-middle-u-curve.png)
 
-### [为什么不能只怪位置编码？](https://xiaolinnote.com/ai/llm/23_long_context_lost_middle.html#为什么不能只怪位置编码)
+### 为什么不能只怪位置编码？
 
 位置编码确实会影响长上下文。模型如果推理时使用了训练阶段从没见过的位置范围，位置表示可能失真，近距离和远距离的关系也可能判断不准。但把 Lost in the Middle 全部归因于 RoPE 或其他位置编码，是把问题想简单了。
 
@@ -3396,7 +3056,7 @@ Lost in the Middle 指的是关键信息放在长文本中间时，模型的利�
 
 ![img](image/f7743992_lost-middle-multiple-causes.png)
 
-### [上下文窗口越大，代价也越大](https://xiaolinnote.com/ai/llm/23_long_context_lost_middle.html#上下文窗口越大-代价也越大)
+### 上下文窗口越大，代价也越大
 
 长窗口当然有价值。阅读整份合同、分析大型代码仓库、总结多轮会话时，如果窗口太小，关键信息连放都放不进去。但问题是，窗口越大并不是免费的。
 
@@ -3408,7 +3068,7 @@ Lost in the Middle 指的是关键信息放在长文本中间时，模型的利�
 
 ![img](image/c6724e74_8k-vs-128k-engineering-cost.png)
 
-### [工程上怎么让长上下文真正好用？](https://xiaolinnote.com/ai/llm/23_long_context_lost_middle.html#工程上怎么让长上下文真正好用)
+### 工程上怎么让长上下文真正好用？
 
 面对一大堆资料，第一反应不应该是「全部塞进去」，而应该先问：「完成当前任务，模型到底需要哪些信息？」
 
@@ -3422,7 +3082,7 @@ Lost in the Middle 指的是关键信息放在长文本中间时，模型的利�
 
 ![img](image/49b352e4_long-context-workflow.png)
 
-### [长上下文应该怎么评测？](https://xiaolinnote.com/ai/llm/23_long_context_lost_middle.html#长上下文应该怎么评测)
+### 长上下文应该怎么评测？
 
 只拿一篇短文章问两个问题，测不出长上下文能力。只把一串随机数字藏进长文本，再看模型能不能找回来，也不够接近真实业务。
 
@@ -3434,7 +3094,7 @@ Lost in the Middle 指的是关键信息放在长文本中间时，模型的利�
 
 ![img](image/80301c03_long-context-evaluation-matrix.png)
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/llm/23_long_context_lost_middle.html#🎯-面试总结)
+## 🎯 面试总结
 
 回到开头的问题，面试时我会先把一句话说清楚：**最大上下文窗口表示「装得下多少」，不代表模型「稳定用得好多少」**。训练时见过的长度、接口支持的长度和业务里的有效长度，是三个不同概念。
 
