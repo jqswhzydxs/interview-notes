@@ -164,7 +164,7 @@ Chain 解决的就是这个问题。它先让每个零件暴露相对统一的�
 
 这也解释了 Chain 和 Agent 最容易混淆的地方。Chain 通常由开发者决定「下一步调用谁」，Agent 则让模型根据当前状态动态决定「下一步做什么工具、是否继续循环」。一个偏确定性编排，一个偏运行时决策。
 
-### [Runnable 解决了什么？
+### Runnable 解决了什么？
 
 Prompt、模型、检索器和解析器的类型、职责都不同，Runnable 给它们提供了统一的组合接口。
 
@@ -182,7 +182,7 @@ Runnable 还暴露输入、输出和配置的 schema，并允许通过 `config` 
 
 统一接口不会自动修复类型不匹配。前一个步骤输出什么类型，后一个步骤就必须能够接住什么类型。`ChatPromptTemplate` 通常接收字典，Chat Model 接收格式化后的 Prompt Value 或消息，`StrOutputParser` 接收模型消息并输出字符串。类型接不上，链照样会在运行时报错。
 
-### [LCEL 不只是语法糖](https://xiaolinnote.com/ai/langchain/chain.html#lcel-不只是语法糖)
+### LCEL 不只是语法糖
 
 LCEL 全称是 LangChain Expression Language。它最显眼的写法，是用 `|` 把 Runnable 接起来。
 
@@ -236,7 +236,7 @@ print(result)
 
 `RunnableSequence` 会尽量保留各组件的流式能力，但如果中间某个组件不支持流式转换，输出就要等它完成后才能继续流出。例如普通 `RunnableLambda` 默认不实现流式转换，把它放错位置就可能推迟首个输出块。
 
-### [如何并行与汇合？](https://xiaolinnote.com/ai/langchain/chain.html#如何并行与汇合)
+### 如何并行与汇合？
 
 真实的 RAG 链为什么也能用 LCEL 表达？关键是 Runnable 不只支持串行，还支持并行。
 
@@ -282,7 +282,7 @@ print(result["summary"])
 
 在 LCEL 里，字典也可以在组合上下文中被自动转换为 `RunnableParallel`。面试讲原理时，建议先说清楚显式类名，再补充字典简写。这样面试官能确认你知道背后生成了什么，而不是只记住一个看起来很酷的写法。
 
-### [为什么统一协议能不断扩展？](https://xiaolinnote.com/ai/langchain/chain.html#为什么统一协议能不断扩展)
+### 为什么统一协议能不断扩展？
 
 统一协议让小流程可以继续组合成大流程，这才是 LangChain 采用这套设计的原因。
 
@@ -296,7 +296,7 @@ print(result["summary"])
 
 有了清楚的流程结构，重试、回退、标签、元数据和追踪这类横切能力就能复用，不需要每个业务函数各写一遍。它们可以附着在某个 Runnable，也可以作用于整条链。生产环境排查问题时，我们看到的不再只是最终报错，而是这次运行究竟经过了哪些子步骤。
 
-### [为什么弃用旧式 Chain？](https://xiaolinnote.com/ai/langchain/chain.html#为什么弃用旧式-chain)
+### 为什么弃用旧式 Chain？
 
 这一段是现在面试最容易踩的版本坑。
 
@@ -316,7 +316,7 @@ Runnable 和 LCEL 的方向，是把重心从「为每个场景造一个专用�
 
 如果下一步由模型动态决定，就从 LangChain v1 的 `create_agent` 开始。等流程的核心难点变成循环、持久状态、暂停恢复或人工审批，再进一步使用 LangGraph。这个选择顺序比背一组新旧类名更重要。
 
-### [三种编排方式怎么选？](https://xiaolinnote.com/ai/langchain/chain.html#三种编排方式怎么选)
+### 三种编排方式怎么选？
 
 再好用的 Chain，也不适合承载所有流程。
 
@@ -328,7 +328,7 @@ Runnable 和 LCEL 的方向，是把重心从「为每个场景造一个专用�
 
 可以用一个判断方法：开发前就知道下一步去哪里，优先考虑 Chain；运行时要由模型决定下一步，考虑 Agent；流程需要显式状态图和恢复能力，考虑 LangGraph。
 
-### [哪些理解容易走偏？](https://xiaolinnote.com/ai/langchain/chain.html#哪些理解容易走偏)
+### 哪些理解容易走偏？
 
 最容易出现的偏差，是把 Chain 缩小成「一次 LLM 调用」或某个具体的 `LLMChain` 类。一次模型调用只能算流程中的一个节点，旧类也只是早期实现。今天谈 Chain，重点应该放在如何用 Runnable 组织完整数据流，再补充旧 API 的迁移状态。
 
@@ -338,7 +338,7 @@ Runnable 和 LCEL 的方向，是把重心从「为每个场景造一个专用�
 
 控制权也要分清楚。Chain 的连接关系通常由代码预先确定，Agent 的动作路径则可能由模型在运行中选择。二者可以组合，但不能因为都调用了模型，就把固定数据流和动态决策循环混为一谈。
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/langchain/chain.html#🎯-面试总结)
+## 🎯 面试总结
 
 面试官问 Chain 时，先讲清它如何组织数据流，再落到 Runnable、LCEL 和版本边界。
 
@@ -352,23 +352,7 @@ Runnable 和 LCEL 的方向，是把重心从「为每个场景造一个专用�
 
 # 3. LangChain 的底层架构与实现原理是什么？
 
-👔面试官：你了解 LangChain 吗？说说它的底层架构。
-
-🙋‍♂️我：LangChain 就是把 Prompt、模型和解析器串成一条 Chain。
-
-👔面试官：这只能解释早期最表面的用法。不同模型如何统一？工具结果怎样回到模型？Agent 的状态和循环又由谁管理？
-
-🙋‍♂️我：底层应该就是一个 `while` 循环，模型要调用工具就执行，不调用就退出。
-
-👔面试官：表面行为相似，但生产级 Agent 还需要状态、路由、持久化、中断恢复和人工介入。现在 `create_agent` 底层运行在 LangGraph 上，不能只理解成普通循环。
-
-🙋‍♂️我：那我记住 `create_agent` 底层是 LangGraph，应该就算理解架构了。
-
-👔面试官：还不够。Message、Tool、State、Context、Store 和 Middleware 分别负责什么，它们又怎样协作，才是架构题真正要讲清的内容。
-
-理解 LangChain 的架构，可以从一次 Agent 请求出发，看清每一层如何协作。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/langchain/langchain_architecture.html#💡-简要回答)
+## 💡 简要回答
 
 当前 LangChain v1 更像一套面向 Agent 的分层开发框架，而不只是将 Prompt 串起来的 Chain 工具。
 
@@ -382,15 +366,15 @@ Runnable 和 LCEL 的方向，是把重心从「为每个场景造一个专用�
 
 LangChain 用标准协议统一组件，用 `create_agent` 提供高层 Agent 入口，再由 LangGraph 承担有状态的执行运行时。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/langchain/langchain_architecture.html#📝-详细解析)
+## 📝 详细解析
 
-### [LangChain 解决了什么？](https://xiaolinnote.com/ai/langchain/langchain_architecture.html#langchain-解决了什么)
+### LangChain 解决了什么？
 
 直接调用一家模型厂商的 SDK 并不困难。应用逐渐复杂后，不同厂商的消息格式、工具调用结构和流式响应各不相同，业务还需要接入 Prompt、工具、状态、重试和追踪。一旦更换模型，大量厂商专属字段可能已经散落在业务代码中。
 
 LangChain 的核心思路是在这些差异之上定义稳定接口。厂商集成负责适配，应用只依赖公共协议，从而让模型、工具和运行时能够相对独立地演进。
 
-### [架构分成几层？](https://xiaolinnote.com/ai/langchain/langchain_architecture.html#架构分成几层)
+### 架构分成几层？
 
 理解 LangChain v1，可以抓住下面四层：
 
@@ -407,7 +391,7 @@ LangChain 的核心思路是在这些差异之上定义稳定接口。厂商集�
 
 这张图表达的是职责边界，不是严格的单向调用顺序。例如模型和编译后的 Agent 都遵循 Runnable 调用方式，但它们承担的架构角色不同。
 
-### [核心协议如何统一？](https://xiaolinnote.com/ai/langchain/langchain_architecture.html#核心协议如何统一)
+### 核心协议如何统一？
 
 理解 `langchain-core`，可以顺着一条数据看它如何从用户走到模型，再进入业务系统。
 
@@ -416,8 +400,6 @@ LangChain 的核心思路是在这些差异之上定义稳定接口。厂商集�
 只有消息还不能完成业务动作，于是 Tool 接住下一棒。模型看到的是工具名称、描述和参数 Schema，它只能提出「想调用哪个工具、参数是什么」。真正执行 Python 函数或外部服务的仍是应用程序，权限校验和副作用也必须留在这里。
 
 当消息、模型和工具都要进入同一条流程时，又需要统一「怎么执行」。Runnable 提供 `invoke`、异步调用、批处理和流式输出等调用语义。对于步骤已经确定的流程，我们就能继续通过 LCEL 组合组件：
-
-
 
 ```python
 # 三个组件都遵循 Runnable 协议，可以使用管道符顺序组合
@@ -431,11 +413,9 @@ result = chain.invoke({"question": "什么是 Agent？"})
 
 上面的 LCEL 流程每一步由开发者确定。Agent 则不同，它允许模型根据上下文决定是否调用工具以及下一步做什么。
 
-### [Agent loop 如何运行？](https://xiaolinnote.com/ai/langchain/langchain_architecture.html#agent-loop-如何运行)
+### Agent loop 如何运行？
 
 Agent 会在模型和工具之间执行多轮循环：
-
-
 
 ```text
 HumanMessage -> Model -> AIMessage(tool_calls)
@@ -450,7 +430,7 @@ Tool Runtime -> ToolMessage(tool_call_id) -> Model 再次判断
 
 `create_agent` 会根据模型、工具、系统提示词和中间件创建这套循环。它返回的不是普通函数，而是编译后的 LangGraph 图，因此能够在每一步保存状态、输出进度并决定下一条执行边。
 
-### [数据应该放在哪里？](https://xiaolinnote.com/ai/langchain/langchain_architecture.html#数据应该放在哪里)
+### 数据应该放在哪里？
 
 Agent 中的数据不应该全部塞进消息或 Prompt。当前运行时会区分下面几类数据：
 
@@ -464,7 +444,7 @@ Agent 中的数据不应该全部塞进消息或 Prompt。当前运行时会区�
 
 这样划分的好处是，可信用户身份不需要让模型生成，数据库连接也不会被写入对话上下文。工具可以通过 Runtime 读取这些数据，同时只把真正需要模型填写的参数暴露在工具 Schema 中。
 
-### [Middleware 做什么？](https://xiaolinnote.com/ai/langchain/langchain_architecture.html#middleware-做什么)
+### Middleware 做什么？
 
 真实应用通常需要处理动态提示词、模型切换、工具筛选、重试、对话摘要、敏感信息和人工审批。如果把这些逻辑全部塞进 Prompt 或 Tool，代码会很快纠缠在一起。
 
@@ -476,7 +456,7 @@ Middleware 提供模型和工具调用前后的扩展点。请求进入模型前
 
 Middleware 并不是另一套运行时。它会运行在 `create_agent` 编译出的 LangGraph 内部，对执行行为进行组合式扩展。
 
-### [LangGraph 是什么角色？](https://xiaolinnote.com/ai/langchain/langchain_architecture.html#langgraph-是什么角色)
+### LangGraph 是什么角色？
 
 如果只用 `while` 循环实现 Agent，进程退出后中间状态容易丢失，也很难在敏感工具前暂停几小时再继续。
 
@@ -484,7 +464,7 @@ LangGraph 将流程建模为 `State + Node + Edge`：State 保存状态，Node �
 
 LangChain 与 LangGraph 不是简单的二选一关系。LangChain 提供高层组件和标准 Agent 架构，LangGraph 提供底层执行能力。简单 Agent 直接使用 `create_agent`，只有流程需要复杂分支、并行、审批或精细状态控制时，才需要直接编写 LangGraph。
 
-### [旧版 Chain 还能用吗？](https://xiaolinnote.com/ai/langchain/langchain_architecture.html#旧版-chain-还能用吗)
+### 旧版 Chain 还能用吗？
 
 早期教程常见的 `LLMChain`、`ConversationChain` 和部分旧式 Agent 执行器已经进入 `langchain-classic`。它们可以用于维护存量项目，但不再代表 LangChain v1 的主架构。
 
@@ -497,7 +477,7 @@ LangChain 与 LangGraph 不是简单的二选一关系。LangChain 提供高层�
 | 复杂分支、并行、暂停恢复和人工审批 | 直接使用 LangGraph             |
 | 维护旧式 Chain 项目                | `langchain-classic` 后渐进迁移 |
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/langchain/langchain_architecture.html#🎯-面试总结)
+## 🎯 面试总结
 
 回答 LangChain 底层架构时，可以从一次请求的执行过程展开。
 
@@ -509,23 +489,7 @@ LangChain 与 LangGraph 不是简单的二选一关系。LangChain 提供高层�
 
 # 4. 使用 LangChain 构建 Agent 的核心步骤是什么？
 
-👔面试官：如果让你用 LangChain 构建一个完整的 AI Agent，你会怎么做？
-
-🙋‍♂️我：选择一个大模型，写好 Prompt，再接几个工具就完成了。
-
-👔面试官：那只是能运行的 Demo。任务边界、工具权限、状态恢复、结构化输出和测试监控怎么办？
-
-🙋‍♂️我：可以使用 `AgentExecutor`，网上很多示例都是这么写的。
-
-👔面试官：那是旧版常见路径。LangChain v1 新项目应该从 `create_agent` 开始，并理解它底层的 LangGraph 运行时。
-
-🙋‍♂️我：那把模型和工具传给 `create_agent`，本地能回答一次问题，应该就可以上线了。
-
-👔面试官：能跑通不等于完整。状态怎么恢复，危险工具怎么审批，调用轨迹怎么测试，线上错误又怎么定位？
-
-初始化模型和工具只是起点。一个能上线的 Agent，还要有清楚的任务边界、测试方法和可观测能力。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/langchain/build_agent.html#💡-简要回答)
+## 💡 简要回答
 
 我通常分七步构建 LangChain Agent。
 
@@ -543,9 +507,9 @@ LangChain 与 LangGraph 不是简单的二选一关系。LangChain 提供高层�
 
 第七，先单测 Tool，再测试 Agent 的工具选择与调用轨迹，最后通过 Trace 观察模型调用、工具参数、耗时、Token 和异常。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/langchain/build_agent.html#📝-详细解析)
+## 📝 详细解析
 
-### [什么才算完整 Agent？](https://xiaolinnote.com/ai/langchain/build_agent.html#什么才算完整-agent)
+### 什么才算完整 Agent？
 
 模型成功调用一次天气工具，只能说明 Demo 跑通了。真正进入业务后，我们先要知道它能做什么、不能做什么；模型选中工具后，还要检查参数是否正确，失败或重复调用会不会带来副作用。
 
@@ -553,7 +517,7 @@ LangChain 与 LangGraph 不是简单的二选一关系。LangChain 提供高层�
 
 ![img](image/5094f0f2_agent-build-seven-stages.png)
 
-### [第一步：明确任务边界](https://xiaolinnote.com/ai/langchain/build_agent.html#第一步-明确任务边界)
+### 第一步：明确任务边界
 
 构建 Agent，先定义任务，再选择模型。
 
@@ -563,7 +527,7 @@ LangChain 与 LangGraph 不是简单的二选一关系。LangChain 提供高层�
 
 这些答案会继续决定后面的工具、Prompt 和测试用例。边界一旦模糊，模型就只能猜测什么行为算正确，后面再精细的工程配置也补不回来。
 
-### [第二步：选择模型与 Tools](https://xiaolinnote.com/ai/langchain/build_agent.html#第二步-选择模型与-tools)
+### 第二步：选择模型与 Tools
 
 模型需要支持项目所需的工具调用、结构化输出和上下文长度。模型负责判断和规划，真正访问数据库、搜索资料、发送消息的动作应该由 Tool 执行。
 
@@ -571,11 +535,8 @@ Tool 为什么要尽量小而清楚？因为模型主要依靠名称、描述和
 
 所以，Tool 应先做到职责单一、名称清楚、输入输出容易理解。到了执行阶段，服务端还要重新检查身份与权限；只要工具会修改外部状态，就必须补上幂等和审计。前一层帮助模型「选对」，后一层保证系统「做得安全」。
 
-
-
 ```python
 from langchain.tools import tool
-
 
 # 装饰器会把函数名、docstring 和类型注解转换成工具说明
 @tool
@@ -589,13 +550,11 @@ def lookup_order(order_id: str) -> dict[str, str]:
 
 ![img](image/160af93b_focused-tools-comparison.png)
 
-### [第三步：约束行为与输出](https://xiaolinnote.com/ai/langchain/build_agent.html#第三步-约束行为与输出)
+### 第三步：约束行为与输出
 
 `system_prompt` 应说明角色、目标、信息边界、工具规则和失败策略。例如：回答订单状态前必须查询工具，不能猜测数据库中不存在的信息，高风险请求必须转人工。
 
 如果输出只供人阅读，自然语言即可；如果结果还要进入前端、工单或后续工作流，应该定义结构化输出：
-
-
 
 ```python
 from pydantic import BaseModel, Field
@@ -610,15 +569,12 @@ class SupportReply(BaseModel):
 
 结构化输出可以约束字段和类型，但不能保证业务事实正确。事实仍必须来自可信工具，权限仍必须由业务服务控制。
 
-### [第四步：组装 Agent](https://xiaolinnote.com/ai/langchain/build_agent.html#第四步-组装-agent)
+### 第四步：组装 Agent
 
 LangChain v1 推荐使用 `create_agent`：
 
-
-
 ```python
 from langchain.agents import create_agent
-
 
 # 将模型、工具、行为约束和输出 Schema 组装成 Agent
 agent = create_agent(
@@ -642,8 +598,6 @@ reply: SupportReply = result["structured_response"]
 
 底层执行流程是：
 
-
-
 ```text
 用户消息 -> 模型判断
 模型判断 -> 工具调用 -> ToolMessage -> 模型继续判断
@@ -656,7 +610,7 @@ reply: SupportReply = result["structured_response"]
 
 旧资料中的 `create_tool_calling_agent` 和 `AgentExecutor` 仍可能出现在存量项目中，但 LangChain v1 新项目应优先使用 `create_agent`。
 
-### [第五步：补齐状态与安全](https://xiaolinnote.com/ai/langchain/build_agent.html#第五步-补齐状态与安全)
+### 第五步：补齐状态与安全
 
 Agent 能跑通之后，还要处理状态、故障和高风险动作。
 
@@ -672,7 +626,7 @@ Agent 能跑通之后，还要处理状态、故障和高风险动作。
 
 付款、发邮件、删除数据等工具必须具备幂等、最小权限和审计能力。自动重试不能导致重复扣款或重复发信。
 
-### [第六步：选择调用方式](https://xiaolinnote.com/ai/langchain/build_agent.html#第六步-选择调用方式)
+### 第六步：选择调用方式
 
 调用方式需要与产品形态匹配：
 
@@ -684,7 +638,7 @@ Agent 能跑通之后，还要处理状态、故障和高风险动作。
 
 流式输出改善的是等待体验，并不会自动缩短工具执行时间。超时、取消、并发限制和缓存仍要单独设计。
 
-### [第七步：测试与监控](https://xiaolinnote.com/ai/langchain/build_agent.html#第七步-测试与监控)
+### 第七步：测试与监控
 
 Agent 输出具有概率性，所以测试不能只比较最终文本。
 
@@ -696,7 +650,7 @@ Agent 输出具有概率性，所以测试不能只比较最终文本。
 
 ![img](image/3a6f1905_agent-testing-pyramid.png)
 
-### [上线前检查什么？](https://xiaolinnote.com/ai/langchain/build_agent.html#上线前检查什么)
+### 上线前检查什么？
 
 上线前可以快速检查：
 
@@ -708,7 +662,7 @@ Agent 输出具有概率性，所以测试不能只比较最终文本。
 6. 是否覆盖工具、轨迹和端到端评测。
 7. 是否能够追踪一次失败运行的完整调用链。
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/langchain/build_agent.html#🎯-面试总结)
+## 🎯 面试总结
 
 用 LangChain 构建完整 Agent，可以沿着「边界、能力、约束、组装、状态、交互、验证」回答。
 
@@ -720,23 +674,7 @@ Agent 输出具有概率性，所以测试不能只比较最终文本。
 
 # 5. 在 LangChain 中，如何为 Agent 注册工具？
 
-👔面试官：在 LangChain 中，怎么给 Agent 注册工具？
-
-🙋‍♂️我：给函数加一个 `@tool`，然后放进 Agent 就行。
-
-👔面试官：已有的普通函数能不能直接传？复杂参数怎么校验？什么情况下需要 `StructuredTool` 或 `BaseTool`？
-
-🙋‍♂️我：那就全部继承 `BaseTool`，这样最规范。
-
-👔面试官：为了查询一次天气也写一个类，只会增加样板代码。用户身份和权限又应该怎么传给工具？
-
-🙋‍♂️我：让模型生成一个 `user_id` 参数。
-
-👔面试官：可信身份不能由模型填写，否则既可能填错，也可能被提示注入利用。
-
-理解工具协议，才能根据输入复杂度和工程要求选择合适的 Tool 实现方式。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/langchain/tool_registration.html#💡-简要回答)
+## 💡 简要回答
 
 LangChain 中注册 Tool 的本质，是同时向模型提供一份工具说明，并向运行时提供一个真正可执行的函数。工具说明主要包含名称、用途和参数 Schema，模型根据它选择工具并生成参数，LangChain 再执行对应函数。
 
@@ -751,9 +689,9 @@ LangChain 中注册 Tool 的本质，是同时向模型提供一份工具说明�
 
 生产环境还要关注参数校验、权限检查、超时、重试、幂等和错误分类。只有网络超时等临时故障适合自动重试，参数错误和业务拒绝应该返回清楚的信息，程序 Bug 则不应该被统一吞掉。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/langchain/tool_registration.html#📝-详细解析)
+## 📝 详细解析
 
-### [Tool 注册了什么？](https://xiaolinnote.com/ai/langchain/tool_registration.html#tool-注册了什么)
+### Tool 注册了什么？
 
 模型看不到 Python 函数的源码，那它凭什么知道该调用谁？注册工具时，LangChain 会先把函数转换成一份模型能够理解的说明。
 
@@ -765,7 +703,7 @@ LangChain 中注册 Tool 的本质，是同时向模型提供一份工具说明�
 
 工具描述和 Schema 是模型与业务代码之间的调用合同。描述过于模糊，模型可能选错工具；参数缺少约束，模型可能生成无法执行的数据。
 
-### [常用方式怎么选？](https://xiaolinnote.com/ai/langchain/tool_registration.html#常用方式怎么选)
+### 常用方式怎么选？
 
 日常开发中，没有必要为了显得专业而直接继承最底层的类。选择方式时，可以先问这个工具到底还是不是一个普通函数。
 
@@ -777,19 +715,15 @@ LangChain 中注册 Tool 的本质，是同时向模型提供一份工具说明�
 
 模型厂商提供的 Web Search、代码执行器等服务端工具，有时会使用厂商约定的字典配置。这类工具属于特定 Provider 能力，使用时应单独查看对应集成文档，不需要把它当作通用 Python Tool 的主要定义方式。
 
-### [为什么优先使用 `@tool`？](https://xiaolinnote.com/ai/langchain/tool_registration.html#为什么优先使用-tool)
+### 为什么优先使用 `@tool`？
 
 `@tool` 能从函数签名和 docstring 自动推导 Schema，也允许通过 Pydantic 显式描述复杂参数，是大多数业务工具的首选。
 
-
-
 ```python
 from typing import Literal
-
 from langchain.agents import create_agent
 from langchain.tools import tool
 from pydantic import BaseModel, Field
-
 
 class OrderQuery(BaseModel):
     # Field 描述和类型约束都会进入模型看到的工具 Schema
@@ -799,13 +733,11 @@ class OrderQuery(BaseModel):
         description="返回摘要还是完整信息",
     )
 
-
 # args_schema 显式指定工具参数的校验模型
 @tool(args_schema=OrderQuery)
 def query_order(order_id: str, detail: str = "summary") -> str:
     """查询订单状态。用户询问某个订单时调用。"""
     return f"订单 {order_id} 的状态为已发货，返回模式：{detail}"
-
 
 # 注册时把 Tool 放进 create_agent 的 tools 列表
 agent = create_agent(
@@ -820,7 +752,7 @@ agent = create_agent(
 
 已有的简单函数也可以不加装饰器，直接传给 `tools`。函数必须有清楚的名称、类型注解和 docstring，否则自动生成的工具说明很难指导模型正确调用。
 
-### [何时使用高级定义？](https://xiaolinnote.com/ai/langchain/tool_registration.html#何时使用高级定义)
+### 何时使用高级定义？
 
 `StructuredTool.from_function` 更适合「原函数不能修改，但需要改变它对模型的呈现方式」的场景。例如，同一个业务函数需要注册成不同名称，或者要把同步函数和异步协程组合成一个工具对象。
 
@@ -830,7 +762,7 @@ agent = create_agent(
 
 ![img](image/09948b27_tool-definition-levels.png)
 
-### [可信参数如何注入？](https://xiaolinnote.com/ai/langchain/tool_registration.html#可信参数如何注入)
+### 可信参数如何注入？
 
 假设「查询我的账户余额」工具需要用户 ID。如果把 `user_id` 放进模型可见的 Schema，模型可能填错用户，也可能被恶意提示诱导查询其他账户。
 
@@ -843,20 +775,15 @@ agent = create_agent(
 
 LangChain v1 使用 `ToolRuntime` 把这些可信信息送进工具，但不同信息仍有不同作用域。用户身份、租户和依赖属于本次调用上下文，从 `runtime.context` 读取；当前会话消息和短期状态放在 `runtime.state`；跨会话仍要保留的长期数据，才进入 `runtime.store`。
 
-
-
 ```python
 from dataclasses import dataclass
-
 from langchain.tools import ToolRuntime, tool
-
 
 @dataclass
 class UserContext:
     # 这些字段由应用运行时提供，不让模型生成
     user_id: str
     role: str
-
 
 @tool
 def get_balance(
@@ -877,13 +804,13 @@ def get_balance(
 
 ![img](image/ee4a8500_toolruntime-trust-boundary.png)
 
-### [异步工具怎么处理？](https://xiaolinnote.com/ai/langchain/tool_registration.html#异步工具怎么处理)
+### 异步工具怎么处理？
 
 搜索、数据库和远程 API 通常属于 I/O 密集型操作。如果底层客户端支持异步，工具也应使用原生 `async def`，并通过 Agent 的 `ainvoke` 或异步流式接口调用。
 
 不要只把函数声明成 `async def`，内部却继续调用阻塞式 HTTP 客户端；这种写法不会自动提高并发能力。工具是否异步，应该和底层客户端以及整条 Agent 调用链保持一致。
 
-### [错误应该怎么处理？](https://xiaolinnote.com/ai/langchain/tool_registration.html#错误应该怎么处理)
+### 错误应该怎么处理？
 
 工具调用失败时，先别急着统一重试，因为不同失败意味着完全不同的下一步。
 
@@ -893,7 +820,7 @@ def get_balance(
 
 程序 Bug、数据损坏和权限配置错误不应该被统一转换成「调用失败」后继续执行，否则系统会掩盖真正的问题。对于付款、发邮件、创建订单等有副作用的工具，还必须设计幂等键和人工审批，避免重试造成重复执行。
 
-### [注册后还要检查什么？](https://xiaolinnote.com/ai/langchain/tool_registration.html#注册后还要检查什么)
+### 注册后还要检查什么？
 
 Agent 能调用函数只是第一步。检查工具能否安全上线，可以沿着一次真实调用往下走，不用背一张清单。
 
@@ -905,7 +832,7 @@ Agent 能调用函数只是第一步。检查工具能否安全上线，可以�
 
 工具数量也不是越多越好。一次性向模型暴露大量相似工具，会增加选择错误和参数混淆的概率。更合理的做法是根据用户权限和当前任务动态缩小工具集合。
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/langchain/tool_registration.html#🎯-面试总结)
+## 🎯 面试总结
 
 先说明 Tool 是「模型可见的调用合同 + 运行时可执行函数」，再讲清楚四种常用定义方式的选择边界。
 
@@ -931,11 +858,9 @@ Schema 校验、异步 I/O、错误分类、幂等和权限治理也不能漏。
 
 理解 LangChain 记忆，要看信息存在哪个作用域、如何召回，以及怎样避免串用户、上下文膨胀和错误记忆。
 
-## [💡 简要回答](https://xiaolinnote.com/ai/langchain/memory.html#💡-简要回答)
+## 💡 简要回答
 
 在 LangChain v1 中，可以用一句话区分两类记忆：
-
-
 
 ```text
 短期记忆 = State + thread_id + Checkpointer
@@ -950,9 +875,9 @@ Schema 校验、异步 I/O、错误分类、幂等和权限治理也不能漏。
 
 长对话还需要控制上下文：裁剪只减少本次模型输入，删除会真正移除持久状态，摘要则用更短文本保留主要语义。生产环境要使用数据库型 Checkpointer 和 Store，并做好租户隔离、写入幂等、记忆更正、过期删除、敏感信息保护和检索评测。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/langchain/memory.html#📝-详细解析)
+## 📝 详细解析
 
-### [应该记住什么？](https://xiaolinnote.com/ai/langchain/memory.html#应该记住什么)
+### 应该记住什么？
 
 假设用户正在规划杭州旅行。当前对话中提到的日期、预算和下一步计划，只服务于这次任务，属于短期状态。
 
@@ -962,18 +887,15 @@ Schema 校验、异步 I/O、错误分类、幂等和权限治理也不能漏。
 
 ![img](image/081ced68_short-vs-long-memory.png)
 
-### [短期记忆如何实现？](https://xiaolinnote.com/ai/langchain/memory.html#短期记忆如何实现)
+### 短期记忆如何实现？
 
 LangChain v1 的 `create_agent` 底层运行在 LangGraph 上。Agent State 默认包含 `messages`，也可以扩展订单号、当前步骤和工具调用次数等业务字段。
 
 只有 State 还不够。请求可能由不同服务实例处理，进程也可能重启，因此需要 Checkpointer 持久化执行状态。调用 Agent 时传入稳定的 `thread_id`，同一编号就可以恢复同一线程：
 
-
-
 ```python
 from langchain.agents import create_agent
 from langgraph.checkpoint.memory import InMemorySaver
-
 
 # Checkpointer 按 thread_id 保存线程内的 Agent State
 agent = create_agent(
@@ -984,13 +906,11 @@ agent = create_agent(
 
 # 两次调用复用同一个 thread_id，表示它们属于同一会话线程
 config = {"configurable": {"thread_id": "chat-1001"}}
-
 # 第一轮把用户姓名写入当前线程的 messages 状态
 agent.invoke(
     {"messages": [{"role": "user", "content": "我叫小林"}]},
     config=config,
 )
-
 # 第二轮会先恢复同一线程之前保存的状态
 result = agent.invoke(
     {"messages": [{"role": "user", "content": "我叫什么？"}]},
@@ -1002,7 +922,7 @@ result = agent.invoke(
 
 Checkpoint 保存的不只是聊天字符串，而是图执行过程中的 State 快照。因此它还可以支撑暂停恢复、人工审批和故障恢复。
 
-### [消息太多怎么办？](https://xiaolinnote.com/ai/langchain/memory.html#消息太多怎么办)
+### 消息太多怎么办？
 
 Checkpointer 能保存历史，不代表每次都应该把全部历史交给模型。消息越多，Token、延迟和干扰越大。
 
@@ -1018,13 +938,11 @@ Checkpointer 能保存历史，不代表每次都应该把全部历史交给模�
 
 ![img](image/32ae09c6_trim-delete-summarize.png)
 
-### [长期记忆如何实现？](https://xiaolinnote.com/ai/langchain/memory.html#长期记忆如何实现)
+### 长期记忆如何实现？
 
 新 `thread_id` 默认不会继承旧线程的 State，这是正确的线程隔离。如果某条信息需要跨线程使用，就应提炼后写入 Store。
 
 Store 中的数据通常使用下面的结构定位：
-
-
 
 ```text
 namespace = (tenant_id, user_id, memory_type)
@@ -1044,23 +962,18 @@ value     = JSON 数据
 
 这些分类用于帮助设计数据结构，不是要求把每段原始对话都永久保存。写入前仍要做去重、脱敏、冲突处理和质量判断。
 
-### [如何跨线程读取？](https://xiaolinnote.com/ai/langchain/memory.html#如何跨线程读取)
+### 如何跨线程读取？
 
 工具可以通过 `ToolRuntime` 访问这些信息，但不能把三个入口混成一个数据袋。当前线程的短期状态来自 `runtime.state`，可信用户身份和权限来自 `runtime.context`，只有跨线程长期数据才从 `runtime.store` 读取。
 
-
-
 ```python
 from dataclasses import dataclass
-
 from langchain.tools import ToolRuntime, tool
-
 
 @dataclass
 class UserContext:
     # 用户身份由可信应用注入，不暴露给模型填写
     user_id: str
-
 
 @tool
 def remember_preference(
@@ -1081,7 +994,7 @@ def remember_preference(
 
 ![img](image/b74032b6_cross-thread-store-sharing.png)
 
-### [什么时候写入长期记忆？](https://xiaolinnote.com/ai/langchain/memory.html#什么时候写入长期记忆)
+### 什么时候写入长期记忆？
 
 长期记忆不是越多越好。把每句闲聊都存进去，会产生噪声、冲突和隐私风险。
 
@@ -1089,7 +1002,7 @@ def remember_preference(
 
 无论实时还是后台写入，都应保存来源、时间和置信度，并支持更新、纠错和删除。订单金额、账户余额和库存等实时事实仍应查询权威业务系统，不能使用长期记忆代替真实数据库。
 
-### [生产环境要注意什么？](https://xiaolinnote.com/ai/langchain/memory.html#生产环境要注意什么)
+### 生产环境要注意什么？
 
 把记忆从 Demo 带到生产，先要确认数据能否可靠保存。开发时的内存实现会随着进程退出而丢失，线上需要数据库型 Checkpointer 和 Store，并把表结构与迁移一起纳入部署流程。
 
@@ -1101,13 +1014,11 @@ def remember_preference(
 
 ![img](image/573794ad_memory-write-pipeline.png)
 
-### [旧 Memory 还能用吗？](https://xiaolinnote.com/ai/langchain/memory.html#旧-memory-还能用吗)
+### 旧 Memory 还能用吗？
 
 旧教程常见的 `ConversationBufferMemory`、`ConversationSummaryMemory` 等属于 Chain 时代的抽象，目前主要位于 `langchain-classic`，适合维护存量项目。
 
 LangChain v1 新项目更推荐使用：
-
-
 
 ```text
 AgentState + Checkpointer -> 管理线程内状态
@@ -1117,7 +1028,7 @@ Middleware 或图节点 -> 管理裁剪、摘要和写入策略
 
 这套方式把状态作用域、持久化和记忆治理拆得更清楚，也更适合有工具调用、暂停恢复和多用户隔离要求的 Agent。
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/langchain/memory.html#🎯-面试总结)
+## 🎯 面试总结
 
 先说清楚两条主线：短期记忆是线程级 State，由 Checkpointer 按 `thread_id` 保存；长期记忆是跨线程数据，由 Store 按 namespace 和 key 管理。
 
@@ -1127,23 +1038,7 @@ Middleware 或图节点 -> 管理裁剪、摘要和写入策略
 
 # 7. LangChain 和 LlamaIndex 有什么区别？
 
-👔面试官：LangChain 和 LlamaIndex 的核心区别是什么？
-
-🙋‍♂️我：LangChain 用来写 Chain，LlamaIndex 用来做 RAG。
-
-👔面试官：这是过时的二分。现在两者都能做 Agent、Tools、RAG 和 Workflow，应该怎么比较？
-
-🙋‍♂️我：既然功能差不多，那就选热度更高的。
-
-👔面试官：功能有交集，不代表设计重心相同。项目最难的是工具集成，还是数据解析和检索，才是选型关键。
-
-🙋‍♂️我：那项目选了 LangChain，就不能再使用 LlamaIndex，否则技术栈会冲突。
-
-👔面试官：框架不是只能二选一。LlamaIndex 的检索能力可以包装成 Tool，再交给 LangChain Agent 或 LangGraph 调度，关键是边界是否清楚。
-
-选型要看业务的主要风险，再判断哪套抽象更合适。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/langchain/langchain_vs_llamaindex.html#💡-简要回答)
+## 💡 简要回答
 
 LangChain 和 LlamaIndex 现在都能构建 Agent、调用工具和实现 RAG，但它们的默认入口与优势重心不同。
 
@@ -1153,9 +1048,9 @@ LlamaIndex 更偏数据与上下文增强。它在数据接入、文档解析、
 
 选型时应看项目的主要难点：如果难点是模型与工具集成，优先评估 LangChain；如果难点是私有数据处理和检索质量，优先评估 LlamaIndex；如果两边都复杂，可以让 LlamaIndex 负责数据层，把检索能力封装成 Tool，再由 LangChain Agent 或 LangGraph 调度。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/langchain/langchain_vs_llamaindex.html#📝-详细解析)
+## 📝 详细解析
 
-### [为什么容易混淆？](https://xiaolinnote.com/ai/langchain/langchain_vs_llamaindex.html#为什么容易混淆)
+### 为什么容易混淆？
 
 两个框架都支持模型调用、Tools、RAG、Agent 和 Workflow，所以按照功能清单比较，很容易得出「它们差不多」的结论。
 
@@ -1163,7 +1058,7 @@ LlamaIndex 更偏数据与上下文增强。它在数据接入、文档解析、
 
 ![img](image/562d0c84_langchain-vs-llamaindex-focus.png)
 
-### [核心区别是什么？](https://xiaolinnote.com/ai/langchain/langchain_vs_llamaindex.html#核心区别是什么)
+### 核心区别是什么？
 
 | 维度     | LangChain                               | LlamaIndex                          |
 | -------- | --------------------------------------- | ----------------------------------- |
@@ -1174,7 +1069,7 @@ LlamaIndex 更偏数据与上下文增强。它在数据接入、文档解析、
 
 这张表比较的是优势重心，不是能力边界。LangChain 也有完整的 RAG 组件，LlamaIndex 也能创建 Agent；区别在于哪一套抽象更贴近项目的主要问题。
 
-### [LangChain 强在哪里？](https://xiaolinnote.com/ai/langchain/langchain_vs_llamaindex.html#langchain-强在哪里)
+### LangChain 强在哪里？
 
 如果项目需要接入多个模型、搜索、数据库、浏览器、MCP Server 和公司内部 API，最大的工程成本往往是不同接口之间的适配。
 
@@ -1188,15 +1083,13 @@ LangGraph 是 LangChain Agent 的底层运行时。简单的模型与工具循�
 
 ![img](image/eb1eb16e_langchain-langgraph-layering.png)
 
-### [LlamaIndex 强在哪里？](https://xiaolinnote.com/ai/langchain/langchain_vs_llamaindex.html#llamaindex-强在哪里)
+### LlamaIndex 强在哪里？
 
 真实 RAG 项目的困难通常不止是把文档放进向量数据库。数据刚进来时，就要处理 PDF 表格、跨页内容、切分方式和元数据；同一制度存在多个版本时，还要判断哪一份仍然有效。
 
 到了查询阶段，系统又要决定走向量检索、关键词检索还是结构化数据库。多路结果回来后，还得过滤、重排并处理冲突。也就是说，难点沿着「数据进入 -> 建立索引 -> 发起检索 -> 组织上下文」一路传递，而不是某一个向量库能单独解决。
 
 LlamaIndex 将数据处理链路拆得更细，可以概括为：
-
-
 
 ```text
 数据接入 -> 解析与切分 -> 索引 -> 检索与重排 -> Query Engine -> Agent
@@ -1208,7 +1101,7 @@ LlamaIndex 把「如何得到高质量上下文」作为核心工程问题。企
 
 LlamaIndex 也提供 Agent 和事件驱动 Workflow，可以让模型调用普通工具或数据查询能力。因此，准确的说法是「LlamaIndex 以数据为优势重心」，而不是「LlamaIndex 只能做 RAG」。
 
-### [应该如何选型？](https://xiaolinnote.com/ai/langchain/langchain_vs_llamaindex.html#应该如何选型)
+### 应该如何选型？
 
 可以直接问：这个项目最怕哪件事做不好？
 
@@ -1223,13 +1116,11 @@ LlamaIndex 也提供 Agent 和事件驱动 Workflow，可以让模型调用普�
 
 如果只是简单知识库或单工具 Agent，没有必要为了架构完整同时引入两套框架。组合会增加依赖、追踪和调试成本，只有当两边确实解决独立难题时才值得。
 
-### [两者如何组合？](https://xiaolinnote.com/ai/langchain/langchain_vs_llamaindex.html#两者如何组合)
+### 两者如何组合？
 
 最常见的组合边界是 Tool。
 
 LlamaIndex 负责加载数据、构建索引和实现 Query Engine；对外暴露一个「查询企业知识库」的函数，再包装成 LangChain Tool。LangChain Agent 判断什么时候调用，外层如果还有审批、重试和恢复，则交给 LangGraph。
-
-
 
 ```python
 # LlamaIndex Query Engine 被包装成 LangChain 可以调用的 Tool
@@ -1237,7 +1128,6 @@ LlamaIndex 负责加载数据、构建索引和实现 Query Engine；对外暴�
 def search_company_knowledge(question: str) -> str:
     """查询企业知识库。"""
     return str(query_engine.query(question))
-
 
 # LangChain Agent 负责判断何时查询知识库，何时调用订单工具
 agent = create_agent(
@@ -1250,7 +1140,7 @@ agent = create_agent(
 
 ![img](image/78eb15fe_langchain-llamaindex-composition.png)
 
-### [常见误区](https://xiaolinnote.com/ai/langchain/langchain_vs_llamaindex.html#常见误区)
+### 常见误区
 
 最容易出现的误区，是被框架名字或早期教程限制住。LangChain 并不只会把 Prompt 串成 Chain，当前主线已经转向 Agent，固定流程则继续由 Runnable 和 LCEL 承担。
 
@@ -1258,7 +1148,7 @@ LlamaIndex 能连接向量库，也提供 Agent 和 Workflow。它最有辨识�
 
 既然两边能力有重叠，也就不能简单推导出「必须二选一」或「最好全部引入」。项目可以通过 Tool 或服务接口组合两套框架，可只有数据层和 Agent 编排层确实各自存在独立难题时，这种组合才有收益。否则，多一套依赖和追踪链路只会增加调试成本。
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/langchain/langchain_vs_llamaindex.html#🎯-面试总结)
+## 🎯 面试总结
 
 不要再使用「LangChain 做 Chain，LlamaIndex 做 RAG」的过时标签。两者都能做 Agent、工具调用和 RAG，区别在于设计重心。
 
@@ -1268,23 +1158,7 @@ LangChain 更偏通用 Agent 组装和广泛工具集成，复杂执行流程可
 
 # 8. 请你谈谈 LangChain4j 这类 Java 生态的 LangChain 衍生框架，主要帮开发者解决了哪些核心问题？它的核心适用场景是什么？
 
-👔面试官：LangChain4j 是什么？它主要解决了什么问题？
-
-🙋‍♂️我：它就是 LangChain 官方做的 Java 版本，把 Python API 翻译成 Java，让 Java 程序员也能用 Chain。
-
-👔面试官：这个定位就错了。LangChain4j 的 API、内部实现和发布节奏都独立于 Python LangChain，官方还特意强调它不是 Java 移植版。那它为什么仍然有价值？
-
-🙋‍♂️我：因为它把 OpenAI 接口封装了一层，少写一点 HTTP 请求代码，换模型也只要改个地址。
-
-👔面试官：只看到模型调用太浅了。`ChatModel`、`EmbeddingModel`、`EmbeddingStore` 是统一抽象，高层还有 AI Services、Tools、Chat Memory、RAG 和结构化输出。它到底怎样接住 Java 业务代码？
-
-🙋‍♂️我：用注解定义一个接口，框架就会把所有事情自动做好，所以接入 LangChain4j 以后，模型切换、安全、记忆和生产监控都不用关心了。
-
-👔面试官：框架减少的是重复胶水代码，不会消灭供应商差异，也不会替你承担权限、数据隔离、评测和运维责任。Guardrails 和部分可观测能力目前还是实验性功能，这些边界不说清楚，怎么做生产选型？
-
-面试官想听的是 LangChain4j 在 Java 项目里解决了什么问题，以及它有哪些边界。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/langchain/langchain4j.html#💡-简要回答)
+## 💡 简要回答
 
 LangChain4j 的名字虽然受 LangChain 启发，但它不是官方的 Java 移植版。它是一套独立开发、按照 Java 习惯设计的开源 LLM 应用框架。
 
@@ -1300,9 +1174,9 @@ LangChain4j 的名字虽然受 LangChain 启发，但它不是官方的 Java 移
 
 选型时还要看模块成熟度。官方目前仍有带 beta 后缀的模块，Guardrails 和 AI Service Observability 也标注为实验性。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/langchain/langchain4j.html#📝-详细解析)
+## 📝 详细解析
 
-### [它是 LangChain 的 Java 版吗？](https://xiaolinnote.com/ai/langchain/langchain4j.html#它是-langchain-的-java-版吗)
+### 它是 LangChain 的 Java 版吗？
 
 看到「LangChain4j」这个名字，很多林友会自然地把它理解成「LangChain for Java」。可如果我们真按这个思路回答，第一句话就可能踩雷。
 
@@ -1320,7 +1194,7 @@ LangChain4j 的名字虽然受 LangChain 启发，但它不是官方的 Java 移
 
 官方文档中的旧式 Chains 已明确标为 legacy。新项目不应因为框架名字里有 Chain，就把 `ConversationalChain` 当成主入口。
 
-### [统一接口能抹平所有差异吗？](https://xiaolinnote.com/ai/langchain/langchain4j.html#统一接口能抹平所有差异吗)
+### 统一接口能抹平所有差异吗？
 
 假设公司今天试 OpenAI，明天因为数据合规改用云厂商模型，后天又要接本地 Ollama。若直接调用每一家 SDK，认证方式、请求对象、消息格式、流式回调和异常类型都不同，业务层很快会长满适配代码。
 
@@ -1332,7 +1206,7 @@ LangChain4j 先给这些能力找共同语言。聊天模型通常实现 `ChatMo
 
 但为什么不能吹成完全无锁定？因为抽象只能覆盖交集。某个模型是否支持工具调用、原生 JSON Schema、图片输入、思考内容或特殊采样参数，仍要查官方能力矩阵。切换供应商后，Prompt 效果、Token 计算、限流、异常处理和评测基线也要重新验证。
 
-### [AI Services 解决什么问题？](https://xiaolinnote.com/ai/langchain/langchain4j.html#ai-services-解决什么问题)
+### AI Services 解决什么问题？
 
 如果只做一次模型调用，手写几行 SDK 代码并不难。真正麻烦的是业务开始要求多轮对话、工具调用、知识检索和稳定字段以后，开发者要不断处理 Prompt 拼装、消息转换、模型循环和输出反序列化。
 
@@ -1342,8 +1216,6 @@ AI Services 正是为了收拢这些胶水代码。开发者声明一个 Java �
 
 下面这个例子把当前主线中的几个关键能力放到了一起。为了让代码聚焦结构，模型、向量库和持久化存储的具体 Bean 由项目配置提供。
 
-
-
 ```java
 record SupportReply(
         @Description("给用户展示的中文答复") String answer,
@@ -1352,7 +1224,6 @@ record SupportReply(
 }
 
 interface SupportAssistant {
-
     @SystemMessage("""
             你是订单客服。涉及订单状态时必须调用查询工具，
             不得猜测系统中不存在的信息；高风险请求必须建议转人工。
@@ -1362,14 +1233,11 @@ interface SupportAssistant {
 }
 
 final class OrderTools {
-
     private final OrderService orderService;
-
     OrderTools(OrderService orderService) {
         // 复用现有 Java 领域服务，不把数据库连接直接暴露给模型
         this.orderService = orderService;
     }
-
     @Tool("根据订单号查询订单状态，只读，不执行退款或修改")
     String findOrder(@P("订单号") String orderId) {
         // 真正的鉴权、租户隔离和审计仍应由业务服务完成
@@ -1412,7 +1280,7 @@ AI Service 代理先把方法参数组织成消息，Retriever 再补充知识�
 
 依赖版本也不要在多处手填。官方推荐通过 `langchain4j-bom` 管理模块版本，再从官方 Release Notes 选择经过验证的版本。这样可以避免核心包、模型集成和 Spring Starter 版本互相错位。
 
-### [Tools 如何连接业务动作？](https://xiaolinnote.com/ai/langchain/langchain4j.html#tools-如何连接业务动作)
+### Tools 如何连接业务动作？
 
 Tools 最容易被误解成「把数据库权限交给模型」。其实模型只负责生成工具名和参数，请求执行某个动作，真正运行 Java 方法的是应用程序。
 
@@ -1424,7 +1292,7 @@ LangChain4j 可以通过 `@Tool` 暴露对象方法，也支持在运行时提�
 
 这层自动循环确实省代码，但安全边界不能省。查订单要做用户与租户校验，退款要有幂等和额度控制，发消息要有审批与审计，工具异常也不应把堆栈、路径或敏感信息原样回传给模型。工具描述约束的是模型行为，服务端权限约束的才是真实能力。
 
-### [Chat Memory 等于聊天档案吗？](https://xiaolinnote.com/ai/langchain/langchain4j.html#chat-memory-等于聊天档案吗)
+### Chat Memory 等于聊天档案吗？
 
 多轮客服如果每次都把历史消息手工拼回请求，既麻烦又容易超过上下文窗口。LangChain4j 提供 `ChatMemory` 抽象，常用实现包括按消息数淘汰的 `MessageWindowChatMemory`，以及按 Token 窗口淘汰的 `TokenWindowChatMemory`。
 
@@ -1438,7 +1306,7 @@ LangChain4j 可以通过 `@Tool` 暴露对象方法，也支持在运行时提�
 
 如果业务说的「长期记忆」是用户偏好、历史事实或企业知识，通常应该把它结构化存入业务数据库，或者做成可检索知识再通过 RAG 注入，而不是无限增大消息窗口。
 
-### [RAG 不只是连接向量库](https://xiaolinnote.com/ai/langchain/langchain4j.html#rag-不只是连接向量库)
+### RAG 不只是连接向量库
 
 企业项目更常见的需求，是让模型回答内部制度、产品手册和客户资料。LangChain4j 对此提供从文档加载、解析、切分、Embedding、向量存储，到在线检索和注入的一组组件。
 
@@ -1450,7 +1318,7 @@ LangChain4j 可以通过 `@Tool` 暴露对象方法，也支持在运行时提�
 
 为什么这种封装对 Java 团队有用？因为数据加载、检索策略和模型调用可以继续留在同一套工程、配置和测试体系中。但框架只提供积木，文档质量、切分策略、召回率、权限过滤、引用溯源和离线评测仍决定最终效果。
 
-### [Java 生态如何集成？](https://xiaolinnote.com/ai/langchain/langchain4j.html#java-生态如何集成)
+### Java 生态如何集成？
 
 LangChain4j 的另一个核心价值，在于它不强迫 Java 团队另起炉灶。选择集成时，先看团队原来使用什么服务框架。
 
@@ -1460,7 +1328,7 @@ LangChain4j 的另一个核心价值，在于它不强迫 Java 团队另起炉�
 
 Helidon 和 Micronaut 也有对应集成，但普通面试回答不必展开版本和注解清单。除非岗位的技术栈明确使用它们，否则说清楚「优先沿用团队现有的依赖注入、配置和监控体系」就够了。
 
-### [可观测性与 Guardrails 的边界](https://xiaolinnote.com/ai/langchain/langchain4j.html#可观测性与-guardrails-的边界)
+### 可观测性与 Guardrails 的边界
 
 客服回答出错时，不能只盯着最终文本，因为一次调用可能已经经过 RAG 检索、模型判断和工具执行。
 
@@ -1474,7 +1342,7 @@ Guardrails 用于在模型调用前后校验输入和输出，例如检测越界
 
 还有一个更关键的边界：Guardrail 不是安全系统的替代品。Prompt Injection 检测可能漏报，输出校验也不能替代业务权限。认证、授权、数据隔离、资金风控和审计必须继续放在确定性的业务层。
 
-### [什么时候适合 LangChain4j？](https://xiaolinnote.com/ai/langchain/langchain4j.html#什么时候适合-langchain4j)
+### 什么时候适合 LangChain4j？
 
 如果团队已有大量 Java 服务，希望把 AI 能力嵌入现有系统，LangChain4j 很合适。典型场景包括企业知识库问答、带会话上下文的智能客服、从合同和简历中抽取结构化字段、批量摘要与分类、让模型查询订单或创建工单，以及需要在多个模型或向量库之间评估选型的项目。
 
@@ -1498,7 +1366,7 @@ Guardrails 用于在模型调用前后校验输入和输出，例如检测越界
 
 选型时我会做一个小型真实 PoC，而不是只比功能清单。用同一批问题验证回答质量、工具参数准确率、结构化输出成功率、延迟、Token 成本、监控完整度和故障恢复，再决定框架。因为「支持某项功能」和「满足自己的生产要求」，中间还隔着业务数据与工程验证。
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/langchain/langchain4j.html#🎯-面试总结)
+## 🎯 面试总结
 
 LangChain4j 的定位要先说准：它不是 Python LangChain 的官方 Java 移植，而是一套独立、遵循 Java 习惯的 JVM LLM 应用框架。
 
@@ -1512,23 +1380,7 @@ LangChain4j 的定位要先说准：它不是 Python LangChain 的官方 Java �
 
 # 9. 请你详细说说 LangChain 和 LangGraph 的核心区别是什么？
 
-👔面试官：你说说 LangChain 和 LangGraph 有什么区别？
-
-🙋‍♂️我：LangChain 只能把步骤线性串起来，LangGraph 才能做分支和循环。
-
-👔面试官：这句话早就不准确了。LCEL 有分支和并行能力，LangChain v1 的 `create_agent` 本身也是带条件和循环的图。你把「能不能分支」当成两者边界，说明你还停留在旧版教程里。
-
-🙋‍♂️我：那 LangChain 负责开发，LangGraph 负责部署。需要持久化、流式输出和人工审批时，再把项目迁移到 LangGraph。
-
-👔面试官：也不对。现在 LangChain Agent 就运行在 LangGraph 上，能直接使用检查点、流式输出和人工审批中间件，并不是用了 LangChain 就没有这些能力。
-
-🙋‍♂️我：明白了，它们其实是一套东西，只是 LangGraph 换了一种图写法，选哪个都差不多。
-
-👔面试官：又走到另一个极端了。底层运行时可以相同，但抽象层级、控制权和开发成本完全不同。标准工具调用 Agent 和跨多个业务阶段的长流程，当然不能用同一个粒度去设计。
-
-比较 LangChain 和 LangGraph，先要分清「高层 Agent 框架」与「低层编排运行时」之间的关系。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/langchain/langchain_vs_langgraph.html#💡-简要回答)
+## 💡 简要回答
 
 LangChain 和 LangGraph 处在不同的抽象层。按照当前官方定位，LangChain v1 是高层 Agent 开发框架，负责提供模型、工具、结构化输出和 middleware 等常用能力。
 
@@ -1542,9 +1394,9 @@ LangGraph 则是低层的 Agent 编排框架与运行时，让开发者直接设
 
 LangChain 帮我快速得到一个好用的 Agent，LangGraph 帮我精确控制整个 Agent 系统怎么运行。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/langchain/langchain_vs_langgraph.html#📝-详细解析)
+## 📝 详细解析
 
-### [两者处于同一层吗？](https://xiaolinnote.com/ai/langchain/langchain_vs_langgraph.html#两者处于同一层吗)
+### 两者处于同一层吗？
 
 很多林友第一次看到这两个名字，会自然地问「哪个功能更多」。可这个问题就像在比较一台咖啡机和它内部的控制系统，能列出差异，却很容易忽略两者是上下层关系。
 
@@ -1564,7 +1416,7 @@ LangChain 高层 Agent API -> 编译后的 LangGraph -> 检查点、流式事件
 
 这也解释了为什么两者既有重叠能力，又不能说「选哪个都一样」。用 LangChain 时，框架已经替你搭好了常见 Agent 的拓扑，你主要配置零件和生命周期钩子；用 LangGraph 时，节点怎么拆、状态怎么更新、下一步去哪，都由你来决定。
 
-### [核心差异：抽象层级](https://xiaolinnote.com/ai/langchain/langchain_vs_langgraph.html#核心差异-抽象层级)
+### 核心差异：抽象层级
 
 先把容易混淆的能力放进一张表里看，边界就清楚多了：
 
@@ -1587,7 +1439,7 @@ LangChain 高层 Agent API -> 编译后的 LangGraph -> 检查点、流式事件
 
 表中的「持久化」「流式输出」「人工介入」同时出现在两列，因为这些能力由 LangGraph 运行时提供，也能从 LangChain Agent 的高层接口中使用。两者差别主要是封装层级和控制粒度，不是简单的有或没有。
 
-### [LangChain 只能线性执行吗？](https://xiaolinnote.com/ai/langchain/langchain_vs_langgraph.html#langchain-只能线性执行吗)
+### LangChain 只能线性执行吗？
 
 为什么「LangChain 只能线性，LangGraph 才能分支」是错的？因为它混淆了三个不同概念。
 
@@ -1603,7 +1455,7 @@ LangGraph 把业务拓扑变成一等公民，这一点拉开了两者的差异�
 
 所以更准确的边界应该是：LangChain 能表达分支和循环，但它的高层 Agent API 主要围绕通用模型与工具循环组织；LangGraph 则允许开发者直接拥有整个工作流的拓扑控制权。
 
-### [Middleware 与图编排有何不同？](https://xiaolinnote.com/ai/langchain/langchain_vs_langgraph.html#middleware-与图编排有何不同)
+### Middleware 与图编排有何不同？
 
 看到 middleware 能在模型和工具前后执行代码，有些林友又会问：既然 middleware 什么都能插，为什么还要 LangGraph？
 
@@ -1619,11 +1471,8 @@ LangGraph 节点和边处理的是更一般的流程结构。它可以让分类�
 
 当前官方文档特别说明，middleware 不是独立运行时，它会运行在 `create_agent` 返回的编译图内部。这个完整 Agent 还可以作为节点或子图放进更大的 `StateGraph`，middleware 会跟着它一起工作。这正是两层组合，而不是二选一。
 
-
-
 ```python
 from typing import Literal
-
 from langchain.agents import AgentState, create_agent
 from langgraph.graph import END, START, StateGraph
 
@@ -1632,18 +1481,15 @@ class WorkflowState(AgentState):
     # route 是外层业务流程状态，不属于标准 Agent loop 的固定字段
     route: Literal["research", "reject"]
 
-
 def classify_request(state: WorkflowState) -> dict:
     # 这里用确定性规则演示路由，实际项目也可以调用分类模型
     text = str(state["messages"][-1].content)
     route = "reject" if "删除生产数据" in text else "research"
     return {"route": route}
 
-
 def choose_route(state: WorkflowState) -> Literal["research_agent", "reject"]:
     # 条件边根据外层业务状态选择下一节点
     return "research_agent" if state["route"] == "research" else "reject"
-
 
 def reject_request(state: WorkflowState) -> dict:
     # 确定性的拒绝节点不需要调用模型
@@ -1672,7 +1518,7 @@ workflow = builder.compile()
 
 这段代码体现的是分工：内部研究 Agent 继续使用高层抽象，外部业务流程获得显式路由。真实项目还需要补上模型、工具、检查点和异常处理，这里只保留能说明层次关系的部分。
 
-### [State：默认状态与自由建模](https://xiaolinnote.com/ai/langchain/langchain_vs_langgraph.html#state-默认状态与自由建模)
+### State：默认状态与自由建模
 
 Agent 为什么需要状态？因为模型调用、工具结果、人工意见和中间产物不可能只靠函数局部变量一直传下去。两者都有状态，但使用姿势不同。
 
@@ -1686,7 +1532,7 @@ LangGraph 则让状态设计本身成为工作流架构的一部分。开发者�
 
 这不是说 LangChain 没有 State，因为它的 Agent State 就运行在 LangGraph 上。区别在于，用 LangChain 时通常接受一套为标准 Agent loop 设计好的状态骨架；直接使用 LangGraph 时，你要为整个业务工作流设计数据通道和更新规则，也因此拥有更大的自由度和责任。
 
-### [谁提供持久化与记忆？](https://xiaolinnote.com/ai/langchain/langchain_vs_langgraph.html#谁提供持久化与记忆)
+### 谁提供持久化与记忆？
 
 这一部分是面试里最容易说错的地方。有人会回答「LangChain 管记忆，LangGraph 管持久化」，也有人会说「只有 LangGraph 才能断点恢复」。两种说法都把上下层拆散了。
 
@@ -1702,7 +1548,7 @@ durable execution 也不只是「把数据存进数据库」。一个长流程�
 
 可靠恢复要求把非确定性操作和副作用放进可记录的任务边界，并保证可能重试的操作幂等。直接设计 LangGraph 时，这些边界会更显式；LangChain 标准 Agent 虽然能借用同一运行时，复杂业务副作用仍需要开发者认真建模。
 
-### [人工介入有什么区别？](https://xiaolinnote.com/ai/langchain/langchain_vs_langgraph.html#人工介入有什么区别)
+### 人工介入有什么区别？
 
 如果需求是「模型想发送邮件时先让人确认」，LangChain 的 `HumanInTheLoopMiddleware` 已经非常合适。它可以在工具真正执行前暂停，然后接受批准、修改、拒绝或人工直接回复。
 
@@ -1714,7 +1560,7 @@ durable execution 也不只是「把数据存进数据库」。一个长流程�
 
 因此，不能说 LangChain 没有 human-in-the-loop。准确说法是，LangChain 提供了围绕 Agent 工具调用的高层审批体验，LangGraph 提供了更通用的中断与恢复原语。前者用起来省事，后者表达范围更广。
 
-### [流式输出能看到多深？](https://xiaolinnote.com/ai/langchain/langchain_vs_langgraph.html#流式输出能看到多深)
+### 流式输出能看到多深？
 
 用户界面逐字显示模型回答，只是流式输出最表面的一层。Agent 真正执行时，用户还想看到「正在搜索」「工具已返回」「等待审批」等进度，开发者则可能需要观察哪个节点更新了哪些状态、哪个任务失败、何时写入检查点。
 
@@ -1722,7 +1568,7 @@ LangChain Agent 可以直接使用 `stream` 或 `stream_events`，输出模型�
 
 LangGraph 在更低层暴露 `values`、`updates`、`messages`、`custom`、`checkpoints`、`tasks` 和 `debug` 等事件类型，还能处理子图命名空间。两者都能流式输出，LangChain 优先提供常见 Agent 体验，LangGraph 则允许观察完整执行引擎。
 
-### [部署与调试如何分工？](https://xiaolinnote.com/ai/langchain/langchain_vs_langgraph.html#部署与调试如何分工)
+### 部署与调试如何分工？
 
 有些回答会把 LangSmith 当成 LangGraph 专属控制台，这也不准确。LangSmith 承担 tracing、evaluation、Studio 和 Deployment 等平台能力，可以观察 LangChain Agent，也可以观察直接编写的 LangGraph，甚至支持其他框架接入 tracing。
 
@@ -1734,7 +1580,7 @@ LangGraph 在更低层暴露 `values`、`updates`、`messages`、`custom`、`che
 
 生产部署同样如此。LangChain Agent 和 LangGraph 工作流都能部署到 LangSmith 的 Agent Server 体系，也可以根据团队基础设施自行托管。是否使用托管平台，是部署选择；是否使用 LangChain 高层 Agent API，是开发抽象选择，别把这两个问题混成一个。
 
-### [什么时候下沉 LangGraph？](https://xiaolinnote.com/ai/langchain/langchain_vs_langgraph.html#什么时候下沉-langgraph)
+### 什么时候下沉 LangGraph？
 
 如果需求可以自然表达成「给模型一组工具，让它循环调用，直到完成任务」，优先从 LangChain `create_agent` 开始通常更省事。客服问答、数据库查询助手和内部知识助手，大量工作都属于这个范围。
 
@@ -1746,7 +1592,7 @@ LangGraph 在更低层暴露 `values`、`updates`、`messages`、`custom`、`che
 
 LangGraph 更底层，不代表它更高级、更适合所有项目。控制权越大，需要自己设计和测试的状态、路由、恢复与副作用就越多。一个标准 Agent 用几十个节点重新搭一遍，未必更可靠，反而可能增加维护成本。
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/langchain/langchain_vs_langgraph.html#🎯-面试总结)
+## 🎯 面试总结
 
 先把关系定准：LangChain v1 是高层 Agent 框架，LangGraph 是低层编排框架与运行时，`create_agent` 构建在 LangGraph 上。因此它们不是彼此隔离的两套引擎，也不是简单的替代关系。
 
@@ -1758,23 +1604,7 @@ LangGraph 更底层，不代表它更高级、更适合所有项目。控制权�
 
 # 10. LangGraph 相比于 LangChain 有哪些核心优势？更适配哪些 Agent 场景？
 
-👔面试官：LangGraph 相比 LangChain 有什么优势？
-
-🙋‍♂️我：LangChain 只能写线性 Chain，LangGraph 才支持分支、循环和 Agent。
-
-👔面试官：这还是早期教程里的印象。LangChain v1 的 `create_agent` 本身就是基于 LangGraph 构建的图运行时，标准 Agent loop 本来就有循环和条件路由。
-
-🙋‍♂️我：那 LangGraph 的优势就是多了一张流程图，复杂项目用它看起来更高级。
-
-👔面试官：图不是装饰。State、节点边界、并行汇合、检查点、中断与恢复都要进入执行语义，只画一张图解决不了可靠性问题。
-
-🙋‍♂️我：懂了，只要项目要持久化、流式输出或记忆，就必须抛弃 LangChain，全部改成 LangGraph。
-
-👔面试官：又把上下层说成二选一了。LangChain Agent 已经继承这些底层能力。真正需要下沉到 LangGraph 的时机，是标准 Agent loop 不足以表达业务流程，而不是看到某个功能名就重写项目。
-
-判断是否需要 LangGraph，关键要看开发者需要把控制精确到哪一层。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/langchain/langgraph_advantages.html#💡-简要回答)
+## 💡 简要回答
 
 LangGraph 和 LangChain 不是互斥的两套 Agent 框架。LangChain v1 提供模型、工具、中间件和预构建 Agent loop，`create_agent` 本身就运行在 LangGraph 上；LangGraph 是更低层的编排框架与运行时，让开发者直接控制 State、节点、边、路由、并行、子图、中断和恢复。
 
@@ -1790,9 +1620,9 @@ Checkpointer 保存线程内状态快照，Store 保存跨线程长期记忆；`
 
 只有当业务拓扑、恢复边界或多角色协作成为主要复杂度时，我才直接使用 LangGraph，也常把 LangChain Agent 作为图中的节点或子图复用。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/langchain/langgraph_advantages.html#📝-详细解析)
+## 📝 详细解析
 
-### [两者为什么不对立？](https://xiaolinnote.com/ai/langchain/langgraph_advantages.html#两者为什么不对立)
+### 两者为什么不对立？
 
 很多林友听到「相比」两个字，就会下意识列一张功能表：LangChain 有模型和工具，LangGraph 有状态、循环和持久化。这个答法看似清楚，实际会制造一个错误前提，好像用了 LangChain 就没有 LangGraph 的运行能力。
 
@@ -1806,7 +1636,7 @@ Checkpointer 保存线程内状态快照，Store 保存跨线程长期记忆；`
 
 LangChain Agent 同样能获得持久化、流式输出和人工介入能力。直接使用 LangGraph 时，我们还能决定这些能力放在哪个节点、围绕哪些状态生效、失败后从哪里恢复，以及不同子流程如何组合。
 
-### [为什么要把流程与状态摊开？](https://xiaolinnote.com/ai/langchain/langgraph_advantages.html#为什么要把流程与状态摊开)
+### 为什么要把流程与状态摊开？
 
 为什么标准工具调用 Agent 一复杂，就容易让人失去控制？因为模型通常既在理解问题，又在决定下一步做什么。
 
@@ -1828,7 +1658,7 @@ LangGraph 的核心价值，是让确定性规则与模型决策各自待在合�
 
 自由度也带来更多责任。State 字段怎么设计，并行写入如何合并，节点边界切多细，都要由开发者决定。LangGraph 不会因为用了图就自动让流程合理，错误的 State 设计照样会造成状态膨胀、并发覆盖和难以维护。
 
-### [两种编排 API 怎么选？](https://xiaolinnote.com/ai/langchain/langgraph_advantages.html#两种编排-api-怎么选)
+### 两种编排 API 怎么选？
 
 提到 LangGraph，很多人只知道 `StateGraph`。当前官方还提供 Functional API，两者共享同一套运行时能力，但编程方式不同。
 
@@ -1846,7 +1676,7 @@ LangGraph 的核心价值，是让确定性规则与模型决策各自待在合�
 | 线性流程加少量条件和人工确认     | Functional API | 局部变量与函数作用域更自然，样板代码更少       |
 | 不同子流程复杂度差异很大         | 混合使用       | 外层图负责调度，内部函数工作流负责局部步骤     |
 
-### [流程跨小时后如何继续？](https://xiaolinnote.com/ai/langchain/langgraph_advantages.html#流程跨小时后如何继续)
+### 流程跨小时后如何继续？
 
 一个 Agent 运行几十秒，进程挂了可以让用户重试。可如果它要运行几小时，期间已经查了数据库、调用了外部服务，还在等审批，重新从第一步开始就不只是浪费 token，还可能重复发邮件、重复创建订单。
 
@@ -1866,7 +1696,7 @@ Checkpointer 保存某个线程的图状态快照，支撑会话连续性、中�
 
 LangGraph 能提供可靠执行的基础设施，却不能替业务自动发明幂等语义。面试时如果只说「加 Checkpointer 就绝对不会重复执行」，反而暴露了对恢复机制理解不够。
 
-### [人工怎样进入任意一步？](https://xiaolinnote.com/ai/langchain/langgraph_advantages.html#人工怎样进入任意一步)
+### 人工怎样进入任意一步？
 
 Agent 真正进入生产系统后，完全自治往往不是终点。退款、付款、删库、发送正式邮件、发布内容等动作，需要人看一眼；有些流程还要等人工补充材料、修改状态，甚至等待几天后再继续。
 
@@ -1880,7 +1710,7 @@ LangChain v1 已经有 `HumanInTheLoopMiddleware`，如果需求只是对若干�
 
 ![img](image/6d354c97_interrupt-resume-reexec.png)
 
-### [失败后为什么不必整段重跑？](https://xiaolinnote.com/ai/langchain/langgraph_advantages.html#失败后为什么不必整段重跑)
+### 失败后为什么不必整段重跑？
 
 传统脚本失败后，开发者常见的选择只有两个：整段重跑，或者手工改数据库再祈祷流程能继续。LangGraph 通过 checkpoint、节点边界和错误策略，把失败处理变成工作流的一部分。
 
@@ -1898,7 +1728,7 @@ LangChain v1 已经有 `HumanInTheLoopMiddleware`，如果需求只是对若干�
 
 这里也要避免夸大。Time travel 不是把程序时光倒流后原样播放录像。checkpoint 之前的节点会跳过，之后的节点会重新执行，因此模型输出、网络响应和外部副作用可能不同。它提供的是「可定位、可重放、可分叉」的调试基础，不是自动撤销现实世界已经发生的操作。
 
-### [复杂任务如何并行又汇合？](https://xiaolinnote.com/ai/langchain/langgraph_advantages.html#复杂任务如何并行又汇合)
+### 复杂任务如何并行又汇合？
 
 深度研究类任务通常要先拆主题，再并行搜索多个来源，随后交叉验证、合并证据、发现空白后继续补搜，最后统一写报告。这套流程很适合用图来表达。
 
@@ -1918,7 +1748,7 @@ Graph API 支持把一个任务拆成多条并行分支，再把结果汇合回�
 
 很多交接场景使用单 Agent 加 middleware 会更简单。只有角色需要不同工具、不同状态结构、独立生命周期，或者确实需要并行和跨团队维护时，子图才值得引入。
 
-### [运行中怎样持续看见进度？](https://xiaolinnote.com/ai/langchain/langgraph_advantages.html#运行中怎样持续看见进度)
+### 运行中怎样持续看见进度？
 
 复杂 Agent 的耗时主要花在搜索、文件处理、子 Agent 调用和人工等待上。如果前端只显示一个转圈图标，用户不知道系统卡住了还是仍在工作。
 
@@ -1930,7 +1760,7 @@ LangChain Agent 因为运行在 LangGraph 上，也能使用相同的底层流�
 
 这种可观察性与 LangSmith tracing、Studio 配合后更有价值。开发者可以查看实际走过的节点路径、状态变更和耗时，复杂流程不再只剩一长串难以还原的模型日志。
 
-### [状态如何走向生产部署？](https://xiaolinnote.com/ai/langchain/langgraph_advantages.html#状态如何走向生产部署)
+### 状态如何走向生产部署？
 
 长时间运行的 Agent 不能只靠进程内列表保存状态，也不能把用户偏好和当前任务进度混进一个向量库。LangGraph 将线程内状态与跨线程长期资料分开后，系统边界会清楚很多。
 
@@ -1946,21 +1776,17 @@ LangChain Agent 因为运行在 LangGraph 上，也能使用相同的底层流�
 
 这套部署能力也是为什么 LangGraph 适合长任务，但不要说成「用了 LangGraph 就自动高可用」。自托管时，数据库、任务队列、Worker 扩缩容、重试策略、监控和数据保留都仍然是团队责任。即使使用托管平台，也需要做容量评估、幂等设计和故障演练。
 
-### [完整流程示例](https://xiaolinnote.com/ai/langchain/langgraph_advantages.html#完整流程示例)
+### 完整流程示例
 
 假设我们要做一个采购 Agent。申请提交后，要并行做预算检查和合规检查，两个结果齐了才能进入人工审批，审批通过才调用采购系统，拒绝则结束。这个流程里，模型可以帮助理解材料，但顺序与权限不能交给模型自由发挥。
 
 下面用简化代码表达核心结构。示例重点是图的控制语义，不包含真实模型、数据库和鉴权实现。
 
-
-
 ```python
 from typing import Literal, TypedDict
-
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
-
 
 class PurchaseState(TypedDict, total=False):
     # request_id 也可作为外部采购接口的幂等键
@@ -1971,21 +1797,17 @@ class PurchaseState(TypedDict, total=False):
     approved: bool
     result: str
 
-
 def normalize_request(state: PurchaseState) -> dict:
     # 真实项目应在这里完成字段校验和权限检查
     return {"amount": round(state["amount"], 2)}
-
 
 def check_budget(state: PurchaseState) -> dict:
     # 该节点可以替换为预算系统查询，并配置重试与超时
     return {"budget_ok": state["amount"] <= 100_000}
 
-
 def check_compliance(state: PurchaseState) -> dict:
     # 与预算检查写入不同字段，因此两个节点可以安全并行
     return {"compliance_ok": True}
-
 
 def human_review(state: PurchaseState) -> dict:
     # 暂停流程，将两项检查结果交给审核系统
@@ -1998,21 +1820,17 @@ def human_review(state: PurchaseState) -> dict:
     )
     return {"approved": bool(review["approved"])}
 
-
 def route_after_review(state: PurchaseState) -> Literal["execute", "reject"]:
     # 审批结果决定后续确定性路径
     return "execute" if state["approved"] else "reject"
-
 
 def execute_purchase(state: PurchaseState) -> dict:
     # 真实调用必须携带 request_id，防止恢复或重试造成重复采购
     return {"result": f"采购申请 {state['request_id']} 已执行"}
 
-
 def reject_purchase(state: PurchaseState) -> dict:
     # 拒绝路径不触发外部采购副作用
     return {"result": "采购申请未通过"}
-
 
 builder = StateGraph(PurchaseState)
 builder.add_node("normalize", normalize_request)
@@ -2021,7 +1839,6 @@ builder.add_node("compliance", check_compliance)
 builder.add_node("human_review", human_review)
 builder.add_node("execute", execute_purchase)
 builder.add_node("reject", reject_purchase)
-
 builder.add_edge(START, "normalize")
 
 # 从同一节点扇出，预算和合规检查进入并行分支
@@ -2056,7 +1873,7 @@ print(final_state["result"])
 
 如果用 LangChain，也不是不能实现这个系统。更自然的组合通常是：用 `create_agent` 做「材料理解」或「异常解释」节点，外层采购流程仍由 `StateGraph` 控制。这样高层 Agent 抽象和低层业务编排各司其职。
 
-### [哪些场景适合 LangGraph？](https://xiaolinnote.com/ai/langchain/langgraph_advantages.html#哪些场景适合-langgraph)
+### 哪些场景适合 LangGraph？
 
 理解了前面的能力，场景判断就不用死记。我们只要先问一句：这个系统最难的是「让模型会用工具」，还是「让整个任务可靠地走完一条复杂路线」？
 
@@ -2068,7 +1885,7 @@ print(final_state["result"])
 
 最后再看团队是否需要干预中间状态。复杂 RAG 会在证据不足时改写查询并重新检索，模型走错路线时也需要查看 checkpoint、修改状态后重放。只看最终答案已经无法解释问题时，显式节点、状态历史和分叉能力才会真正转化为调试价值。
 
-### [哪些场景不必用 LangGraph？](https://xiaolinnote.com/ai/langchain/langgraph_advantages.html#哪些场景不必用-langgraph)
+### 哪些场景不必用 LangGraph？
 
 LangGraph 更底层，不等于更适合所有项目。一个只需要查天气、查订单、总结文档的标准工具调用 Agent，使用 `create_agent` 往往更快、更短，也更符合团队认知。
 
@@ -2094,7 +1911,7 @@ LangGraph 更底层，不等于更适合所有项目。一个只需要查天气�
 
 图越复杂，不代表系统越智能。节点过细会增加 checkpoint、序列化和维护成本，节点过粗又会降低恢复粒度。成熟的设计会根据副作用、重试、人工介入和可观测性划分边界，不追求节点数量。
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/langchain/langgraph_advantages.html#🎯-面试总结)
+## 🎯 面试总结
 
 先把关系说准：LangChain v1 的 Agent 本身构建在 LangGraph 上，所以两者不是互斥框架。LangGraph 让开发者从高层 Agent loop 下沉，显式控制整个有状态业务流程。
 
@@ -2110,23 +1927,7 @@ LangGraph 更底层，不等于更适合所有项目。一个只需要查天气�
 
 # 11. LangChain 大版本升级有哪些核心变化？
 
-👔面试官：你说说 LangChain 大版本升级都改了什么？
-
-🙋‍♂️我：主要是支持的模型和向量数据库越来越多，功能变得更丰富。
-
-👔面试官：这些只是表面。为什么要拆分 `langchain-core` 和模型集成包？为什么又引入 Runnable、LangGraph 和 middleware？
-
-🙋‍♂️我：因为旧 API 不好用，所以新版本把旧 Chain 全部删掉了。
-
-👔面试官：旧能力主要被移到 `langchain-classic`，并不是全部删除。真正值得关注的是框架职责发生了什么变化。
-
-🙋‍♂️我：那升级时只更新 `langchain` 主包，再把旧导入改掉就可以了。
-
-👔面试官：还要检查 LangGraph、社区包和模型集成包的兼容关系，并回归测试工具调用、流式输出和持久化，不能把跨版本迁移理解成换几个 import。
-
-LangChain 的版本演进，可以沿着「稳定核心协议、独立模型集成、高层 Agent API、LangGraph 运行时」这条主线来理解。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/langchain/version_evolution.html#💡-简要回答)
+## 💡 简要回答
 
 LangChain 的版本演进可以抓住四条主线。
 
@@ -2140,9 +1941,9 @@ LangChain 的版本演进可以抓住四条主线。
 
 这些变化都指向同一个方向：稳定核心抽象、解耦第三方集成、统一组合协议，并把复杂 Agent 交给可持久化、可恢复的图运行时。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/langchain/version_evolution.html#📝-详细解析)
+## 📝 详细解析
 
-### [为什么要不断调整架构？](https://xiaolinnote.com/ai/langchain/version_evolution.html#为什么要不断调整架构)
+### 为什么要不断调整架构？
 
 LangChain 早期把模型、向量库、工具、Retriever 和大量预制 Chain 都放在相近的包结构中，快速验证想法很方便。可项目一大，第三方 SDK 的一次更新就可能牵动整个依赖树。
 
@@ -2152,7 +1953,7 @@ LangChain 早期把模型、向量库、工具、Retriever 和大量预制 Chain
 
 ![img](image/221d4ac2_langchain-evolution-timeline.png)
 
-### [核心与集成为何拆开？](https://xiaolinnote.com/ai/langchain/version_evolution.html#核心与集成为何拆开)
+### 核心与集成为何拆开？
 
 模型厂商、向量数据库和外部工具的 SDK 变化很快，而消息、Runnable、Tool 等核心协议应该尽量稳定。把它们全部放在同一个包中，会让两种不同的迭代节奏互相影响。
 
@@ -2169,11 +1970,9 @@ LangChain 早期把模型、向量库、工具、Retriever 和大量预制 Chain
 
 ![img](image/cf1a6af2_core-integration-layering.png)
 
-### [Runnable 改变了什么？](https://xiaolinnote.com/ai/langchain/version_evolution.html#runnable-改变了什么)
+### Runnable 改变了什么？
 
 早期 LangChain 为不同流程提供了大量 Chain 类，调用方式和扩展方式并不完全一致。Runnable 协议与 LCEL 将 Prompt、Model、Parser、Retriever 等组件统一为可组合单元。
-
-
 
 ```python
 # Prompt、Model 和 Parser 统一遵循 Runnable 协议
@@ -2187,7 +1986,7 @@ result = chain.invoke({"question": "什么是 Agent？"})
 
 它代表 LangChain 从「大量预制类」转向「少量标准协议 + 组合」。对于步骤固定的确定性流程，Runnable 和 LCEL 往往比 Agent 更容易测试和控制。
 
-### [为什么转向 LangGraph？](https://xiaolinnote.com/ai/langchain/version_evolution.html#为什么转向-langgraph)
+### 为什么转向 LangGraph？
 
 传统 Agent 执行器通常在内部运行「模型判断、调用工具、再次判断」的循环。简单 Agent 使用方便，但一旦加入规划、反思、并行分支、人工审批或故障恢复，隐藏的循环就会变得难以修改。
 
@@ -2199,7 +1998,7 @@ LangGraph 的解决思路，是把隐藏循环摊开成 `State + Node + Edge`。
 
 LangGraph 并不是把 LangChain 完全替换掉。LangChain 提供模型、Tool、middleware 和 `create_agent` 等高层开发体验，LangGraph 提供底层状态与执行能力。简单 Agent 使用 LangChain 即可，复杂流程再下沉到 LangGraph。
 
-### [LangChain v1 聚焦了什么？](https://xiaolinnote.com/ai/langchain/version_evolution.html#langchain-v1-聚焦了什么)
+### LangChain v1 聚焦了什么？
 
 LangChain v1 将主线进一步收敛到 Agent 开发。要理解这次收敛，可以先从开发者最常接触的入口看起。
 
@@ -2213,13 +2012,13 @@ Agent 跑起来后，总会出现动态提示词、模型选择、工具筛选�
 
 因此，不能把 v1 简单理解成「旧 API 全部删除」。更准确的说法是：新项目使用聚焦后的 Agent API，旧项目通过 `langchain-classic` 保持运行，再根据需要逐步迁移。
 
-### [Pydantic 2 值得重点背吗？](https://xiaolinnote.com/ai/langchain/version_evolution.html#pydantic-2-值得重点背吗)
+### Pydantic 2 值得重点背吗？
 
 Python v0.3 将内部数据模型迁移到 Pydantic 2，并停止使用 Pydantic 1 兼容层。这属于重要的迁移背景，因为工具 Schema、结构化输出和配置对象都依赖 Pydantic。
 
 面试时不需要展开 Pydantic 的全部版本差异。说明它统一了数据模型与校验基线，旧项目升级时需要检查导入路径和模型定义即可。拆包、Runnable、LangGraph 和 v1 Agent 架构更能体现 LangChain 的长期演进方向。
 
-### [升级时要注意什么？](https://xiaolinnote.com/ai/langchain/version_evolution.html#升级时要注意什么)
+### 升级时要注意什么？
 
 跨大版本升级不能只执行一次依赖更新。动手前先锁定当前依赖和可复现环境，再阅读目标版本的迁移指南，否则一旦多个包同时变化，很难判断问题从哪里开始。
 
@@ -2229,7 +2028,7 @@ Python v0.3 将内部数据模型迁移到 Pydantic 2，并停止使用 Pydantic
 
 不同包的更新节奏并不完全一致。主包的稳定承诺不能自动覆盖社区集成、合作伙伴包和实验性 API，因此生产项目应该固定依赖版本，并尽量建立在公开稳定接口之上。
 
-### [演进方向是什么？](https://xiaolinnote.com/ai/langchain/version_evolution.html#演进方向是什么)
+### 演进方向是什么？
 
 几次架构变化连起来是一条清楚的主线：用 `langchain-core` 稳定基础协议，再把模型和数据库集成拆出去独立更新，解决核心与外部 SDK 节奏不一致的问题。
 
@@ -2237,7 +2036,7 @@ Python v0.3 将内部数据模型迁移到 Pydantic 2，并停止使用 Pydantic
 
 这套方向让 LangChain 从「封装大量 LLM 功能」，转向「提供清晰分层的 Agent 工程体系」。代价是旧项目升级需要处理依赖和导入路径，收益则是核心接口更稳定、复杂流程更可控，也更适合生产环境。
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/langchain/version_evolution.html#🎯-面试总结)
+## 🎯 面试总结
 
 面试时，不需要背诵每个小版本增加了哪些 API，也不建议报当前最新补丁版本。围绕四个架构节点回答即可：
 
@@ -2250,23 +2049,7 @@ LangChain 的演进方向是稳定核心、解耦集成、组合确定性流程�
 
 # 12. Deep Research 的实现逻辑和适用场景是什么？
 
-👔面试官：你了解 LangChain 生态里的 Deep Research 吗？
-
-🙋‍♂️我：就是多搜索几次，再让模型生成一篇更长的报告。
-
-👔面试官：搜索次数多不等于研究深入。研究范围如何确定？子课题如何拆分？资料冲突怎么办？什么时候停止？
-
-🙋‍♂️我：可以让十个 Agent 每人写一章，最后拼起来，Agent 越多速度越快。
-
-👔面试官：并行写章节容易重复和口径不一致。更合理的方式是并行收集独立子课题的证据，再由一个写作阶段统一综合。
-
-🙋‍♂️我：那只要搜索结果里带了很多链接，最终报告应该就算可靠了。
-
-👔面试官：链接多不代表证据可靠。来源是否独立、引用是否支持结论、冲突资料如何复核，这些才决定研究质量。
-
-面试官关注四件事：研究型 Agent 如何动态规划、控制上下文、核验证据，以及多 Agent 会带来哪些成本和风险。
-
-## [💡 简要回答](https://xiaolinnote.com/ai/langchain/deep_research.html#💡-简要回答)
+## 💡 简要回答
 
 Deep Research 不是 LangChain 核心包里的一个固定开关，而是一类面向开放问题的研究型 Agent 架构。LangChain 团队提供了 `open_deep_research` 参考实现，也提供了更通用的 Deep Agents SDK；前者是具体研究应用，后者是通用 Agent 开发框架，不能混为一谈。
 
@@ -2280,9 +2063,9 @@ Supervisor 会检查证据是否覆盖研究目标，发现空白就继续补搜
 
 生产环境必须限制并发、迭代、Token 和搜索预算，并对网页提示词注入、来源可信度和高风险结论进行人工复核。
 
-## [📝 详细解析](https://xiaolinnote.com/ai/langchain/deep_research.html#📝-详细解析)
+## 📝 详细解析
 
-### [Deep Research 是什么？](https://xiaolinnote.com/ai/langchain/deep_research.html#deep-research-是什么)
+### Deep Research 是什么？
 
 普通问答通常可以通过一次检索得到答案，而研究任务往往一开始就没有固定路径。例如，比较三家云厂商的 Agent 托管能力，需要分别查产品定位、价格、限制和区域差异，还要处理产品改名、资料过期和来源矛盾。
 
@@ -2294,11 +2077,9 @@ Deep Research 会围绕研究目标动态决定：下一步搜索什么、哪些
 
 回答面试题时说明这层区别即可，不需要背诵每个托管产品和仓库实现。
 
-### [核心流程是什么？](https://xiaolinnote.com/ai/langchain/deep_research.html#核心流程是什么)
+### 核心流程是什么？
 
 一套典型的 Deep Research 流程可以拆成六步：
-
-
 
 ```text
 澄清问题并确定范围
@@ -2323,7 +2104,7 @@ Deep Research 会围绕研究目标动态决定：下一步搜索什么、哪些
 
 ![img](image/f1d4566a_deep-research-workflow.png)
 
-### [为什么需要子 Agent？](https://xiaolinnote.com/ai/langchain/deep_research.html#为什么需要子-agent)
+### 为什么需要子 Agent？
 
 如果一个 Agent 同时研究多个主题，搜索结果会不断占用同一个上下文。A 公司的价格、B 公司的安全文档和 C 公司的失败请求混在一起，模型反而更难关注当前证据。
 
@@ -2335,7 +2116,7 @@ Deep Research 会围绕研究目标动态决定：下一步搜索什么、哪些
 
 为什么不让子 Agent 分别写报告章节？因为各章节可能重复背景、使用不同口径，甚至得出相互冲突的结论。并行搜证据、统一写报告，更容易保持全文一致性。
 
-### [如何保证研究质量？](https://xiaolinnote.com/ai/langchain/deep_research.html#如何保证研究质量)
+### 如何保证研究质量？
 
 研究报告很长、链接很多，并不代表质量高。判断质量时，可以沿着「来源 -> 证据 -> 结论」反向追查。
 
@@ -2349,7 +2130,7 @@ Deep Research 会围绕研究目标动态决定：下一步搜索什么、哪些
 
 评测时既要看最终答案，也要看研究轨迹、来源覆盖率、引用正确性、耗时和成本。通用 Benchmark 可以用于版本比较，但不能代替企业自己的业务数据集。
 
-### [如何控制成本和安全？](https://xiaolinnote.com/ai/langchain/deep_research.html#如何控制成本和安全)
+### 如何控制成本和安全？
 
 Deep Research 的成本同时受到「宽度」和「深度」影响。宽度是并行研究单元数量，深度是每个研究员和 Supervisor 最多迭代多少轮。
 
@@ -2363,7 +2144,7 @@ Deep Research 的成本同时受到「宽度」和「深度」影响。宽度是
 
 对于金融、医疗、法律和安全决策，Deep Research 只能辅助资料整理，不能因为报告带有引用就取消专家复核。
 
-### [哪些场景适合？](https://xiaolinnote.com/ai/langchain/deep_research.html#哪些场景适合)
+### 哪些场景适合？
 
 判断一个任务是否值得使用 Deep Research，先看它是否需要多轮搜索和动态调整方向。如果一次权威检索就能回答，复杂研究流程只会增加成本。
 
@@ -2373,7 +2154,7 @@ Deep Research 的成本同时受到「宽度」和「深度」影响。宽度是
 
 如果只是查询一个容易核验的实时事实，一次权威搜索更快、更便宜；如果多个子任务必须严格共享中间状态，强行并行只会增加冲突；如果数据源本身不可靠或没有访问权限，研究 Agent 也无法凭空得到正确答案。
 
-## [🎯 面试总结](https://xiaolinnote.com/ai/langchain/deep_research.html#🎯-面试总结)
+## 🎯 面试总结
 
 回答 Deep Research 时，先说明它是一类研究型 Agent 架构，而不是 LangChain 核心包中的一个开关。官方参考实现与通用 Deep Agents 框架定位不同，但它们都可以借助 LangChain 和 LangGraph 的模型、工具、状态与编排能力。
 
