@@ -6305,25 +6305,18 @@ protected final boolean tryAcquire(int acquires) {
     int c = getState();
 
     if (c == 0) {
-
         if (!hasQueuedPredecessors() && //这里判断了 hasQueuedPredecessors()
                 compareAndSetState(0, acquires)) {
-            
-            setExclusiveOwnerThread(current);
-            
+            setExclusiveOwnerThread(current);           
             return true;
         }
-
     } else if (current == getExclusiveOwnerThread()) {
-
         int nextc = c + acquires;
-
         if (nextc < 0) {
             throw new Error("Maximum lock count exceeded");
         }
         setState(nextc);
         return true;
-
     }
     return false;
 }
@@ -6338,33 +6331,18 @@ final boolean nonfairTryAcquire(int acquires) {
     int c = getState();
 
     if (c == 0) {
-
         if (compareAndSetState(0, acquires)) { //这里没有判断      hasQueuedPredecessors()
-
             setExclusiveOwnerThread(current);
-
             return true;
-
         }
-
-    }
-
-    else if (current == getExclusiveOwnerThread()) {
-
+    }else if (current == getExclusiveOwnerThread()) {
         int nextc = c + acquires;
-
         if (nextc < 0) // overflow
-
         throw new Error("Maximum lock count exceeded");
-
         setState(nextc);
-
         return true;
-
     }
-
     return false;
-
 }
 ```
 
@@ -6378,9 +6356,7 @@ final boolean nonfairTryAcquire(int acquires) {
 
 ```java
 public boolean tryLock() {
-
     return sync.nonfairTryAcquire(1);
-
 }
 ```
 
@@ -6739,8 +6715,6 @@ Java 中的 Executors 类定义了一些快捷的工具方法，来帮助我们�
 
 不过，**shutdownNow() 不是强制终止线程**。如果任务不检查中断，或者阻塞在不能通过中断取消的操作上，就可能继续运行。计算任务即使没有调用 `sleep()`，也可以通过检查中断标志来配合退出。
 
-![img](image/a1e14232_threadpool-shutdown.png)
-
 这两个方法本身都不会等待线程池彻底结束。如果需要确认已经退出，应使用 `awaitTermination()`，例如：
 
 ```java
@@ -6772,8 +6746,6 @@ try {
 对于常见的 `ThreadPoolExecutor`，任务通过 `execute()` 执行时，如果有未捕获的运行时异常，会离开任务执行流程，通常导致这个工作线程退出，异常可以交给线程的未捕获异常处理器。线程池会根据状态和配置补充工作线程。
 
 通过 `submit()` 提交时，任务通常会被包装成 `FutureTask`。任务异常会保存在 Future 里，调用 `get()` 时以 `ExecutionException` 的形式抛出，原始原因可以通过 `getCause()` 获取。
-
-![img](image/7b724455_execute-submit-exceptions.png)
 
 ```java
 Future<?> future = executor.submit(() -> {
@@ -6834,8 +6806,6 @@ class FutureCancelExample {
 
 取消之后，`get()` 会抛出 `CancellationException`。即使 `isCancelled()`、`isDone()` 都是 `true`，也不能据此认为执行线程已经停止。
 
-![img](https://cdn.xiaolincoding.com/xiaolinnote/interview/images/juc/51065a6c_future-cancel-vs-stop.png)
-
 另外，取消的任务包装对象可能暂时还在普通线程池的队列里，需要时可结合 `ThreadPoolExecutor.purge()` 清理。不同 Future 实现的取消机制也不完全一样，比如 `CompletableFuture.cancel(true)` 不会因此中断底层计算线程。
 
 ### 3.3.14 CompletableFuture 和 Future 有什么区别？
@@ -6852,8 +6822,6 @@ class FutureCancelExample {
 - **thenCombine()**：等两个阶段正常完成后，组合它们的结果。
 - **allOf()**：等待多个阶段全部完成，返回 `CompletableFuture<Void>`，各个结果仍需从原来的 Future 获取。
 - **exceptionally() / handle()**：处理失败，或者把成功和失败都转换成后续结果。
-
-![img](https://cdn.xiaolincoding.com/xiaolinnote/interview/images/juc/2f2dedba_completablefuture-composition.png)
 
 ```java
 import java.util.concurrent.*;
@@ -6886,9 +6854,7 @@ class CompletableFutureExample {
 
 第四，**CompletableFuture.cancel(true) 不会因此中断底层计算线程**。取消和超时首先影响结果状态，要停止实际计算，还需要任务本身的取消机制。
 
-最后，不要在资源有限的线程池里，让所有工作线程都阻塞等待同一个池中尚未执行的子任务。可以用异步组合减少这种等待，必要时把不同任务安排到独立的执行器。
-
-![img](image/cab3e9bf_threadpool-starvation.png)
+最后，不要在资源有限的线程池里，让所有工作线程都阻塞等待同一个池中尚未执行的子任务。可以用异步组合减少这种等待，必要时把不同任务安排到独立的执行器
 
 ## 3.4 场景
 
@@ -6981,8 +6947,6 @@ public class Singleton {
 
 这时它会跳过同步块，直接返回这个对象。虽然创建者在同步块里，但读取者没有获取同一把锁，不能建立锁对应的 happens-before 关系。
 
-![img](image/21764431_dcl-volatile-publication.png)
-
 加上 volatile 后，对 `instance` 的写与后续读建立 happens-before，初始化过程中已经完成的写入，对读到这个实例的线程可见。
 
 所以，**不是单例用了 synchronized 就一定还要加 volatile，而是这段双重检查代码存在无锁读取**。如果整个 `getInstance()` 都用同一把锁保护，就不需要为了这个发布问题额外加 volatile；也可以使用静态内部类或枚举来实现单例。
@@ -7047,8 +7011,6 @@ public class CountDownLatchExample {
 在没有任何同步机制的情况下，两个线程并发对同一个整型变量进行 50 次加 1 操作，最终结果可能是 100，也可能远小于 100。由于每次 `num++` 都可能因竞争而丢失更新，理论上结果可以低至 2（极端交错下），通常实际结果落在 (1, 100] 范围内。
 
 小于 100 情况的分析，由于对整型变量的 `num++` 操作不是原子操作，它实际上包含了三个步骤：读取变量的值、将值加 1、将新值写回变量。在多线程环境下，可能会出现线程安全问题。例如，线程 1 和线程 2 同时读取了变量的当前值，然后各自将其加 1，最后都将相同的新值写回变量，这就导致了一次加 1 操作的丢失。这种情况会多次发生，最终结果就会小于 100。
-
-![img](https://cdn.xiaolincoding.com/xiaolinnote/interview/images/juc/800e4c93_lost-update-interleaving.png)
 
 ```java
 import java.util.concurrent.atomic.AtomicInteger;
@@ -7134,7 +7096,7 @@ public class SynchronizedAddition {
 
 面试里问到这个问题，通常是想让我们介绍 **JVM 运行时数据区**，也就是堆、方法区、虚拟机栈、本地方法栈和程序计数器这五个部分。这里先按虚拟机规范来讲，再结合我们常用的 HotSpot 实现理解。
 
-![img](image/1713516291293-ce6ee4e7-c5a6-4395-9ee7-4ec1c014b206.webp)
+![img](image/06-066.webp)
 
 JVM 的内存结构主要分为以下几个部分：
 
@@ -7161,11 +7123,9 @@ JVM 的内存结构主要分为以下几个部分：
 
 JMM 里的“主内存”和“工作内存”是抽象概念，不能直接把主内存等同于堆、工作内存等同于栈。面试时先把这两个概念分开，后面就不容易答偏。
 
-![img](https://cdn.xiaolincoding.com/xiaolinnote/interview/images/jvm/d73dfc14_jvm-versus-jmm.png)
+![img](image/06-067.png)
 
 ### 4.1.3 JVM内存模型里的堆和栈有什么区别？
-
-主要可以从用途、生命周期和线程之间的关系这几个角度来回答：
 
 - **用途**：栈主要保存方法调用产生的栈帧，里面有局部变量、操作数栈等。局部变量可以是基本类型的值，也可以是对象引用。堆主要保存对象实例和数组，比如 `new User()` 创建的对象。
 - **生命周期**：方法执行结束，对应的栈帧就会出栈。堆里的对象是否回收，要看它是否还从 GC Roots 可达，不是方法一结束就一定回收，也不是执行 `obj = null` 就立即释放。
@@ -7188,7 +7148,7 @@ MyObject obj = new MyObject();
 
 `count` 保存的是整数值，`obj` 保存的是引用，通过这个引用才能访问堆中的 `MyObject` 实例。
 
-![img](https://cdn.xiaolincoding.com/xiaolinnote/interview/images/jvm/1ef0a6aa_stack-reference-shared-object.png)
+![img](image/06-068.png)
 
 不过，“引用”不一定就是一个普通的内存地址，它的具体表示由虚拟机实现决定，也不能直接说“64 位系统的对象引用一定占 8 字节”。比如 64 位 HotSpot 开启压缩对象指针后，堆中对象字段里的引用通常可以用 4 字节表示；栈帧里的引用表示还要看解释器或编译器的实现。
 
@@ -7198,14 +7158,12 @@ MyObject obj = new MyObject();
 
 通常可以先按传统分代收集器来回答：**Java 堆分为新生代和老年代，新生代又分为 Eden 区和两个 Survivor 区。**
 
-![img](image/1719974471041-14f6ed7f-358b-426a-b614-2501ceae0035.png)
-
 - **新生代（Young Generation）**：大多数新对象先在 Eden 分配，Eden 空间不足时通常触发 Young GC。存活对象会被复制到另一个 Survivor 区，或者晋升到老年代。两个 Survivor 区轮流使用，一次回收完成后通常有一个为空。常见的初始空间比例是 Eden:S0:S1 = 8:1:1，但收集器的自适应策略可能调整它，不能当成所有 JVM 都固定使用的比例。
 - **老年代（Old Generation）**：主要保存存活时间较长的对象，也可能接收直接分配的大对象。老年代回收的方式和时机由收集器决定，不能把老年代 GC 都叫作 Full GC。
 
 如果面试官继续问 G1，就要补充它的不同：**G1 把堆划分成多个大小相等的 Region，但仍然保留新生代和老年代的逻辑划分。** Eden、Survivor、Old 都由若干 Region 组成，不需要各自占据一整块连续空间。Humongous Region 用来保存超过一个 Region 一半大小的大对象，逻辑上属于老年代。
 
-![img](https://cdn.xiaolincoding.com/xiaolinnote/interview/images/jvm/182df402_generational-and-g1-layout.png)
+![img](image/06-069.png)
 
 还有一个容易答错的地方：**元空间不属于 Java 堆**，它使用的是本地内存。不要因为它也由 JVM 管理，就把它算进堆的组成部分。
 
@@ -7217,11 +7175,7 @@ MyObject obj = new MyObject();
 
 在 G1 中，**对象大小超过单个 Region 的一半，就会被当作 Humongous 对象**，直接分配到老年代的一组连续 Humongous Region 中。比如 Region 大小为 4MB，一个实际占用超过 2MB 的对象就符合这个条件，判断时还要把对象头等开销算进去。
 
-![img](https://cdn.xiaolincoding.com/xiaolinnote/interview/images/jvm/0b78b874_g1-humongous-allocation.png)
-
 大对象带来的问题也不只是“占用内存多”。G1 为它寻找连续 Region 时，可能出现堆里还有空闲空间，却凑不出足够连续 Region 的情况；最后一个 Region 的剩余空间也可能被浪费。
-
-![img](https://cdn.xiaolincoding.com/xiaolinnote/interview/images/jvm/a8431dd1_g1-contiguous-region-fragmentation.png)
 
 所以遇到大对象分配频繁的场景，比如一次读取整个文件、生成超大的字节数组，通常优先考虑分块处理、流式读取，再结合 GC 日志决定是否调整堆或 Region 大小。
 
@@ -7261,7 +7215,7 @@ MyObject obj = new MyObject();
 - **字符串常量池中的 String 对象**自 JDK 7 起保存在堆中，不能说它们还在元空间里。
 - **JIT 编译后的机器码**放在单独的 Code Cache 中，也不能直接把它算进元空间。
 
-![img](https://cdn.xiaolincoding.com/xiaolinnote/interview/images/jvm/74ec0fcf_hotspot-memory-locations.png)
+![img](image/06-070.png)
 
 面试里常见的“方法区存类信息、常量、静态变量”是概念层面的概括，如果被追问 JDK 8 的实际内存位置，就要把这些实现细节分清楚。
 
@@ -7296,7 +7250,7 @@ JDK 8 把类元数据放到使用本地内存的元空间中，减少了对固�
 - **字符串字面量 `"abc"`**：class 文件里有对应的常量信息，类加载后通过运行时常量池解析它，得到字符串常量池中驻留的 String 对象。在 JDK 7 及以后，这个 String 对象位于堆中。
 - **`new String("abc")`**：在堆中再创建一个新的 String 实例，`s` 指向这个新实例，而不是常量池中的实例。
 
-![img](https://cdn.xiaolincoding.com/xiaolinnote/interview/images/jvm/ce35c788_string-new-reference-map.png)
+![img](image/06-071.png)
 
 所以常见的回答是：**如果 `"abc"` 对应的驻留字符串原本不存在，涉及两个 String 对象；如果它已经存在，则只新增一个 String 对象。** 这里数的是 String 实例，不包括底层字符数组或字节数组等对象，也没有考虑 JIT 消除分配的优化。
 
@@ -7326,16 +7280,12 @@ System.out.println(a.equals(c)); // true
 
 ### 4.1.14 引用类型有哪些？有什么区别？
 
-Java 中主要有强引用、软引用、弱引用和虚引用四种，区别在于**它们能在多大程度上阻止对象被 GC 回收**。
-
 - **强引用**：最常见的引用，比如 `User user = new User()`。只要对象还能通过 GC Roots 的强引用链到达，GC 就不会回收它。要注意，两个对象互相强引用，但整体已经从 GC Roots 不可达，仍然可以回收。
 - **软引用**：用 `SoftReference` 表示。对象只有软引用可达时，JVM 可以在内存紧张时清理它，且会在抛出堆内存 OOM 前清除软可达对象的软引用。可以用于允许丢失的数据，但回收时机不稳定，不能代替有容量和过期策略的缓存。
 - **弱引用**：用 `WeakReference` 表示。GC 发现对象只有弱引用可达时，就会清除弱引用，不需要等内存紧张。因此 `get()` 随时可能返回 `null`，不能保证对象保留到下一次业务访问。
 - **虚引用**：用 `PhantomReference` 表示，需要配合 `ReferenceQueue` 使用，`get()` 始终返回 `null`。对象达到相应的回收状态后，引用会入队，程序可以据此安排清理相关资源，比如释放堆外内存。
 
 另外，软引用、弱引用也可以配合引用队列来清理失效条目。**引用入队只是通知，不会自动执行我们自己的资源清理代码**，还需要程序处理队列，或者使用 Cleaner 等机制。
-
-![img](https://cdn.xiaolincoding.com/xiaolinnote/interview/images/jvm/045e49d5_four-reference-types.png)
 
 ### 4.1.15 弱引用了解吗?举例说明在哪里可以用?
 
@@ -8211,8 +8161,6 @@ jstat -gcutil 12345 1000 10
 
 ### 5.1.1 说一下你对 Spring 的理解
 
-![img](image/1712650311366-b499469c-5afd-4be9-bad3-d787de86bf98.png)
-
 Spring框架核心特性包括：
 
 - **IoC容器**：Spring通过控制反转实现了对象的创建和对象间的依赖关系管理。开发者只需要定义好Bean及其依赖关系，Spring容器负责创建和组装这些对象。
@@ -8231,8 +8179,6 @@ Spring框架核心特性包括：
 Spring通过这IOC、DI、AOP三大核心思想，实现了轻量级、高内聚低耦合的企业级应用开发框架，成为Java生态中不可或缺的基石。
 
 ### 5.1.3 Spring IoC和AOP 介绍一下
-
-Spring IoC和AOP 区别：
 
 - **IoC**：即控制反转的意思，它是一种创建和获取对象的技术思想，依赖注入(DI)是实现这种技术的一种方式。传统开发过程中，我们需要通过new关键字来创建对象。使用IoC思想开发方式的话，我们不通过new关键字创建对象，而是通过IoC容器来帮我们实例化对象。 通过IoC的方式，可以大大降低对象之间的耦合度。
 - **AOP**：是面向切面编程，能够将那些与业务无关，却为业务模块所共同调用的逻辑封装起来，以减少系统的重复代码，降低模块间的耦合度。Spring AOP 基于动态代理：如果被代理对象实现了接口，Spring AOP 默认会使用 JDK Proxy 创建代理对象；如果没有实现接口，则会使用 CGLIB 生成被代理对象的子类作为代理。**注意：自 Spring Boot 2.0 起，默认配置 `spring.aop.proxy-target-class=true`，即无论是否实现接口都优先使用 CGLIB，如需切回 JDK 动态代理需手动设为 false**。
@@ -8272,14 +8218,14 @@ Spring AOP 是基于 JDK 动态代理和 CGLIB 字节码增强实现的，两种
 
 ### 5.1.5 IOC和AOP是通过什么机制来实现的?
 
-> Spring IOC 实现机制
+#### Spring IOC 实现机制
 
 - **反射**：Spring IOC容器利用Java的反射机制动态地加载类、创建对象实例及调用对象方法，反射允许在运行时检查类、方法、属性等信息，从而实现灵活的对象实例化和管理。
 - **依赖注入**：依赖注入是实现 IOC 的主要方式，即容器负责管理应用程序组件之间的依赖关系。Spring通过构造函数注入、属性注入或方法注入，将组件之间的依赖关系描述在配置文件中或使用注解。
 - **设计模式 - 工厂模式**：Spring IOC容器通常采用工厂模式来管理对象的创建和生命周期。容器作为工厂负责实例化Bean并管理它们的生命周期，将Bean的实例化过程交给容器来管理。
 - **容器实现**：Spring IOC容器是实现IOC的核心，通常使用BeanFactory或ApplicationContext来管理Bean。BeanFactory是IOC容器的基本形式，提供基本的IOC功能；ApplicationContext是BeanFactory的扩展，并提供更多企业级功能。
 
-> Spring AOP 实现机制
+#### Spring AOP 实现机制 
 
 Spring AOP的实现依赖于**动态代理技术**。动态代理是在运行时动态生成代理对象，而不是在编译时。它允许开发者在运行时指定要代理的接口和行为，从而实现在不修改源码的情况下增强方法的功能。
 
@@ -8292,11 +8238,7 @@ Spring AOP支持两种动态代理：
 
 **IOC**：Inversion Of Control，即控制反转，是一种设计思想。在传统的 Java SE 程序设计中，我们直接在对象内部通过 new 的方式来创建对象，是程序主动创建依赖对象；
 
-![img](image/1716790809843-e520e960-fb95-4511-aa30-73966361320a.webp)
-
 而在Spring程序设计中，IOC 是有专门的容器去控制对象。
-
-![img](image/1716790809860-74256f8b-3a96-485c-8aa1-11fa5dfb7640.webp)
 
 **所谓控制**就是对象的创建、初始化、销毁。
 
