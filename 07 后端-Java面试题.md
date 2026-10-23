@@ -9247,7 +9247,7 @@ Spring Boot 的自动装配，可以理解为：**根据项目引入的依赖、
 
 `AutoConfiguration.imports` 每行写一个自动配置类名，不需要再写 `EnableAutoConfiguration` 这个键。**它里面列的是自动配置类，比如 DataSourceAutoConfiguration，不是 RedisTemplate 这样的普通业务或基础设施 Bean 类**。`spring.factories` 仍然可以用于其他扩展点，不能说这个文件被整个废弃了。
 
-#### 为什么自定义Bean之后，自动配置通常会退让？
+### 5.3.7 为什么自定义Bean之后，自动配置通常会退让？
 
 因为自动配置中大量使用了条件注解：
 
@@ -9262,7 +9262,7 @@ Spring Boot 的自动装配，可以理解为：**根据项目引入的依赖、
 
 面试时可以顺着这条链路回答：**启动注解开启自动配置 → 导入选择器读取候选类 → 排除、筛选和排序 → 条件注解控制配置及 Bean 注册 → 容器创建 Bean**。
 
-### 5.3.7 说几个启动器（starter)
+### 5.3.8 说几个启动器（starter)
 
 - **spring-boot-starter-web**：这是最常用的起步依赖之一，包含Spring MVC和Tomcat嵌入式服务器，用于快速构建Web应用程序。
 - **spring-boot-starter-security**：提供了Spring Security的基本配置，帮助开发者快速实现应用的安全性，包括认证和授权功能。
@@ -9271,7 +9271,7 @@ Spring Boot 的自动装配，可以理解为：**根据项目引入的依赖、
 - **spring-boot-starter-data-redis**：用于集成 Redis 缓存和数据存储服务。这个 Starter 包含了与 Redis 交互所需的客户端（**自 Spring Boot 2.0 起默认是 Lettuce 客户端**，它基于 Netty 实现，线程安全且支持响应式；如需使用 Jedis，需要在依赖中排除 lettuce-core 并手动引入 jedis），以及 Spring Data Redis 的支持，使得在 Spring Boot 应用中使用 Redis 变得非常便捷。同样地，需要在配置文件中设置 Redis 服务器的连接详情。
 - **spring-boot-starter-test**：包含了单元测试和集成测试所需的库，如JUnit, Spring Test, AssertJ等，便于进行测试驱动开发(TDD)。
 
-### 5.3.8 写过SpringBoot starter吗?
+### 5.3.9 写过SpringBoot starter吗?
 
 自定义 starter 的核心是**把依赖、配置属性和自动配置封装好，让使用方引入依赖后就能按约定使用**。
 
@@ -9356,7 +9356,7 @@ my:
 
 实际开发还要验证三个关键场景：**默认配置能创建 Bean、关闭功能时不创建 Bean、使用方提供自定义 Bean 时自动配置能够退让**，这几个场景可以用 `ApplicationContextRunner` 来验证。
 
-### 5.3.9 SpringBoot启动流程大致是什么？
+### 5.3.10 SpringBoot启动流程大致是什么？
 
 Spring Boot 启动入口通常是 `SpringApplication.run()`，但核心还是**准备环境、创建并刷新 Spring 容器，最后执行启动后的任务**。
 
@@ -9369,15 +9369,13 @@ Spring Boot 启动入口通常是 `SpringApplication.run()`，但核心还是**�
 5. **启动 Web 服务器**：Web 应用在上下文刷新过程中创建和启动内嵌服务器，这不是等所有启动后回调结束才开始的。
 6. **执行启动任务**：上下文刷新完成后发布相关事件，调用 ApplicationRunner、CommandLineRunner，最后发布应用就绪事件。
 
-![img](image/379d6f1b_boot-startup-timeline.png)
+![img](image/06-115.png)
 
 `ApplicationRunner` 接收解析后的 ApplicationArguments，`CommandLineRunner` 接收原始字符串参数，多个 Runner 可以通过 `@Order` 等方式安排执行顺序。
 
 如果启动失败，我会结合异常所在阶段排查：配置没读到、Bean 创建失败、自动配置条件没满足、端口占用，还是 Runner 执行失败。
 
-### 5.3.10 自动配置没有生效，怎么排查？
-
-我会先确认**自动配置类有没有被发现，再确认哪个条件没满足**。
+### 5.3.11 自动配置没有生效，怎么排查？
 
 - **看依赖和版本**：starter 是否真的在类路径里，相关第三方类是否存在，Spring Boot 与 starter 的版本是否兼容。
 - **看注册方式**：自定义自动配置是否写进对应版本支持的元数据文件，文件路径、包名是否正确。
@@ -9387,7 +9385,7 @@ Spring Boot 启动入口通常是 `SpringApplication.run()`，但核心还是**�
 
 比如引入了数据源 starter 但 Bean 没有按预期创建，可能是缺少驱动或连接信息，也可能是用户定义的 DataSource 让默认配置退让。要根据报告定位原因，不要只看到“自动”两个字就认为任何依赖都会立即生效。
 
-### 5.3.11 @Value 和 @ConfigurationProperties 有什么区别？
+### 5.3.12 @Value 和 @ConfigurationProperties 有什么区别？
 
 **`@Value` 更适合注入零散的配置值，`@ConfigurationProperties` 更适合把一组配置绑定到对象里**。
 
@@ -9398,7 +9396,7 @@ Spring Boot 启动入口通常是 `SpringApplication.run()`，但核心还是**�
 
 配置属性类也需要被注册到容器中，可以用 `@EnableConfigurationProperties` 或 `@ConfigurationPropertiesScan`，不是只写一个注解就一定会被加载。
 
-### 5.3.12 SpringBoot配置文件的优先级是怎样的？
+### 5.3.13 SpringBoot配置文件的优先级是怎样的？
 
 Spring Boot 可以从多个来源读取配置，**同一个属性同时出现在多个来源时，由优先级更高的来源覆盖**。
 
@@ -9410,13 +9408,9 @@ Spring Boot 可以从多个来源读取配置，**同一个属性同时出现在
 
 比如包内 `application.yml` 把端口设置为 8080，环境变量设置了 `SERVER_PORT=8081`，启动参数又写了 `--server.port=8082`，最终通常用 8082。
 
-![img](image/52b22eee_configuration-priority.png)
-
 上面只列了常见来源，测试属性、`SPRING_APPLICATION_JSON`、配置导入等还有各自的优先级。配置了自定义 location 或 import 时，也要按实际加载顺序判断，不能把这条简化顺序当成所有场景的完整规则。
 
-### 5.3.13 SpringBoot里面有哪些重要的注解？还有一个配置相关的注解是哪个？
-
-Spring Boot 中一些常用的注解包括：
+### 5.3.14 SpringBoot里面有哪些重要的注解？还有一个配置相关的注解是哪个？
 
 - **@SpringBootApplication**：用于标注主应用程序类，标识一个Spring Boot应用程序的入口点，同时启用自动配置和组件扫描。
 - **@Controller**：标识控制器类，处理HTTP请求。
@@ -9436,7 +9430,7 @@ Spring Boot 中一些常用的注解包括：
 - **@EnableConfigurationProperties**：注册指定的配置属性类并启用绑定。
 - **@ConfigurationPropertiesScan**：扫描并注册配置属性类。
 
-### 5.3.14 springboot怎么开启事务？
+### 5.3.15 springboot怎么开启事务？
 
 在 Spring Boot 中，如果已经配置好受支持的数据源和对应事务管理器，通常在由 Spring 管理的服务方法上添加 `@Transactional` 就可以使用声明式事务。调用时还需要经过代理对象。
 
@@ -9476,13 +9470,13 @@ public class UserServiceImpl implements UserService {
 </dependency>
 ```
 
-### 5.3.15 Springboot怎么做到导入就可以直接使用的？
+### 5.3.16 Springboot怎么做到导入就可以直接使用的？
 
 这个主要依赖于自动配置、起步依赖和条件注解等特性。
 
-> 起步依赖
+#### 起步依赖
 
-起步依赖是一种特殊的 Maven 或 Gradle 依赖，它将项目所需的一系列依赖打包在一起。例如，`spring-boot-starter-web` 这个起步依赖就包含了 Spring Web MVC、Tomcat 等构建 Web 应用所需的核心依赖。
+一种特殊的 Maven 或 Gradle 依赖，它将项目所需的一系列依赖打包在一起。例如，`spring-boot-starter-web` 这个起步依赖就包含了 Spring Web MVC、Tomcat 等构建 Web 应用所需的核心依赖。
 
 开发者只需在项目中添加一个起步依赖，Maven 或 Gradle 就会自动下载并管理与之关联的所有依赖，避免了手动添加大量依赖的繁琐过程。
 
@@ -9495,15 +9489,15 @@ public class UserServiceImpl implements UserService {
 </dependency>
 ```
 
-> 自动配置
+#### 自动配置
 
-Spring Boot 的自动配置机制会根据类路径下的依赖和开发者的配置，自动创建和配置应用所需的 Bean。它通过 `@EnableAutoConfiguration` 注解启用，该注解会触发 Spring Boot 去查找对应的自动配置元数据文件（2.7 以前是 `META-INF/spring.factories`，2.7 及以后是 `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`，Spring Boot 3.0 已彻底移除对 `spring.factories` 自动配置条目的支持）。
+会根据类路径下的依赖和开发者的配置，自动创建和配置应用所需的 Bean。它通过 `@EnableAutoConfiguration` 注解启用，该注解会触发 Spring Boot 去查找对应的自动配置元数据文件（2.7 以前是 `META-INF/spring.factories`，2.7 及以后是 `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`，Spring Boot 3.0 已彻底移除对 `spring.factories` 自动配置条目的支持）。
 
 元数据文件中定义了一系列自动配置类，Spring Boot 会根据当前项目的依赖情况，选择合适的自动配置类进行加载。例如，如果项目中包含 `spring-boot-starter-web` 依赖，Spring Boot 会加载 `WebMvcAutoConfiguration` 类，该类会自动配置 Spring MVC 的相关组件，如 DispatcherServlet、视图解析器等。
 
 开发者可以通过自定义配置来覆盖自动配置的默认行为。如果开发者在 `application.properties` 或 `application.yml` 中定义了特定的配置，或者提供了自动配置所检查类型的 Bean，相关自动配置通常会通过条件判断退让。它并不是靠同名 Bean 自动覆盖来保证这一点。
 
-> 条件注解
+#### 条件注解
 
 条件注解用于控制 Bean 的创建和加载，只有在满足特定条件时，才会创建相应的 Bean。Spring Boot 的自动配置类中广泛使用了条件注解，如 `@ConditionalOnClass`、`@ConditionalOnMissingBean` 等。
 
@@ -9519,7 +9513,7 @@ public class WebMvcAutoConfiguration {
 
 这段代码表示只有当类路径中存在 `Servlet`、`DispatcherServlet` 和 `WebMvcConfigurer` 类时，才满足示例中的类路径条件；实际是否生效还要继续检查 Web 应用类型、是否存在 WebMvcConfigurationSupport 等其他条件。
 
-### 5.3.16 SpringBoot 过滤器和拦截器说一下？
+### 5.3.17 SpringBoot 过滤器和拦截器说一下
 
 过滤器和拦截器都可以在请求前后执行逻辑，区别主要是**所在层次和能拿到的信息不同**。
 
@@ -9542,7 +9536,7 @@ Filter 在 `doFilter()` 中通过 `chain.doFilter()` 把请求交给后面的过
 
 普通同步请求可以记成：**Filter 前置 → DispatcherServlet → Interceptor 前置 → Controller → 返回值处理 → Interceptor 后置 → 视图渲染（如果有）→ Interceptor 完成回调 → Filter 后置**。多个 Filter 或拦截器的后置逻辑通常按进入顺序的反方向执行，异步请求还有额外的分派流程。
 
-![img](image/4671cf63_filter-interceptor-nesting.png)
+![img](image/06-116.png)
 
 有两个误区要注意：第一，**Filter 不是一定无法注入 Spring Bean**，关键看它是怎么创建和注册的；第二，拦截器也不只作用于 Controller，Spring MVC 管理的静态资源 Handler 如果匹配规则，也可能被拦截。
 
@@ -9550,19 +9544,11 @@ Filter 在 `doFilter()` 中通过 `chain.doFilter()` 把请求交给后面的过
 
 ## 5.4 Mybatis
 
-### 5.4.1 与传统的JDBC相比，MyBatis的优点？
-
-- 基于 SQL 语句编程，相当灵活，不会对应用程序或者数据库的现有设计造成任 何影响，SQL 写在 XML 里，解除 sql 与程序代码的耦合，便于统一管理；提供 XML 标签，支持编写动态 SQL 语句，并可重用。
-- 与直接使用 JDBC 相比，封装了参数设置、结果集映射和资源管理等重复代码；独立使用时仍要正确关闭 SqlSession，与 Spring 整合后通常由相关组件管理会话和连接；
-- 很好的与各种数据库兼容，因为 MyBatis 使用 JDBC 来连接数据库，所以只要 JDBC 支持的数据库 MyBatis 都支持。
-- 能够与 Spring 很好的集成，开发效率高
-- 提供映射标签，支持对象与数据库的 ORM 字段关系映射；提供对象关系映射 标签，支持对象关系组件维护。
-
-### 5.4.2 MyBatis觉得在哪方面做的比较好？
+### 5.4.1 MyBatis觉得在哪方面做的比较好？
 
 MyBatis 在 **SQL 灵活性**、**动态 SQL 支持**、**结果集映射**和**与 Spring 整合**这几个方面比较实用，尤其适合重视 SQL 可控性的项目。
 
-- SQL 与代码解耦，灵活可控：MyBatis 允许开发者直接编写和优化 SQL，相比全自动 ORM（如 Hibernate），MyBatis 让开发者明确知道每条 SQL 的执行逻辑，便于性能调优。
+- **SQL 与代码解耦，灵活可控**：MyBatis 允许开发者直接编写和优化 SQL，相比全自动 ORM（如 Hibernate），MyBatis 让开发者明确知道每条 SQL 的执行逻辑，便于性能调优。
 
 ```xml
 <!-- 示例：XML 中定义 SQL -->
@@ -9576,7 +9562,7 @@ MyBatis 在 **SQL 灵活性**、**动态 SQL 支持**、**结果集映射**和**
 </select>
 ```
 
-- 动态 SQL 的强大支持：比如可以动态拼接SQL，通过 `<if>`, `<choose>`, `<foreach>` 等标签动态生成 SQL，避免 Java 代码中繁琐的字符串拼接。
+- **动态 SQL 的强大支持**：比如可以动态拼接SQL，通过 `<if>`, `<choose>`, `<foreach>` 等标签动态生成 SQL，避免 Java 代码中繁琐的字符串拼接。
 
 ```xml
 <select id="searchUsers" resultType="User">
@@ -9588,7 +9574,7 @@ MyBatis 在 **SQL 灵活性**、**动态 SQL 支持**、**结果集映射**和**
 </select>
 ```
 
-- 自动映射与自定义映射结合：自动将查询结果字段名与对象属性名匹配（如驼峰转换）。
+- **自动映射与自定义映射结合**：自动将查询结果字段名与对象属性名匹配（如驼峰转换）。
 
 ```xml
 <resultMap id="userRoleMap" type="User">
@@ -9601,7 +9587,7 @@ MyBatis 在 **SQL 灵活性**、**动态 SQL 支持**、**结果集映射**和**
 </resultMap>
 ```
 
-- 插件扩展机制：可编写插件拦截 SQL 执行过程，实现分页、性能监控、SQL 改写等通用逻辑。
+- **插件扩展机制**：可编写插件拦截 SQL 执行过程，实现分页、性能监控、SQL 改写等通用逻辑。
 
 ```java
 @Intercepts({
@@ -9617,7 +9603,7 @@ public class SqlMonitorPlugin implements Interceptor {
 }
 ```
 
-- 与 Spring 生态无缝集成：通过 `@MapperScan` 快速扫描 Mapper 接口，结合 Spring 事务管理，配置简洁高效。
+- **与 Spring 生态无缝集成**：通过 `@MapperScan` 快速扫描 Mapper 接口，结合 Spring 事务管理，配置简洁高效。
 
 ```java
 @Configuration
@@ -9627,9 +9613,7 @@ public class MyBatisConfig {
 }
 ```
 
-### 5.4.3 还记得JDBC连接数据库的步骤吗？
-
-主要是 **获取连接 → 创建语句 → 设置参数 → 执行 SQL → 处理结果 → 释放资源**。
+### 5.4.2 还记得JDBC连接数据库的步骤吗？
 
 1. **准备驱动**：引入数据库 JDBC 驱动。JDBC 4.0 起，驱动通常可以通过 SPI 自动加载，一般不需要再手动 `Class.forName()`。
 2. **获取连接**：示例可以用 DriverManager，实际项目一般通过 DataSource 和连接池获取。
@@ -9637,8 +9621,6 @@ public class MyBatisConfig {
 4. **执行 SQL**：查询使用 `executeQuery()`，更新通常使用 `executeUpdate()`。
 5. **处理结果**：通过 ResultSet 遍历结果并读取字段。
 6. **释放资源**：使用 try-with-resources，异常时也能关闭 ResultSet、Statement 和 Connection。
-
-例如：
 
 ```java
 import java.sql.*;
@@ -9739,7 +9721,7 @@ SqlSessionFactory 通常创建一次并复用，**SqlSession 本身不能被多�
 - **`#{}`**：在默认的 PreparedStatement 执行方式下，会转换成 `?` 占位符，再通过 JDBC 设置参数。用户输入作为数据传递，不会因为其中包含 SQL 关键字就变成 SQL 结构，适合用户名、id、日期等参数值。
 - **`${}`**：直接把内容拼进 SQL 文本中，输入内容可能改变 SQL 结构，存在 SQL 注入风险。即使最终仍然使用 PreparedStatement 执行，也不能消除这部分文本拼接的风险。
 
-![img](image/e627a2ae_mybatis-parameter-text-substitution.png)
+![img](image/06-117.png)
 
 比如：
 
@@ -9753,7 +9735,7 @@ SqlSessionFactory 通常创建一次并复用，**SqlSession 本身不能被多�
 
 那为什么还需要 `${}`？因为表名、列名、排序方向这些属于 SQL 结构，不能直接用 `?` 当成标识符。确实需要动态选择时，应该使用**服务端白名单或 `<choose>` 等方式限定允许的选项**，不能直接把用户传入的字符串拼进去。
 
-面试时还可以补一句：`#{}` 不代表所有 SQL 都一定更快，性能还和数据库、驱动和执行计划有关；它最关键的价值是正确进行参数绑定，降低参数值导致 SQL 注入的风险。
+面试时还可以补一句：**`#{}` 不代表所有 SQL 都一定更快，性能还和数据库、驱动和执行计划有关；它最关键的价值是正确进行参数绑定，降低参数值导致 SQL 注入的风险。**
 
 ### 5.4.6 MyBatis的执行流程是什么？
 
@@ -9775,7 +9757,7 @@ MyBatis 的核心是**把 Mapper 方法调用转换成 SQL 执行，再把结果
 - **ParameterHandler**：设置 SQL 参数，结合 TypeHandler 完成 Java 类型和 JDBC 类型的转换。
 - **ResultSetHandler**：按 resultType 或 resultMap 把结果映射成对象。
 
-![img](image/cf65c580_mybatis-query-execution.png)
+![img](image/06-118.png)
 
 所以 Mapper 接口没有实现类也能调用，是因为运行时拿到的是代理对象，而不是 MyBatis 替我们生成了一份手写风格的 DAO 源码。
 
@@ -9788,13 +9770,11 @@ MyBatis 的核心是**把 Mapper 方法调用转换成 SQL 执行，再把结果
 
 开启二级缓存后，典型查询路径是：**二级缓存 → 一级缓存 → 数据库**，但前提是这条语句允许使用对应缓存。
 
-![img](https://cdn.xiaolincoding.com/xiaolinnote/interview/images/spring/d87d1a60_mybatis-cache-scopes.png)
-
 和 Spring 整合时还要注意：Mapper 多次调用不一定使用同一个底层 SqlSession。在同一个 Spring 事务内，通常会复用事务绑定的会话；没有事务时，会话可能在每次调用后关闭，所以不能只看 Mapper 对象相同就认定一级缓存会命中。
 
 二级缓存也有一致性边界：一个 namespace 下的更新通常只清理关联的缓存，其他 Mapper 或外部程序修改同一张表，不一定会让这里的缓存失效。所以对更新频繁、跨表关联复杂的数据，不能随意开启二级缓存，更不能把它直接当成 Redis 那样的跨进程共享缓存。
 
-![img](image/e72e318a_mybatis-cache-stale-read.png)
+![img](image/06-120.png)
 
 ### 5.4.8 resultType 和 resultMap 有什么区别？
 
@@ -9810,7 +9790,7 @@ MyBatis 的核心是**把 Mapper 方法调用转换成 SQL 执行，再把结果
 
 同一个查询通常选择 resultType 或 resultMap 其中一个，不同时配置。
 
-![img](https://cdn.xiaolincoding.com/xiaolinnote/interview/images/spring/a01546d9_resultmap-one-to-many.png)
+![img](image/06-121.png)
 
 还要留意一对多查询的 **N+1 问题**：先查询 N 个用户，再给每个用户单独查一次角色，就可能执行 N+1 次查询。可以根据场景用关联查询映射结果，或者批量查询后组装；开启延迟加载只会推迟查询时间，不一定减少最终的查询次数。
 
@@ -9827,8 +9807,6 @@ MybatisPlus是一个基于MyBatis的增强工具库，旨在简化开发并提�
 
 ### 5.4.10 MyBatis运用了哪些常见的设计模式？
 
-比较典型的有下面这些：
-
 - **建造者模式**：SqlSessionFactoryBuilder、XMLConfigBuilder 等，负责解析配置并逐步构建所需对象。
 - **工厂模式**：SqlSessionFactory 负责创建 SqlSession，MapperProxyFactory 负责创建 Mapper 代理。
 - **代理模式**：MapperProxy 用 JDK 动态代理把 Mapper 接口方法转换成 SQL 执行；延迟加载也会使用代理，具体实现要结合配置和版本。
@@ -9837,19 +9815,19 @@ MybatisPlus是一个基于MyBatis的增强工具库，旨在简化开发并提�
 - **适配器模式**：Log 接口把不同日志框架适配成统一的调用方式。
 - **装饰器模式**：缓存中的 LruCache 等装饰器，在基础缓存外面增加淘汰等能力；CachingExecutor 则在执行器外面增加二级缓存处理。
 
-还可以提一下 ErrorContext：它通过 ThreadLocal 管理当前线程的错误上下文，**不是整个 JVM 共享同一个可变上下文对象**。面试时举两三个自己理解的例子，比罗列一长串模式更容易回答追问。
+面试时举两三个自己理解的例子，比罗列一长串模式更容易回答追问。
 
 ## 5.5 SpringCloud
 
 ### 5.5.1 了解SpringCloud吗，说一下他和SpringBoot的区别
 
-Spring Boot是用于构建单个Spring应用的框架，而Spring Cloud则是用于构建分布式系统中的微服务架构的工具，Spring Cloud提供了服务注册与发现、负载均衡、断路器、网关等功能。
+Spring Boot是用于构建**单个Spring应用**的框架，而Spring Cloud则是用于**构建分布式系统中的微服务架构**的工具，Spring Cloud提供了服务注册与发现、负载均衡、断路器、网关等功能。
 
 两者可以结合使用，通过Spring Boot构建微服务应用，然后用Spring Cloud来实现微服务架构中的各种功能。
 
 ### 5.5.2 用过哪些微服务组件？
 
-![img](image/1715933382453-968d55a3-059b-423d-9f67-0ebf732fc400.png)
+![img](image/06-122.png)
 
 微服务常用的组件：
 
@@ -9863,27 +9841,25 @@ Spring Boot是用于构建单个Spring应用的框架，而Spring Cloud则是用
 
 SpringCloud Alibaba实现的微服务架构：
 
-![img](image/1715933831252-4dbe4ae0-8072-4512-b54b-39ea5e8b3153.png)
-
-- SpringCloud Alibaba中使用**Alibaba Nacos**组件实现**注册中心**，Nacos提供了一组简单易用的特性集，可快速实现动态服务发现、服务配置、服务元数据及流量管理。
-- SpringCloud Alibaba 早期复用 Ribbon 做客户端负载均衡，新版本（2020.x+）已切换为 **Spring Cloud LoadBalancer**，并可结合 Nacos 提供的权重、健康状态等元数据实现加权负载均衡（Nacos 主要承担注册中心 / 配置中心角色，真正的负载均衡仍由客户端组件完成）。
-- SpringCloud Alibaba 可以使用 **Spring Cloud OpenFeign** 和 **Apache Dubbo** 相关集成组件来实现服务通信，前者与 SpringCloud 采用了相同的方案，后者则是对自家的 **RPC 框架 Dubbo** 也给予支持，为服务间通信提供另一种选择。
-- SpringCloud Alibaba 在**API服务网关**组件中，使用与SpringCloud相同的组件，即：**SpringCloud Gateway**。
-- SpringCloud Alibaba在配置中心组件中使用**Nacos内置配置中心**，Nacos内置的配置中心，可将配置信息**存储保存在指定数据库**中
-- SpringCloud Alibaba在原有的**ELK方案**外，还可以使用阿里云日志服务（LOG）实现日志集中式管理。
+- 使用**Alibaba Nacos**组件实现**注册中心**，Nacos提供了一组简单易用的特性集，可快速实现动态服务发现、服务配置、服务元数据及流量管理。
+- 早期复用 Ribbon 做客户端负载均衡，新版本已切换为 **Spring Cloud LoadBalancer**，并可结合 Nacos 提供的权重、健康状态等元数据实现加权负载均衡（Nacos 主要承担注册中心 / 配置中心角色，真正的负载均衡仍由客户端组件完成）。
+- 可以使用 **Spring Cloud OpenFeign** 和 **Apache Dubbo** 相关集成组件来实现服务通信，前者与 SpringCloud 采用了相同的方案，后者则是对自家的 **RPC 框架 Dubbo** 也给予支持，为服务间通信提供另一种选择。
+-  在**API服务网关**组件中，使用与SpringCloud相同的组件，即：**SpringCloud Gateway**。
+- 在配置中心组件中使用**Nacos内置配置中心**，Nacos内置的配置中心，可将配置信息**存储保存在指定数据库**中
+- 在原有的**ELK方案**外，还可以使用阿里云日志服务（LOG）实现日志集中式管理。
 - 较早的项目常使用 **Sleuth + Zipkin** 做链路追踪；Spring Boot 3.x 及对应的新一代生态主要转向 **Micrometer Tracing**，可以结合 Zipkin 或 OpenTelemetry 等方案。要根据项目版本说明，不能把 Sleuth 当成所有版本通用的组件。
-- SpringCloud Alibaba 可以使用 **Sentinel** 做流量控制、熔断降级等服务保护。具体组件组合还要匹配 Spring Boot、Spring Cloud 和 Spring Cloud Alibaba 的版本。
+- 可以使用 **Sentinel** 做流量控制、熔断降级等服务保护。具体组件组合还要匹配 Spring Boot、Spring Cloud 和 Spring Cloud Alibaba 的版本。
 
 ### 5.5.3 负载均衡有哪些算法？
 
-- 简单轮询：将请求按顺序分发给后端服务器上，不关心服务器当前的状态，比如后端服务器的性能、当前的负载。
-- 加权轮询：根据服务器自身的性能给服务器设置不同的权重，将请求按顺序和权重分发给后端服务器，可以让性能高的机器处理更多的请求
-- 简单随机：将请求随机分发给后端服务器上，请求越多，各个服务器接收到的请求越平均
-- 加权随机：根据服务器自身的性能给服务器设置不同的权重，将请求按各个服务器的权重随机分发给后端服务器
-- 一致性哈希：把节点和请求键映射到同一个哈希环上，按环上的位置选择节点，通常配合虚拟节点改善分布。节点列表不变时，同一个键会落到同一个节点；节点增减时，通常只需要迁移部分键，区别于直接按节点数量取模
-- 最小活跃数：统计每台服务器上当前正在处理的请求数，也就是请求活跃数，将请求分发给活跃数最少的后台服务器
+- **简单轮询**：将请求**按顺序**分发给后端服务器上，不关心服务器当前的状态，比如后端服务器的性能、当前的负载。
+- **加权轮询**：根据服务器自身的性能给服务器设置不同的权重，将请求按顺序和权重分发给后端服务器，可以**让性能高的机器处理更多的请求**
+- **简单随机**：将请求随机分发给后端服务器上，**请求越多，各个服务器接收到的请求越平均**
+- **加权随机**：根据服务器自身的性能给服务器设置不同的权重，将请求**按各个服务器的权重随机分发给后端服务器**
+- **一致性哈希**：把节点和请求键映射到同一个哈希环上，按环上的位置选择节点，通常配合虚拟节点改善分布。节点列表不变时，同一个键会落到同一个节点；节点增减时，通常只需要迁移部分键，区别于直接按节点数量取模
+- **最小活跃数**：统计每台服务器上当前正在处理的请求数，也就是请求活跃数，将请求分发给活跃数最少的后台服务器
 
-![img](https://cdn.xiaolincoding.com/xiaolinnote/interview/images/spring/2c96c4ba_consistent-hash-node-change.png)
+![img](image/06-123.png)
 
 ### 5.5.4 如何实现一直均衡给一个用户？
 
@@ -9911,7 +9887,7 @@ SpringCloud Alibaba实现的微服务架构：
 
 这里的“关闭”是电路接通、“打开”是电路断开，别和中文里“开服务、关服务”的习惯混淆。
 
-![img](https://cdn.xiaolincoding.com/xiaolinnote/interview/images/spring/0f824f7d_circuit-breaker-states.png)
+![img](image/06-124.png)
 
 Spring Cloud 项目可以通过 Spring Cloud CircuitBreaker 结合 Resilience4j 等实现，Spring Cloud Alibaba 项目也常用 Sentinel。Hystrix 是较早的常见方案，已经进入维护状态，不能把 Spring Cloud 的熔断机制等同于 Hystrix。
 
@@ -9919,7 +9895,7 @@ Spring Cloud 项目可以通过 Spring Cloud CircuitBreaker 结合 Resilience4j 
 
 ### 5.5.6 介绍一下服务降级
 
-服务降级一般是指在服务器压力剧增的时候，根据实际业务使用情况以及流量，对一些服务和页面有策略的不处理或者用一种简单的方式进行处理，从而**释放服务器资源，以保证核心业务的正常运行。**
+指在服务器压力剧增的时候，根据实际业务使用情况以及流量，对一些服务和页面有策略的不处理或者用一种简单的方式进行处理，从而**释放服务器资源，以保证核心业务的正常运行。**
 
 服务器的资源是有限的，而请求是无限的。在用户访问的并发高峰期，会影响整体服务的性能，严重的话会导致宕机，以至于某些重要服务不可用。故高峰期为了保证核心功能服务的可用性，就需要对某些服务降级处理。可以理解为舍小保大
 
@@ -9927,15 +9903,11 @@ Spring Cloud 项目可以通过 Spring Cloud CircuitBreaker 结合 Resilience4j 
 
 ### 5.5.7 限流、熔断和降级有什么区别？
 
-这三个概念经常一起使用，但它们解决的问题不同：
-
-- **限流**：控制进入系统的请求量，避免超过处理能力。比如接口每秒只允许一定数量的请求，超出的请求直接拒绝或按策略等待。
-- **熔断**：发现下游服务异常时，暂时切断调用，让请求快速失败，避免故障继续扩散。
-- **降级**：在资源紧张或依赖失败时，提供简化结果，优先保住核心业务。比如推荐服务不可用时返回默认推荐列表。
+- **限流**：**控制进入系统的请求量**，避免超过处理能力。比如接口每秒只允许一定数量的请求，超出的请求直接拒绝或按策略等待。
+- **熔断**：发现**下游服务异常时，暂时切断调用**，让请求快速失败，避免故障继续扩散。
+- **降级**：在资源紧张或依赖失败时，**提供简化结果，优先保住核心业务**。比如推荐服务不可用时返回默认推荐列表。
 
 举个例子，商品详情页流量突然增大，可以先限流；推荐服务持续超时，可以对它熔断；页面仍然展示商品信息，同时返回默认推荐，这就是降级。
-
-![img](https://cdn.xiaolincoding.com/xiaolinnote/interview/images/spring/cd5c2aae_rate-limit-circuit-fallback.png)
 
 **熔断可以触发降级，但降级不一定由熔断触发**，也可以因为超时、异常、限流或主动关闭非核心功能而触发。对于扣款、下单这类关键操作，不能随便用降级结果伪装成操作成功。
 
@@ -9944,8 +9916,6 @@ Spring Cloud 项目可以通过 Spring Cloud CircuitBreaker 结合 Resilience4j 
 不能无条件重试，要先判断**失败原因、操作是否幂等，以及重试会不会放大故障**。
 
 比如查询商品信息，遇到短暂网络波动时可以做有限重试；但创建订单、扣款等写操作，如果只是响应超时，请求可能已经在下游执行成功，再发一次就可能重复处理。
-
-![img](image/376d1a9a_retry-idempotency-timeout.png)
 
 一般需要注意这么几个点：
 
